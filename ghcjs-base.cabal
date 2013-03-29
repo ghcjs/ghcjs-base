@@ -1,0 +1,22 @@
+
+-- documentation, see http://haskell.org/cabal/users-guide/
+
+name:                ghcjs-base
+version:             0.1.0.0
+synopsis:            base library for GHCJS
+-- description:         
+homepage:            http://github.com/ghcjs
+license:             MIT
+license-file:        LICENSE
+author:              Luite Stegeman
+maintainer:          stegeman@gmail.com
+-- copyright:           
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules: GHCJS.Types
+  -- other-modules:       
+  build-depends:       base >= 4.7 && < 5
+
