@@ -5,5 +5,4 @@ module GHCJS.Types where
 import Foreign.Ptr
 
 data JSChar
-type JSCString = Ptr JSChar
-
+type JSString = Ptr JSChar
