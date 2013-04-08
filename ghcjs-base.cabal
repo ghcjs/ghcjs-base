@@ -16,7 +16,9 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
+  ghc-options:     -O
   exposed-modules: GHCJS.Types
+                   GHCJS.Types.Internal
                    GHCJS.Foreign
   -- other-modules:       
   build-depends:   base >= 4.7 && < 5,
