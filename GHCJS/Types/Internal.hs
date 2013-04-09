@@ -65,14 +65,14 @@ foreign import javascript unsafe "$1 === $2 ? 1 : 0"        js_eqRef       :: JS
 foreign import javascript unsafe "$r = null"                js_nullRef     :: JSRef a
 #else
 js_isNull :: JSRef a -> Int#
-js_isNull = error "isNull unsupported"
+js_isNull = error "js_isNull: only available in JavaScript"
 
 js_isUndefined :: JSRef a -> Int#
-js_isUndefined = error "isUndefined unsupported"
+js_isUndefined = error "js_isUndefined: only available in JavaScript"
 
 js_eqRef :: JSRef a -> JSRef b -> Int#
-js_eqRef = error "eqRef unsupported"
+js_eqRef = error "js_eqRef: only available in JavaScript"
 
 js_nullRef :: JSRef a
-js_nullRef = error "nullRef unsupported"
+js_nullRef = error "js_nullRef: only available in JavaScript"
 #endif

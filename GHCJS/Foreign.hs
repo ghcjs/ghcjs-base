@@ -2,19 +2,27 @@
 
 module GHCJS.Foreign ( ToJSString(..)
                      , FromJSString(..)
+                     , mvarRef
                      , fromJSBool
                      , fromJSBool'
                      , toJSBool
+                     , jsTrue
+                     , jsFalse
+                     , jsNull
+                     , jsUndefined
                      ) where
 
-import GHCJS.Types
-import GHCJS.Types.Internal
+import           GHCJS.Types
+import           GHCJS.Types.Internal
 
+import           GHC.Prim
+import           GHC.Exts
+
+import           Control.Concurrent.MVar
 import qualified Data.Text as T
-import Foreign.Ptr
-import Unsafe.Coerce
-import GHC.Prim
-import GHC.Exts
+import           Foreign.Ptr
+import           Unsafe.Coerce
+
 
 import qualified Data.Text.Array as A
 
@@ -25,6 +33,8 @@ foreign import javascript unsafe "($1 === true) ? 1 : 0" js_fromBool :: JSBool -
 foreign import javascript unsafe "$1 ? 1 : 0" js_isTruthy :: JSRef a -> Int#
 foreign import javascript unsafe "$r = true"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false" js_false :: Int# -> Ref#
+foreign import javascript unsafe "$r = null"  js_null :: Int# -> Ref#
+foreign import javascript unsafe "$r = undefined"  js_undefined :: Int# -> Ref#
 #else
 js_toString :: Ref# -> Int# -> Int# -> Ref#
 js_toString = error "js_toString: only available in JavaScript"
@@ -38,6 +48,10 @@ js_true :: Int# -> Ref#
 js_true = error "js_true: only available in JavaScript"
 js_false :: Int# -> Ref#
 js_false = error "js_false: only available in JavaScript"
+js_null :: Int# -> Ref#
+js_null = error "js_null: only available in JavaScript"
+js_undefined :: Int# -> Ref#
+js_undefined = error "js_undefined: only available in JavaScript"
 #endif
 
 class ToJSString a where
@@ -72,8 +86,8 @@ fromJSBool b = case js_fromBool b of
 {-# INLINE fromJSBool #-}
 
 toJSBool :: Bool -> JSBool
-toJSBool True = mkRef (js_true 0#)
-toJSBool _    = mkRef (js_false 0#)
+toJSBool True = jsTrue
+toJSBool _    = jsFalse
 {-# INLINE toJSBool #-}
 
 -- check whether a reference is `truthy' in the JavaScript sense
@@ -82,6 +96,21 @@ fromJSBool' b = case js_isTruthy b of
                   1# -> True
                   _  -> False
 {-# INLINE fromJSBool' #-}
+
+jsTrue :: JSBool
+jsTrue = mkRef (js_true 0#)
+
+jsFalse :: JSBool
+jsFalse = mkRef (js_false 0#)
+
+jsNull :: JSRef a
+jsNull = mkRef (js_null 0#)
+
+jsUndefined :: JSRef a
+jsUndefined = mkRef (js_undefined 0#)
+
+mvarRef :: MVar a -> JSObject (MVar a)
+mvarRef = unsafeCoerce
 
 -- something that we can unsafeCoerce Text from
 data Text' = Text'
