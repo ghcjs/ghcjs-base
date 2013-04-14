@@ -10,6 +10,10 @@ module GHCJS.Foreign ( ToJSString(..)
                      , jsFalse
                      , jsNull
                      , jsUndefined
+                     , toJSArray
+                     , fromJSArray
+                     , indexJSArray
+                     , lengthJSArray
                      ) where
 
 import           GHCJS.Types
@@ -18,6 +22,7 @@ import           GHCJS.Types.Internal
 import           GHC.Prim
 import           GHC.Exts
 
+import           Control.Applicative
 import           Control.Concurrent.MVar
 import qualified Data.Text as T
 import           Foreign.Ptr
@@ -35,6 +40,10 @@ foreign import javascript unsafe "$r = true"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false" js_false :: Int# -> Ref#
 foreign import javascript unsafe "$r = null"  js_null :: Int# -> Ref#
 foreign import javascript unsafe "$r = undefined"  js_undefined :: Int# -> Ref#
+foreign import javascript unsafe "$r = []" js_emptyArr :: IO (JSArray a)
+foreign import javascript unsafe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
+foreign import javascript unsafe "$1.length" js_length :: JSArray a -> IO Int
+foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
 #else
 js_toString :: Ref# -> Int# -> Int# -> Ref#
 js_toString = error "js_toString: only available in JavaScript"
@@ -52,6 +61,14 @@ js_null :: Int# -> Ref#
 js_null = error "js_null: only available in JavaScript"
 js_undefined :: Int# -> Ref#
 js_undefined = error "js_undefined: only available in JavaScript"
+js_emptyArr :: IO (JSArray a)
+js_emptyArr = error "js_emptyArr: only available in JavaScript"
+js_push :: JSRef a -> JSArray a -> IO ()
+js_push = error "js_push: only available in JavaScript"
+js_length :: JSArray a -> IO Int
+js_length = error "js_length: only available in JavaScript"
+js_index :: Int -> JSArray a -> IO (JSRef a)
+js_index = error "js_index: only available in JavaScript"
 #endif
 
 class ToJSString a where
@@ -140,3 +157,27 @@ ptrToPtr' = unsafeCoerce
 ptr'ToPtr :: Ptr' a -> Ptr b
 ptr'ToPtr = unsafeCoerce
 
+toJSArray :: [JSRef a] -> IO (JSArray a)
+toJSArray xs = do
+  a <- js_emptyArr
+  let go ys = case ys of
+                (y:ys') -> js_push y a >> go ys'
+                _       -> return ()
+  return a
+{-# INLINE toJSArray #-}
+
+fromJSArray :: JSArray a -> IO [JSRef a]
+fromJSArray a = do
+  l <- js_length a
+  let go i | i < l     = (:) <$> js_index i a <*> go (i+1)
+           | otherwise = return []
+  go 0
+{-# INLINE fromJSArray #-}
+
+lengthJSArray :: JSArray a -> IO Int
+lengthJSArray a = js_length a
+{-# INLINE lengthJSArray #-}
+
+indexJSArray :: Int -> JSArray a -> IO (JSRef a)
+indexJSArray = js_index
+{-# INLINE indexJSArray #-}
