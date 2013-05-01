@@ -14,6 +14,8 @@ module GHCJS.Foreign ( ToJSString(..)
                      , fromJSArray
                      , indexJSArray
                      , lengthJSArray
+                     , getProp
+                     , setProp
                      ) where
 
 import           GHCJS.Types
@@ -44,6 +46,8 @@ foreign import javascript unsafe "$r = []" js_emptyArr :: IO (JSArray a)
 foreign import javascript unsafe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
 foreign import javascript unsafe "$1.length" js_length :: JSArray a -> IO Int
 foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
+foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
+foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 #else
 js_toString :: Ref# -> Int# -> Int# -> Ref#
 js_toString = error "js_toString: only available in JavaScript"
@@ -69,6 +73,10 @@ js_length :: JSArray a -> IO Int
 js_length = error "js_length: only available in JavaScript"
 js_index :: Int -> JSArray a -> IO (JSRef a)
 js_index = error "js_index: only available in JavaScript"
+js_getProp :: JSString -> JSRef a -> IO (JSRef b)
+js_getProp = error "js_getProp: only available in JavaScript"
+js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
+js_setProp = error "js_setProp: only available in JavaScript"
 #endif
 
 class ToJSString a where
@@ -181,3 +189,12 @@ lengthJSArray a = js_length a
 indexJSArray :: Int -> JSArray a -> IO (JSRef a)
 indexJSArray = js_index
 {-# INLINE indexJSArray #-}
+
+getProp :: ToJSString a => a -> JSRef b -> IO (JSRef c)
+getProp p o = js_getProp (toJSString p) o
+{-# INLINE getProp #-}
+
+setProp :: ToJSString a => a -> JSRef b -> JSRef c -> IO ()
+setProp p v o = js_setProp (toJSString p) v o
+{-# INLINE setProp #-}
+
