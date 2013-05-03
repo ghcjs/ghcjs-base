@@ -10,10 +10,13 @@ module GHCJS.Foreign ( ToJSString(..)
                      , jsFalse
                      , jsNull
                      , jsUndefined
-                     , toJSArray
-                     , fromJSArray
-                     , indexJSArray
-                     , lengthJSArray
+                     , toArray
+                     , newArray
+                     , fromArray
+                     , pushArray
+                     , indexArray
+                     , lengthArray
+                     , newObj
                      , getProp
                      , setProp
                      ) where
@@ -42,7 +45,8 @@ foreign import javascript unsafe "$r = true"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false" js_false :: Int# -> Ref#
 foreign import javascript unsafe "$r = null"  js_null :: Int# -> Ref#
 foreign import javascript unsafe "$r = undefined"  js_undefined :: Int# -> Ref#
-foreign import javascript unsafe "$r = []" js_emptyArr :: IO (JSArray a)
+foreign import javascript unsafe "$r = []" js_emptyArray :: IO (JSArray a)
+foreign import javascript unsafe "$r = {}" js_emptyObj :: IO (JSRef a)
 foreign import javascript unsafe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
 foreign import javascript unsafe "$1.length" js_length :: JSArray a -> IO Int
 foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
@@ -65,8 +69,10 @@ js_null :: Int# -> Ref#
 js_null = error "js_null: only available in JavaScript"
 js_undefined :: Int# -> Ref#
 js_undefined = error "js_undefined: only available in JavaScript"
-js_emptyArr :: IO (JSArray a)
-js_emptyArr = error "js_emptyArr: only available in JavaScript"
+js_emptyObj :: IO (JSRef a)
+js_emptyObj = error "js_emptyObj: only available in JavaScript"
+js_emptyArray :: IO (JSArray a)
+js_emptyArray = error "js_emptyArr: only available in JavaScript"
 js_push :: JSRef a -> JSArray a -> IO ()
 js_push = error "js_push: only available in JavaScript"
 js_length :: JSArray a -> IO Int
@@ -128,6 +134,7 @@ jsTrue = mkRef (js_true 0#)
 jsFalse :: JSBool
 jsFalse = mkRef (js_false 0#)
 
+
 jsNull :: JSRef a
 jsNull = mkRef (js_null 0#)
 
@@ -165,30 +172,43 @@ ptrToPtr' = unsafeCoerce
 ptr'ToPtr :: Ptr' a -> Ptr b
 ptr'ToPtr = unsafeCoerce
 
-toJSArray :: [JSRef a] -> IO (JSArray a)
-toJSArray xs = do
-  a <- js_emptyArr
+toArray :: [JSRef a] -> IO (JSArray a)
+toArray xs = do
+  a <- js_emptyArray
   let go ys = case ys of
                 (y:ys') -> js_push y a >> go ys'
                 _       -> return ()
+  go xs
   return a
-{-# INLINE toJSArray #-}
+{-# INLINE toArray #-}
 
-fromJSArray :: JSArray a -> IO [JSRef a]
-fromJSArray a = do
+pushArray :: JSRef b -> JSArray a -> IO ()
+pushArray r arr = js_push (castRef r) arr
+{-# INLINE pushArray #-}
+
+fromArray :: JSArray a -> IO [JSRef a]
+fromArray a = do
   l <- js_length a
   let go i | i < l     = (:) <$> js_index i a <*> go (i+1)
            | otherwise = return []
   go 0
-{-# INLINE fromJSArray #-}
+{-# INLINE fromArray #-}
 
-lengthJSArray :: JSArray a -> IO Int
-lengthJSArray a = js_length a
-{-# INLINE lengthJSArray #-}
+lengthArray :: JSArray a -> IO Int
+lengthArray a = js_length a
+{-# INLINE lengthArray #-}
 
-indexJSArray :: Int -> JSArray a -> IO (JSRef a)
-indexJSArray = js_index
-{-# INLINE indexJSArray #-}
+indexArray :: Int -> JSArray a -> IO (JSRef a)
+indexArray = js_index
+{-# INLINE indexArray #-}
+
+newArray :: IO (JSArray a)
+newArray = js_emptyArray
+{-# INLINE newArray #-}
+
+newObj :: IO (JSRef a)
+newObj = js_emptyObj
+{-# INLINE newObj #-}
 
 getProp :: ToJSString a => a -> JSRef b -> IO (JSRef c)
 getProp p o = js_getProp (toJSString p) o
@@ -197,4 +217,3 @@ getProp p o = js_getProp (toJSString p) o
 setProp :: ToJSString a => a -> JSRef b -> JSRef c -> IO ()
 setProp p v o = js_setProp (toJSString p) v o
 {-# INLINE setProp #-}
-

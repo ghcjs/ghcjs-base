@@ -5,7 +5,7 @@ name:                ghcjs-base
 version:             0.1.0.0
 synopsis:            base library for GHCJS
 -- description:         
-homepage:            http://github.com/ghcjs
+homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
 license-file:        LICENSE
 author:              Luite Stegeman
@@ -20,9 +20,13 @@ library
   exposed-modules: GHCJS.Types
                    GHCJS.Types.Internal
                    GHCJS.Foreign
-  -- other-modules:       
+                   GHCJS.Marshal
   build-depends:   base >= 4.7 && < 5,
                    ghc-prim,
-                   text >= 0.11 && < 0.12
+                   text >= 0.11 && < 0.12,
+                   aeson >= 0.6 && < 0.7,
+                   vector >= 0.10 && < 0.11,
+                   unordered-containers >= 0.2 && < 0.3,
+                   attoparsec >= 0.10 && < 0.11
 
 
