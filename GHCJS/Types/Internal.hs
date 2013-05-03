@@ -22,13 +22,13 @@ mkRef :: Double# -> JSRef a
 mkRef d = JSRef (D# d)
 
 isNull :: JSRef a -> Bool
-isNull ref = case js_isUndefined ref of
+isNull ref = case js_isNull ref of
                1# -> True
                _  -> False
 {-# INLINE isNull #-}
 
 isUndefined :: JSRef a -> Bool
-isUndefined ref = case js_isNull ref of
+isUndefined ref = case js_isUndefined ref of
                     1# -> True
                     _  -> False
 {-# INLINE isUndefined #-}

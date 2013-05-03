@@ -18,6 +18,7 @@ module GHCJS.Foreign ( ToJSString(..)
                      , lengthArray
                      , newObj
                      , getProp
+                     , getPropMaybe
                      , setProp
                      ) where
 
@@ -213,6 +214,12 @@ newObj = js_emptyObj
 getProp :: ToJSString a => a -> JSRef b -> IO (JSRef c)
 getProp p o = js_getProp (toJSString p) o
 {-# INLINE getProp #-}
+
+getPropMaybe :: ToJSString a => a -> JSRef b -> IO (Maybe (JSRef c))
+getPropMaybe p o = do
+  p' <- js_getProp (toJSString p) o
+  if isUndefined p' then return Nothing else return (Just p')
+{-# INLINE getPropMaybe #-}
 
 setProp :: ToJSString a => a -> JSRef b -> JSRef c -> IO ()
 setProp p v o = js_setProp (toJSString p) v o
