@@ -111,6 +111,11 @@ instance FromJSString T.Text where
     let !(Ptr' ba l) = ptrToPtr' (js_fromString ref)
     in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
   {-# INLINE fromJSString #-}
+
+instance IsString JSString where 
+  fromString = toJSString
+  {-# INLINE fromString #-}
+
 fromJSBool :: JSBool -> Bool
 fromJSBool b = case js_fromBool b of
                  1# -> True
