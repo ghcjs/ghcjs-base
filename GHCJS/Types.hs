@@ -1,4 +1,5 @@
-{-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns, CPP, UnliftedFFITypes #-}
+{-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns,
+    CPP, JavaScriptFFI #-}
 
 module GHCJS.Types ( JSRef(..)
                    , isNull
@@ -23,9 +24,6 @@ import GHC.Ptr
 import GHCJS.Prim
 import Unsafe.Coerce
 
--- a ByteArray# fits in a single JS variable, contrary to Addr# which needs two
--- data JSRef a = JSRef ByteArray#
-
 data JSBool_
 data JSNumber_
 data JSString_
@@ -46,21 +44,15 @@ mkRef :: ByteArray# -> JSRef a
 mkRef x = JSRef x
 
 isNull :: JSRef a -> Bool
-isNull ref = case js_isNull ref of
-               1# -> True
-               _  -> False
+isNull ref = js_isNull ref
 {-# INLINE isNull #-}
 
 isUndefined :: JSRef a -> Bool
-isUndefined ref = case js_isUndefined ref of
-                    1# -> True
-                    _  -> False
+isUndefined ref = js_isUndefined ref
 {-# INLINE isUndefined #-}
 
 eqRef :: JSRef a -> JSRef b -> Bool
-eqRef x y = case js_eqRef x y of
-              1# -> True
-              _  -> False
+eqRef x y = js_eqRef x y
 {-# INLINE eqRef #-}
 
 nullRef :: JSRef a
@@ -83,18 +75,18 @@ fromPtr p = let !(Ptr' x _) = unsafeCoerce p
 data Ptr' a = Ptr' ByteArray# Int#
 
 #ifdef __GHCJS__
-foreign import javascript unsafe "$1 === null ? 1 : 0"      js_isNull      :: JSRef a -> Int#
-foreign import javascript unsafe "$1 === undefined ? 1 : 0" js_isUndefined :: JSRef a -> Int#
-foreign import javascript unsafe "$1 === $2 ? 1 : 0"        js_eqRef       :: JSRef a -> JSRef b -> Int#
-foreign import javascript unsafe "$r = null"                js_nullRef     :: JSRef a
+foreign import javascript unsafe "$1 === null"      js_isNull      :: JSRef a -> Bool
+foreign import javascript unsafe "$1 === undefined" js_isUndefined :: JSRef a -> Bool
+foreign import javascript unsafe "$1 === $2"        js_eqRef       :: JSRef a -> JSRef b -> Bool
+foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
 #else
-js_isNull :: JSRef a -> Int#
+js_isNull :: JSRef a -> Bool
 js_isNull = error "js_isNull: only available in JavaScript"
 
-js_isUndefined :: JSRef a -> Int#
+js_isUndefined :: JSRef a -> Bool
 js_isUndefined = error "js_isUndefined: only available in JavaScript"
 
-js_eqRef :: JSRef a -> JSRef b -> Int#
+js_eqRef :: JSRef a -> JSRef b -> Bool
 js_eqRef = error "js_eqRef: only available in JavaScript"
 
 js_nullRef :: JSRef a

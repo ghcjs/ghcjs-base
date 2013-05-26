@@ -1,4 +1,5 @@
-{-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, CPP, MagicHash, FlexibleInstances, BangPatterns #-}
+{-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, JavaScriptFFI, 
+    CPP, MagicHash, FlexibleInstances, BangPatterns #-}
 
 module GHCJS.Foreign ( ToJSString(..)
                      , FromJSString(..)
