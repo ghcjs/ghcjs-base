@@ -23,7 +23,6 @@ module GHCJS.Foreign ( ToJSString(..)
                      ) where
 
 import           GHCJS.Types
-import           GHCJS.Types.Internal
 
 import           GHC.Prim
 import           GHC.Exts
@@ -105,14 +104,14 @@ instance ToJSString T.Text where
     let !(Text'' (Array'' b) (I# offset) (I# length)) = unsafeCoerce t
     in  mkRef (js_toString b offset length)
   {-# INLINE toJSString #-}
-  
+
 instance FromJSString T.Text where
-  fromJSString (JSRef (D# ref)) =
+  fromJSString (JSRef ref) =
     let !(Ptr' ba l) = ptrToPtr' (js_fromString ref)
     in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
   {-# INLINE fromJSString #-}
 
-instance IsString JSString where 
+instance IsString JSString where
   fromString = toJSString
   {-# INLINE fromString #-}
 

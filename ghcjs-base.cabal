@@ -18,11 +18,11 @@ cabal-version:       >=1.8
 library
   ghc-options:     -O
   exposed-modules: GHCJS.Types
-                   GHCJS.Types.Internal
                    GHCJS.Foreign
                    GHCJS.Marshal
   build-depends:   base >= 4.7 && < 5,
                    ghc-prim,
+                   ghcjs-prim,
                    text >= 0.11 && < 0.12,
                    aeson >= 0.6 && < 0.7,
                    vector >= 0.10 && < 0.11,
