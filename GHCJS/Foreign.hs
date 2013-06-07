@@ -112,6 +112,14 @@ instance FromJSString T.Text where
     in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
   {-# INLINE fromJSString #-}
 
+instance ToJSString JSString where
+  toJSString t = t
+  {-# INLINE toJSString #-}
+
+instance FromJSString JSString where
+  fromJSString t = t
+  {-# INLINE fromJSString #-}
+
 instance IsString JSString where
   fromString = toJSString
   {-# INLINE fromString #-}

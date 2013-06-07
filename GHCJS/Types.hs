@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns,
-    CPP, JavaScriptFFI #-}
+    CPP, ForeignFunctionInterface, JavaScriptFFI #-}
 
 module GHCJS.Types ( JSRef(..)
                    , isNull
@@ -14,8 +14,7 @@ module GHCJS.Types ( JSRef(..)
                    , JSArray
                    , mkRef
                    , Ref#
-                   )
-                 where
+                   ) where
 
 import GHC.Int
 import GHC.Types
