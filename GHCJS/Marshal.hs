@@ -4,7 +4,13 @@
              DefaultSignatures,
              FlexibleContexts,
              FlexibleInstances,
-             TupleSections
+             TupleSections,
+             MagicHash,
+             CPP,
+             JavaScriptFFI,
+             ForeignFunctionInterface,
+             UnliftedFFITypes,
+             BangPatterns
   #-}
 
 module GHCJS.Marshal ( FromJSRef(..)
@@ -28,7 +34,13 @@ import           Data.Int (Int8, Int16, Int32)
 import           Data.Text (Text)
 import qualified Data.Vector as V
 import           Data.Word (Word8, Word16, Word32, Word)
+import           Data.Primitive.ByteArray
 import           Unsafe.Coerce (unsafeCoerce)
+import           GHC.Int
+import           GHC.Word
+import           GHC.Types
+import           GHC.Float
+import           GHC.Prim
 
 import           GHCJS.Types
 import           GHCJS.Foreign
@@ -57,20 +69,20 @@ instance FromJSRef (JSRef a) where fromJSRef = return . Just . castRef
 
 instance FromJSRef a => FromJSRef [a] where fromJSRef = fromJSRefListOf
 instance FromJSRef Text   where fromJSRef = fromJSRef_fromJSString
-instance FromJSRef Char   where 
-  fromJSRef       = return . fmap (chr.(.&.0x7fffffff)) . fromJSNumber . castRef
+instance FromJSRef Char   where
+  fromJSRef       = fmap (fmap (chr.(.&.0x7fffffff))) . fromJSRef . castRef
   fromJSRefListOf = fromJSRef_fromJSString
 instance FromJSRef Bool   where fromJSRef = return . Just . fromJSBool . castRef
-instance FromJSRef Int    where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber
-instance FromJSRef Int8   where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber
-instance FromJSRef Int16  where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber
-instance FromJSRef Int32  where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber
-instance FromJSRef Word   where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber
-instance FromJSRef Word8  where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber
-instance FromJSRef Word16 where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber
-instance FromJSRef Word32 where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber
-instance FromJSRef Float  where fromJSRef = return . fromJSNumber
-instance FromJSRef Double where fromJSRef = return . fromJSNumber
+instance FromJSRef Int    where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> I# (jsrefToInt x))
+instance FromJSRef Int8   where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber (\x -> I8# (jsrefToInt x))
+instance FromJSRef Int16  where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber (\x -> I16# (jsrefToInt x))
+instance FromJSRef Int32  where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> I32# (jsrefToInt x))
+instance FromJSRef Word   where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> W# (jsrefToWord x))
+instance FromJSRef Word8  where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber (\x -> W8# (jsrefToWord x))
+instance FromJSRef Word16 where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber (\x -> W16# (jsrefToWord x))
+instance FromJSRef Word32 where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> W32# (jsrefToWord x))
+instance FromJSRef Float  where fromJSRef = return . fromJSNumber (\x -> F# (jsrefToFloat x))
+instance FromJSRef Double where fromJSRef = return . fromJSNumber (\x -> D# (jsrefToDouble x))
 
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
@@ -99,20 +111,20 @@ instance ToJSRef (JSRef a) where toJSRef = fmap castRef . return
 instance ToJSRef Text where toJSRef = toJSRef_toJSString
 instance ToJSRef a => ToJSRef [a] where toJSRef = toJSRefListOf
 instance ToJSRef Char   where
-  toJSRef       = return . castRef . toJSNumber . ord
+  toJSRef       = fmap castRef . toJSRef . ord
   toJSRefListOf = toJSRef_toJSString
 
 instance ToJSRef Bool   where toJSRef = return . castRef . toJSBool
-instance ToJSRef Int    where toJSRef = return . toJSNumber
-instance ToJSRef Int8   where toJSRef = return . toJSNumber
-instance ToJSRef Int16  where toJSRef = return . toJSNumber
-instance ToJSRef Int32  where toJSRef = return . toJSNumber
-instance ToJSRef Word   where toJSRef = return . toJSNumber
-instance ToJSRef Word8  where toJSRef = return . toJSNumber
-instance ToJSRef Word16 where toJSRef = return . toJSNumber
-instance ToJSRef Word32 where toJSRef = return . toJSNumber
-instance ToJSRef Float  where toJSRef = return . toJSNumber
-instance ToJSRef Double where toJSRef = return . toJSNumber
+instance ToJSRef Int    where toJSRef (I# x)   = return (intToJSRef x)
+instance ToJSRef Int8   where toJSRef (I8# x)  = return (intToJSRef x)
+instance ToJSRef Int16  where toJSRef (I16# x) = return (intToJSRef x)
+instance ToJSRef Int32  where toJSRef (I32# x) = return (intToJSRef x)
+instance ToJSRef Word   where toJSRef (W# x)   = return (wordToJSRef x)
+instance ToJSRef Word8  where toJSRef (W8# x)  = return (wordToJSRef x)
+instance ToJSRef Word16 where toJSRef (W16# x) = return (wordToJSRef x)
+instance ToJSRef Word32 where toJSRef (W32# x) = return (wordToJSRef x)
+instance ToJSRef Float  where toJSRef (F# x)   = return (floatToJSRef x)
+instance ToJSRef Double where toJSRef (D# x)   = return (doubleToJSRef x)
 
 instance (ToJSRef a, ToJSRef b) => ToJSRef (a,b) where
   toJSRef (a,b) = ja [jr a, jr b]
@@ -133,11 +145,10 @@ ja = fmap castRef . (toArray <=< sequence)
 jr :: ToJSRef a => a -> IO (JSRef ())
 jr a = castRef <$> toJSRef a
 
-fromJSNumber :: JSRef a -> Maybe a
-fromJSNumber x = if isUndefined x then Nothing else Just (unsafeCoerce x)
-
-toJSNumber :: a -> JSRef a
-toJSNumber = unsafeCoerce
+fromJSNumber :: (JSRef a -> a) -> JSRef a -> Maybe a
+fromJSNumber f x = if isUndefined x || isNull x
+                     then Nothing 
+                     else Just (f x)
 
 toJSRef_aeson :: ToJSON a => a -> IO (JSRef a)
 toJSRef_aeson x = cv (toJSON x)
@@ -149,8 +160,8 @@ toJSRef_aeson x = cv (toJSON x)
     convertValue (String t) = return (castRef $ toJSString t)
     convertValue (Array a)  = castRef <$> (toArray =<< mapM convertValue (V.toList a))
     convertValue (Number n) = case n of
-                                D d -> return (castRef $ toJSNumber d)
-                                I i -> return (castRef . toJSNumber $ realToFrac i)
+                                D d -> castRef <$> toJSRef d
+                                I i -> castRef <$> (toJSRef $ (realToFrac i :: Double))
     convertValue (Bool b)   = return (castRef $ toJSBool b)
     convertValue (Object o) = do
       obj <- newObj
@@ -318,4 +329,34 @@ fromJSRef_generic f x = fmap to <$> (gFromJSRef f False (castRef x) :: IO (Maybe
 
 fromJSRef_fromJSString :: FromJSString a => JSRef a -> IO (Maybe a)
 fromJSRef_fromJSString = return . Just . fromJSString . castRef
+
+#ifdef __GHCJS__
+foreign import javascript unsafe "$r = $1;" jsrefToWord   :: JSRef a -> Word#
+foreign import javascript unsafe "$r = $1;" jsrefToInt    :: JSRef a -> Int#
+foreign import javascript unsafe "$r = $1;" jsrefToFloat  :: JSRef a -> Float#
+foreign import javascript unsafe "$r = $1;" jsrefToDouble :: JSRef a -> Double#
+
+foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef a
+foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef a
+foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef a
+foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef a
+#else
+jsrefToWord :: JSRef a -> Word#
+jsrefToWord r = let !(W# x) = unsafeCoerce r in x
+jsrefToInt :: JSRef a -> Int#
+jsrefToInt r = let !(I# x) = unsafeCoerce r in x
+jsrefToFloat :: JSRef a -> Float#
+jsrefToFloat r = let !(F# x) = unsafeCoerce r in x
+jsrefToDouble :: JSRef a -> Double#
+jsrefToDouble r = let !(D# x) = unsafeCoerce r in x
+
+wordToJSRef :: Word# -> JSRef a
+wordToJSRef x = unsafeCoerce (W# x)
+intToJSRef :: Int# -> JSRef a
+intToJSRef x = unsafeCoerce (I# x)
+doubleToJSRef :: Double# -> JSRef a
+doubleToJSRef x = unsafeCoerce (D# x)
+floatToJSRef :: Float# -> JSRef a
+floatToJSRef  x = unsafeCoerce (F# x)
+#endif
 
