@@ -21,6 +21,8 @@ module GHCJS.Foreign ( ToJSString(..)
                      , getProp
                      , getPropMaybe
                      , setProp
+                     , asyncCallback
+                     , syncCallback
                      ) where
 
 import           GHCJS.Types
@@ -30,12 +32,26 @@ import           GHC.Exts
 
 import           Control.Applicative
 import           Control.Concurrent.MVar
+import           Control.Exception (evaluate)
 import qualified Data.Text as T
 import           Foreign.Ptr
 import           Unsafe.Coerce
 
 
 import qualified Data.Text.Array as A
+
+syncCallback :: IO a -> IO (JSFun (IO a))
+syncCallback x = do
+  evaluate x
+  js_syncCallback (unsafeCoerce x)
+
+asyncCallback :: IO a -> IO (JSFun (IO a))
+asyncCallback x = do
+  evaluate x
+  js_asyncCallback (unsafeCoerce x)
+
+freeCallback :: JSFun a -> IO ()
+freeCallback = js_freeCallback
 
 #ifdef __GHCJS__
 foreign import javascript unsafe "$r = h$toStr($1,$2,$3);" js_toString :: Ref# -> Int# -> Int# -> Ref#
@@ -53,6 +69,14 @@ foreign import javascript unsafe "$1.length" js_length :: JSArray a -> IO Int
 foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
 foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
+
+foreign import javascript unsafe "h$makeCallback(h$runSync, [false], $1)"
+  js_syncCallback :: Int -> IO (JSFun (IO a))
+foreign import javascript unsafe "h$makeCallback(h$run, [false], $1)"
+  js_asyncCallback :: Int -> IO (JSFun (IO a))
+foreign import javascript unsafe "h$freeCallback($1)"
+  js_freeCallback :: JSFun a -> IO ()
+
 #else
 js_toString :: Ref# -> Int# -> Int# -> Ref#
 js_toString = error "js_toString: only available in JavaScript"
@@ -84,6 +108,12 @@ js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 js_getProp = error "js_getProp: only available in JavaScript"
 js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 js_setProp = error "js_setProp: only available in JavaScript"
+js_syncCallback :: Int -> IO (JSFun (IO a))
+js_syncCallback = error "js_syncCallback: only available in JavaScript"
+js_asyncCallback :: Int -> IO (JSFun (IO a))
+js_asyncCallback = error "js_asyncCallback: only available in JavaScript"
+js_freeCallback :: JSFun a -> IO ()
+js_freeCallback = error "js_freeCallback: only available in JavaScript"
 #endif
 
 class ToJSString a where

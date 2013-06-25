@@ -12,6 +12,7 @@ module GHCJS.Types ( JSRef(..)
                    , JSBool
                    , JSNumber
                    , JSArray
+                   , JSFun
                    , mkRef
                    , Ref#
                    ) where
@@ -28,11 +29,13 @@ data JSNumber_
 data JSString_
 data JSObject_ a
 data JSArray_ a
+data JSFun_ a
 
 type JSBool     = JSRef JSBool_
 type JSNumber   = JSRef JSNumber_
 type JSString   = JSRef JSString_
 type JSObject a = JSRef (JSObject_ a)
+type JSFun a    = JSRef (JSFun_ a)
 -- type JSObject'  = JSRef (JSObject (Any *))
 
 type JSArray a  = JSRef (JSArray_ a)
