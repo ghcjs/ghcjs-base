@@ -40,15 +40,15 @@ import           Unsafe.Coerce
 
 import qualified Data.Text.Array as A
 
-syncCallback :: IO a -> IO (JSFun (IO a))
-syncCallback x = do
-  evaluate x
-  js_syncCallback (unsafeCoerce x)
+syncCallback :: Bool -> IO a -> IO (JSFun (IO a))
+syncCallback continueAsync x = do
+  x' <- evaluate x
+  js_syncCallback continueAsync (unsafeCoerce x')
 
 asyncCallback :: IO a -> IO (JSFun (IO a))
 asyncCallback x = do
-  evaluate x
-  js_asyncCallback (unsafeCoerce x)
+  x' <- evaluate x
+  js_asyncCallback (unsafeCoerce x')
 
 freeCallback :: JSFun a -> IO ()
 freeCallback = js_freeCallback
@@ -70,9 +70,9 @@ foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JS
 foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 
-foreign import javascript unsafe "h$makeCallback(h$runSync, [false], $1)"
-  js_syncCallback :: Int -> IO (JSFun (IO a))
-foreign import javascript unsafe "h$makeCallback(h$run, [false], $1)"
+foreign import javascript unsafe "h$makeCallback(h$runSync, [$1], $2)"
+  js_syncCallback :: Bool -> Int -> IO (JSFun (IO a))
+foreign import javascript unsafe "h$makeCallback(h$run, [], $1)"
   js_asyncCallback :: Int -> IO (JSFun (IO a))
 foreign import javascript unsafe "h$freeCallback($1)"
   js_freeCallback :: JSFun a -> IO ()
@@ -108,7 +108,7 @@ js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 js_getProp = error "js_getProp: only available in JavaScript"
 js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 js_setProp = error "js_setProp: only available in JavaScript"
-js_syncCallback :: Int -> IO (JSFun (IO a))
+js_syncCallback :: Bool -> Int -> IO (JSFun (IO a))
 js_syncCallback = error "js_syncCallback: only available in JavaScript"
 js_asyncCallback :: Int -> IO (JSFun (IO a))
 js_asyncCallback = error "js_asyncCallback: only available in JavaScript"
