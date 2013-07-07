@@ -22,7 +22,12 @@ module GHCJS.Foreign ( ToJSString(..)
                      , getPropMaybe
                      , setProp
                      , asyncCallback
+                     , asyncCallback1
+                     , asyncCallback2
                      , syncCallback
+                     , syncCallback1
+                     , syncCallback2
+                     , freeCallback
                      ) where
 
 import           GHCJS.Types
@@ -40,15 +45,35 @@ import           Unsafe.Coerce
 
 import qualified Data.Text.Array as A
 
-syncCallback :: Bool -> IO a -> IO (JSFun (IO a))
-syncCallback continueAsync x = do
+syncCallback :: Bool -> Bool -> IO a -> IO (JSFun (IO a))
+syncCallback retain continueAsync x = do
   x' <- evaluate x
-  js_syncCallback continueAsync (unsafeCoerce x')
+  js_syncCallback retain continueAsync (unsafeCoerce x')
 
-asyncCallback :: IO a -> IO (JSFun (IO a))
-asyncCallback x = do
+syncCallback1 :: Bool -> Bool -> (JSRef a -> IO b) -> IO (JSFun (JSRef a -> IO b))
+syncCallback1 retain continueAsync x = do
   x' <- evaluate x
-  js_asyncCallback (unsafeCoerce x')
+  js_syncCallbackApply retain continueAsync 2 (unsafeCoerce x')
+
+syncCallback2 :: Bool -> Bool -> (JSRef a -> JSRef b -> IO c) -> IO (JSFun (JSRef a -> JSRef b -> IO c))
+syncCallback2 retain continueAsync x = do
+  x' <- evaluate x
+  js_syncCallbackApply retain continueAsync 2 (unsafeCoerce x')
+
+asyncCallback :: Bool -> IO a -> IO (JSFun (IO a))
+asyncCallback retain x = do
+  x' <- evaluate x
+  js_asyncCallback retain (unsafeCoerce x')
+
+asyncCallback1 :: Bool -> (JSRef a -> IO b) -> IO (JSFun (JSRef a -> IO b))
+asyncCallback1 retain x = do
+  x' <- evaluate x
+  js_asyncCallbackApply retain 1 (unsafeCoerce x')
+
+asyncCallback2 :: Bool -> (JSRef a -> JSRef b -> IO c) -> IO (JSFun (JSRef a -> JSRef b -> IO c))
+asyncCallback2 retain x = do
+  x' <- evaluate x
+  js_asyncCallbackApply retain 2 (unsafeCoerce x')
 
 freeCallback :: JSFun a -> IO ()
 freeCallback = js_freeCallback
@@ -70,10 +95,16 @@ foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JS
 foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 
-foreign import javascript unsafe "h$makeCallback(h$runSync, [$1], $2)"
-  js_syncCallback :: Bool -> Int -> IO (JSFun (IO a))
-foreign import javascript unsafe "h$makeCallback(h$run, [], $1)"
-  js_asyncCallback :: Int -> IO (JSFun (IO a))
+foreign import javascript unsafe "h$makeCallback($1, h$runSync, [$2], $3)"
+  js_syncCallback :: Bool -> Bool -> Int -> IO (JSFun (IO a))
+foreign import javascript unsafe "h$makeCallback($1, h$run, [], $2)"
+  js_asyncCallback :: Bool -> Int -> IO (JSFun (IO a))
+
+foreign import javascript unsafe "h$makeCallbackApply($1, $3, h$runSync, [$2], $4)"
+  js_syncCallbackApply :: Bool -> Bool -> Int -> Int -> IO (JSRef a)
+foreign import javascript unsafe "h$makeCallbackApply($1, $2, h$run, [], $3)"
+  js_asyncCallbackApply :: Bool -> Int -> Int -> IO (JSRef a)
+
 foreign import javascript unsafe "h$freeCallback($1)"
   js_freeCallback :: JSFun a -> IO ()
 
@@ -108,10 +139,14 @@ js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 js_getProp = error "js_getProp: only available in JavaScript"
 js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 js_setProp = error "js_setProp: only available in JavaScript"
-js_syncCallback :: Bool -> Int -> IO (JSFun (IO a))
+js_syncCallback :: Bool -> Bool -> Int -> IO (JSFun (IO a))
 js_syncCallback = error "js_syncCallback: only available in JavaScript"
-js_asyncCallback :: Int -> IO (JSFun (IO a))
+js_asyncCallback :: Bool -> Int -> IO (JSFun (IO a))
 js_asyncCallback = error "js_asyncCallback: only available in JavaScript"
+js_syncCallbackApply :: Bool -> Bool -> Int -> Int -> IO (JSRef a)
+js_syncCallbackApply  = error "js_syncCallbackApply: only available in JavaScript"
+js_asyncCallbackApply :: Bool -> Int -> Int -> IO (JSRef a)
+js_asyncCallbackApply  = error "js_asyncCallbackApply: only available in JavaScript"
 js_freeCallback :: JSFun a -> IO ()
 js_freeCallback = error "js_freeCallback: only available in JavaScript"
 #endif
