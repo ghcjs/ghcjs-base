@@ -53,7 +53,7 @@ syncCallback retain continueAsync x = do
 syncCallback1 :: Bool -> Bool -> (JSRef a -> IO b) -> IO (JSFun (JSRef a -> IO b))
 syncCallback1 retain continueAsync x = do
   x' <- evaluate x
-  js_syncCallbackApply retain continueAsync 2 (unsafeCoerce x')
+  js_syncCallbackApply retain continueAsync 1 (unsafeCoerce x')
 
 syncCallback2 :: Bool -> Bool -> (JSRef a -> JSRef b -> IO c) -> IO (JSFun (JSRef a -> JSRef b -> IO c))
 syncCallback2 retain continueAsync x = do
