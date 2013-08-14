@@ -76,23 +76,8 @@ fromPtr p = let !(Ptr' x _) = unsafeCoerce p
 
 data Ptr' a = Ptr' ByteArray# Int#
 
-#ifdef __GHCJS__
-foreign import javascript unsafe "$1 === null ? 1 : 0"      js_isNull      :: JSRef a -> Bool
-foreign import javascript unsafe "$1 === undefined ? 1 : 0" js_isUndefined :: JSRef a -> Bool
-foreign import javascript unsafe "$1 === $2 ? 1 : 0"        js_eqRef       :: JSRef a -> JSRef b -> Bool
-foreign import javascript unsafe "$r = null"                js_nullRef     :: JSRef a
-#else
-js_isNull :: JSRef a -> Bool
-js_isNull = error "js_isNull: only available in JavaScript"
-
-js_isUndefined :: JSRef a -> Bool
-js_isUndefined = error "js_isUndefined: only available in JavaScript"
-
-js_eqRef :: JSRef a -> JSRef b -> Bool
-js_eqRef = error "js_eqRef: only available in JavaScript"
-
-js_nullRef :: JSRef a
-js_nullRef = error "js_nullRef: only available in JavaScript"
-#endif
-
+foreign import javascript unsafe "$1 === null"      js_isNull      :: JSRef a -> Bool
+foreign import javascript unsafe "$1 === undefined" js_isUndefined :: JSRef a -> Bool
+foreign import javascript unsafe "$1 === $2"        js_eqRef       :: JSRef a -> JSRef b -> Bool
+foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
 
