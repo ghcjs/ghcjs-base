@@ -78,6 +78,7 @@ asyncCallback2 retain x = do
 freeCallback :: JSFun a -> IO ()
 freeCallback = js_freeCallback
 
+#ifdef __GHCJS__
 foreign import javascript unsafe "$r = h$toStr($1,$2,$3);" js_toString :: Ref# -> Int# -> Int# -> Ref#
 foreign import javascript unsafe "$r = h$fromStr($1); $r2 = h$ret1;" js_fromString :: Ref# -> Ptr ()
 foreign import javascript unsafe "$r = $1;" js_fromBool :: JSBool -> Bool
@@ -106,6 +107,49 @@ foreign import javascript unsafe "h$makeCallbackApply($1, $2, h$run, [], $3)"
 
 foreign import javascript unsafe "h$freeCallback($1)"
   js_freeCallback :: JSFun a -> IO ()
+
+#else
+js_toString :: Ref# -> Int# -> Int# -> Ref#
+js_toString = error "js_toString: only available in JavaScript"
+js_fromString :: Ref# -> Ptr ()
+js_fromString = error "js_fromString: only available in JavaScript"
+js_fromBool :: JSBool -> Bool
+js_fromBool = error "js_fromBool: only available in JavaScript"
+js_isTruthy :: JSRef a -> Bool
+js_isTruthy = error "js_isTruthy: only available in JavaScript"
+js_true :: Int# -> Ref#
+js_true = error "js_true: only available in JavaScript"
+js_false :: Int# -> Ref#
+js_false = error "js_false: only available in JavaScript"
+js_null :: Int# -> Ref#
+js_null = error "js_null: only available in JavaScript"
+js_undefined :: Int# -> Ref#
+js_undefined = error "js_undefined: only available in JavaScript"
+js_emptyObj :: IO (JSRef a)
+js_emptyObj = error "js_emptyObj: only available in JavaScript"
+js_emptyArray :: IO (JSArray a)
+js_emptyArray = error "js_emptyArr: only available in JavaScript"
+js_push :: JSRef a -> JSArray a -> IO ()
+js_push = error "js_push: only available in JavaScript"
+js_length :: JSArray a -> IO Int
+js_length = error "js_length: only available in JavaScript"
+js_index :: Int -> JSArray a -> IO (JSRef a)
+js_index = error "js_index: only available in JavaScript"
+js_getProp :: JSString -> JSRef a -> IO (JSRef b)
+js_getProp = error "js_getProp: only available in JavaScript"
+js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
+js_setProp = error "js_setProp: only available in JavaScript"
+js_syncCallback :: Bool -> Bool -> Int -> IO (JSFun (IO a))
+js_syncCallback = error "js_syncCallback: only available in JavaScript"
+js_asyncCallback :: Bool -> Int -> IO (JSFun (IO a))
+js_asyncCallback = error "js_asyncCallback: only available in JavaScript"
+js_syncCallbackApply :: Bool -> Bool -> Int -> Int -> IO (JSRef a)
+js_syncCallbackApply  = error "js_syncCallbackApply: only available in JavaScript"
+js_asyncCallbackApply :: Bool -> Int -> Int -> IO (JSRef a)
+js_asyncCallbackApply  = error "js_asyncCallbackApply: only available in JavaScript"
+js_freeCallback :: JSFun a -> IO ()
+js_freeCallback = error "js_freeCallback: only available in JavaScript"
+#endif
 
 class ToJSString a where
   toJSString :: a -> JSString
