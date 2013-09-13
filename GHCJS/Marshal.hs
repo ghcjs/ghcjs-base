@@ -108,6 +108,8 @@ jf r n = MaybeT $ do
 
 instance ToJSRef (JSRef a) where toJSRef = fmap castRef . return
 
+instance ToJSRef Value     where toJSRef = toJSRef_aeson
+
 instance ToJSRef Text where toJSRef = toJSRef_toJSString
 instance ToJSRef a => ToJSRef [a] where toJSRef = toJSRefListOf
 instance ToJSRef Char   where
