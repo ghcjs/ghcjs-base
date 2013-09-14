@@ -111,7 +111,6 @@ instance ToJSRef (JSRef a) where toJSRef = fmap castRef . return
 instance ToJSRef Value     where toJSRef = toJSRef_aeson
 
 instance ToJSRef Text where toJSRef = toJSRef_toJSString
-instance ToJSRef a => ToJSRef [a] where toJSRef = toJSRefListOf
 instance ToJSRef Char   where
   toJSRef       = fmap castRef . toJSRef . ord
   toJSRefListOf = toJSRef_toJSString
@@ -127,6 +126,12 @@ instance ToJSRef Word16 where toJSRef (W16# x) = return (wordToJSRef x)
 instance ToJSRef Word32 where toJSRef (W32# x) = return (wordToJSRef x)
 instance ToJSRef Float  where toJSRef (F# x)   = return (floatToJSRef x)
 instance ToJSRef Double where toJSRef (D# x)   = return (doubleToJSRef x)
+
+instance ToJSRef a => ToJSRef [a] where toJSRef = toJSRefListOf
+
+instance ToJSRef a => ToJSRef (Maybe a) where
+    toJSRef Nothing  = return jsNull
+    toJSRef (Just a) = castRef <$> toJSRef a
 
 instance (ToJSRef a, ToJSRef b) => ToJSRef (a,b) where
   toJSRef (a,b) = ja [jr a, jr b]
