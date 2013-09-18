@@ -97,7 +97,7 @@ foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JS
 foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 foreign import javascript unsafe "h$listprops($1)" js_listProps :: JSRef a -> IO (JSArray JSString)
-foreign import javascript unsafe "h$typeOf($1)" js_typeOf :: JSRef a -> IO JSString
+foreign import javascript unsafe "h$typeOf($1)" js_typeOf :: JSRef a -> IO Int
 
 -- foreign import javascript unsafe "h$flattenObj($1)" js_flattenObj :: JSRef a -> JSArray (JSString, JSRef (Any *))
 
@@ -301,8 +301,8 @@ listProps :: JSRef a -> IO [JSRef JSString]
 listProps o = fromArray =<< js_listProps o
 {-# INLINE listProps #-}
 
-typeOf :: JSRef a -> IO T.Text
-typeOf r = fromJSString <$> js_typeOf r
+typeOf :: JSRef a -> IO Int
+typeOf r = js_typeOf r
 {-# INLINE typeOf #-}
 
 getPropMaybe :: ToJSString a => a -> JSRef b -> IO (Maybe (JSRef c))

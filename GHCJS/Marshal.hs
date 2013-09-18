@@ -89,16 +89,20 @@ instance FromJSRef Double where fromJSRef = return . fromJSNumber (\x -> D# (jsr
 instance FromJSRef Value where
     fromJSRef r = do
         ty <- typeOf r
+        -- 0 - null, 1 - integer,
+        -- 2 - float, 3 - bool,
+        -- 4 - string, 5 - array
+        -- 6 - object
         case ty of
-            "float"  -> liftM (Number . D)
-                        <$> fromJSRef (castRef r)
-            "integer" -> liftM (Number . I . (toInteger :: Int -> Integer))
-                        <$> (fromJSRef $ castRef r)
-            "string" -> liftM String <$> fromJSRef (castRef r)
-            "null"   -> return (Just Null)
-            "boolean" -> liftM Bool  <$> fromJSRef (castRef r)
-            "array"  -> liftM (Array . V.fromList) <$> fromJSRef (castRef r)
-            "object" -> do
+            0 -> return (Just Null)
+            1 -> liftM (Number . I . (toInteger :: Int -> Integer))
+                 <$> (fromJSRef $ castRef r)
+            2 -> liftM (Number . D)
+                 <$> fromJSRef (castRef r)
+            3 -> liftM Bool  <$> fromJSRef (castRef r)
+            4 -> liftM String <$> fromJSRef (castRef r)
+            5 -> liftM (Array . V.fromList) <$> fromJSRef (castRef r)
+            6 -> do
                 props <- listProps r
                 runMaybeT $ do
                     propVals <- forM props $ \p -> do
