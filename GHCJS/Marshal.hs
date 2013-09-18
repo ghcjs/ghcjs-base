@@ -4,6 +4,7 @@
              DefaultSignatures,
              FlexibleContexts,
              FlexibleInstances,
+             OverloadedStrings,
              TupleSections,
              MagicHash,
              CPP,
@@ -25,12 +26,13 @@ module GHCJS.Marshal ( FromJSRef(..)
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.Maybe (MaybeT(..))
-import           Data.Aeson (FromJSON(..), ToJSON(..), Value(..))
+import           Data.Aeson (FromJSON(..), ToJSON(..), Value(..), object)
 import           Data.Attoparsec.Number (Number(..))
 import           Data.Bits ((.&.))
 import           Data.Char (chr, ord)
 import qualified Data.HashMap.Strict as H
 import           Data.Int (Int8, Int16, Int32)
+import           Data.Maybe
 import           Data.Text (Text)
 import qualified Data.Vector as V
 import           Data.Word (Word8, Word16, Word32, Word)
@@ -83,6 +85,28 @@ instance FromJSRef Word16 where fromJSRef = return . fmap (.&.0xffff)     . from
 instance FromJSRef Word32 where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> W32# (jsrefToWord x))
 instance FromJSRef Float  where fromJSRef = return . fromJSNumber (\x -> F# (jsrefToFloat x))
 instance FromJSRef Double where fromJSRef = return . fromJSNumber (\x -> D# (jsrefToDouble x))
+
+instance FromJSRef Value where
+    fromJSRef r = do
+        ty <- typeOf r
+        case ty of
+            "float"  -> liftM (Number . D)
+                        <$> fromJSRef (castRef r)
+            "integer" -> liftM (Number . I . (toInteger :: Int -> Integer))
+                        <$> (fromJSRef $ castRef r)
+            "string" -> liftM String <$> fromJSRef (castRef r)
+            "null"   -> return (Just Null)
+            "boolean" -> liftM Bool  <$> fromJSRef (castRef r)
+            "array"  -> liftM (Array . V.fromList) <$> fromJSRef (castRef r)
+            "object" -> do
+                props <- listProps r
+                runMaybeT $ do
+                    propVals <- forM props $ \p -> do
+                        p' <- MaybeT $ fromJSRef p
+                        v <- MaybeT (fromJSRef =<< getProp p' r)
+                        return (fromJSString p', v)
+                    return (Object (H.fromList propVals))
+                    
 
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
