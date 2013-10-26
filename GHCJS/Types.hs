@@ -40,10 +40,17 @@ type JSFun a    = JSRef (JSFun_ a)
 
 type JSArray a  = JSRef (JSArray_ a)
 
+#ifdef __GHCJS__
 type Ref# = ByteArray#
 
 mkRef :: ByteArray# -> JSRef a
 mkRef x = JSRef x
+#else
+type Ref# = Addr#
+
+mkRef :: Addr# -> JSRef a
+mkRef x = JSRef x
+#endif
 
 isNull :: JSRef a -> Bool
 isNull ref = js_isNull ref
@@ -65,6 +72,7 @@ castRef :: JSRef a -> JSRef b
 castRef = unsafeCoerce
 {-# INLINE castRef #-}
 
+#ifdef __GHCJS__
 toPtr :: JSRef a -> Ptr b
 toPtr (JSRef x) = unsafeCoerce (Ptr' x 0#)
 {-# INLINE toPtr #-}
@@ -75,24 +83,19 @@ fromPtr p = let !(Ptr' x _) = unsafeCoerce p
 {-# INLINE fromPtr #-}
 
 data Ptr' a = Ptr' ByteArray# Int#
+#else
+toPtr :: JSRef a -> Ptr b
+toPtr = unsafeCoerce
+{-# INLINE toPtr #-}
 
-#ifdef __GHCJS__
+fromPtr :: Ptr a -> JSRef b
+fromPtr = unsafeCoerce
+{-# INLINE fromPtr #-}
+#endif
+
+
 foreign import javascript unsafe "$1 === null"      js_isNull      :: JSRef a -> Bool
 foreign import javascript unsafe "$1 === undefined" js_isUndefined :: JSRef a -> Bool
 foreign import javascript unsafe "$1 === $2"        js_eqRef       :: JSRef a -> JSRef b -> Bool
 foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
-#else
-js_isNull :: JSRef a -> Bool
-js_isNull = error "js_isNull: only available in JavaScript"
-
-js_isUndefined :: JSRef a -> Bool
-js_isUndefined = error "js_isUndefined: only available in JavaScript"
-
-js_eqRef :: JSRef a -> JSRef b -> Bool
-js_eqRef = error "js_eqRef: only available in JavaScript"
-
-js_nullRef :: JSRef a
-js_nullRef = error "js_nullRef: only available in JavaScript"
-#endif
-
 
