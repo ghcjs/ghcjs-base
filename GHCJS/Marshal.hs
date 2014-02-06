@@ -33,6 +33,7 @@ import           Data.Char (chr, ord)
 import qualified Data.HashMap.Strict as H
 import           Data.Int (Int8, Int16, Int32)
 import           Data.Maybe
+import           Data.Scientific (Scientific, scientific, fromFloatDigits)
 import           Data.Text (Text)
 import qualified Data.Vector as V
 import           Data.Word (Word8, Word16, Word32, Word)
@@ -95,9 +96,9 @@ instance FromJSRef Value where
         -- 6 - object
         case ty of
             0 -> return (Just Null)
-            1 -> liftM (Number . I . (toInteger :: Int -> Integer))
+            1 -> liftM (Number . flip scientific 0 . (toInteger :: Int -> Integer))
                  <$> (fromJSRef $ castRef r)
-            2 -> liftM (Number . D)
+            2 -> liftM (Number . (fromFloatDigits :: Double -> Scientific))
                  <$> fromJSRef (castRef r)
             3 -> liftM Bool  <$> fromJSRef (castRef r)
             4 -> liftM String <$> fromJSRef (castRef r)
@@ -194,9 +195,7 @@ toJSRef_aeson x = cv (toJSON x)
     convertValue Null       = return jsNull
     convertValue (String t) = return (castRef $ toJSString t)
     convertValue (Array a)  = castRef <$> (toArray =<< mapM convertValue (V.toList a))
-    convertValue (Number n) = case n of
-                                D d -> castRef <$> toJSRef d
-                                I i -> castRef <$> (toJSRef $ (realToFrac i :: Double))
+    convertValue (Number n) = castRef <$> toJSRef (realToFrac n :: Double)
     convertValue (Bool b)   = return (castRef $ toJSBool b)
     convertValue (Object o) = do
       obj <- newObj
