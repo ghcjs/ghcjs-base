@@ -364,7 +364,7 @@ fromJSRef_generic f x = fmap to <$> (gFromJSRef f False (castRef x) :: IO (Maybe
 fromJSRef_fromJSString :: FromJSString a => JSRef a -> IO (Maybe a)
 fromJSRef_fromJSString = return . Just . fromJSString . castRef
 
-#ifdef __GHCJS__
+#ifdef ghcjs_HOST_OS
 foreign import javascript unsafe "$r = $1;" jsrefToWord   :: JSRef a -> Word#
 foreign import javascript unsafe "$r = $1;" jsrefToInt    :: JSRef a -> Int#
 foreign import javascript unsafe "$r = $1;" jsrefToFloat  :: JSRef a -> Float#

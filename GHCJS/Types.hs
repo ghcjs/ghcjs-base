@@ -40,7 +40,7 @@ type JSFun a    = JSRef (JSFun_ a)
 
 type JSArray a  = JSRef (JSArray_ a)
 
-#ifdef __GHCJS__
+#ifdef ghcjs_HOST_OS
 type Ref# = ByteArray#
 
 mkRef :: ByteArray# -> JSRef a
@@ -72,7 +72,7 @@ castRef :: JSRef a -> JSRef b
 castRef = unsafeCoerce
 {-# INLINE castRef #-}
 
-#ifdef __GHCJS__
+#ifdef ghcjs_HOST_OS
 toPtr :: JSRef a -> Ptr b
 toPtr (JSRef x) = unsafeCoerce (Ptr' x 0#)
 {-# INLINE toPtr #-}
