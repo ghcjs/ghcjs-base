@@ -68,6 +68,7 @@ module GHCJS.Foreign ( ToJSString(..)
                      , syncCallback
                      , syncCallback1
                      , syncCallback2
+                     , ForeignRetention(..)
                      , retain, retainDom
                      , release, releaseDom, releaseAll
                      , wrapBuffer, wrapMutableBuffer
