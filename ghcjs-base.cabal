@@ -17,7 +17,8 @@ cabal-version:       >=1.8
 
 library
   ghc-options:     -O
-  exposed-modules: GHCJS.Types
+  exposed-modules: GHCJS.Concurrent
+                   GHCJS.Types
                    GHCJS.Foreign
                    GHCJS.Marshal
   build-depends:   base >= 4.7 && < 5,

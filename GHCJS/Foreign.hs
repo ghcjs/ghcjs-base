@@ -1,5 +1,44 @@
 {-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, JavaScriptFFI, 
-    MagicHash, FlexibleInstances, BangPatterns #-}
+    MagicHash, FlexibleInstances, BangPatterns, Rank2Types #-}
+
+{- | Basic interop between Haskell and JavaScript.
+
+     The principal type here is 'JSRef', which is a lifted type that contains
+     a JavaScript reference. The 'JSRef' type is parameterized with one phantom
+     type, and GHCJS.Types defines several type synonyms for specific variants.
+
+     The code in this module makes no assumptions about 'JSRef a' types.
+     Operations that can result in a JS exception that can kill a Haskell thread
+     are marked unsafe (for example if the 'JSRef' contains a null or undefined
+     value). There are safe variants where the JS exception is propagated as
+     a Haskell exception, so that it can be handled on the Haskell side.
+
+     For more specific types, like 'JSArray' or 'JSBool', the code assumes that
+     the contents of the 'JSRef' actually is a JavaScript array or bool value.
+     If it contains an unexpected value, the code can result in exceptions that
+     kill the Haskell thread, even for functions not marked unsafe.
+
+     The code makes use of `foreign import javascript', enabled with the
+     `JavaScriptFFI` extension, available since GHC 7.8. There are three different
+     safety levels:
+
+      * unsafe: The imported code is run directly. returning an incorrectly typed
+        value leads to undefined behaviour. JavaScript exceptions in the foreign
+        code kill the Haskell thread.
+      * safe: Returned values are replaced with a default value if they have
+        the wrong type. JavaScript exceptions are caught and propagated as
+        Haskell exceptions ('JSException'), so they can be handled with the
+        standard "Control.Exception" machinery.
+      * interruptible: The import is asynchronous. The calling Haskell thread
+        sleeps until the foreign code calls the `$c` JavaScript function with
+        the result. The thread is in interruptible state while blocked, so it
+        can receive asynchronous exceptions.
+
+     Unlike the FFI for native code, it's safe to call back into Haskell
+     (`h$run`, `h$runSync`) from foreign code in any of the safety levels.
+     Since JavaScript is single threaded, no Haskell threads can run while
+     the foreign code is running.
+ -}
 
 module GHCJS.Foreign ( ToJSString(..)
                      , FromJSString(..)
@@ -18,9 +57,9 @@ module GHCJS.Foreign ( ToJSString(..)
                      , indexArray
                      , lengthArray
                      , newObj
-                     , getProp
-                     , getPropMaybe
-                     , setProp
+                     , getProp, unsafeGetProp
+                     , getPropMaybe, unsafeGetPropMaybe
+                     , setProp, unsafeSetProp
                      , listProps
                      , typeOf
                      , asyncCallback
@@ -29,7 +68,10 @@ module GHCJS.Foreign ( ToJSString(..)
                      , syncCallback
                      , syncCallback1
                      , syncCallback2
-                     , freeCallback
+                     , retain, retainDom
+                     , release, releaseDom, releaseAll
+                     , wrapBuffer, wrapMutableBuffer
+                     , byteArrayJSRef, mutableByteArrayJSRef
                      ) where
 
 import           GHCJS.Types
@@ -39,50 +81,159 @@ import           GHC.Exts
 
 import           Control.Applicative
 import           Control.Concurrent.MVar
-import           Control.Exception (evaluate)
+import           Control.Exception (evaluate, Exception)
 import qualified Data.Text as T
 import           Foreign.Ptr
 import           Unsafe.Coerce
 
+import           Data.Primitive.ByteArray (ByteArray(..), MutableByteArray(..))
 
 import qualified Data.Text.Array as A
 
-syncCallback :: Bool -> Bool -> IO a -> IO (JSFun (IO a))
+{- |
+  Retention options affect how callbacks keep Haskell data alive.
+  Haskell threads keep the data they reference alive, as long as they
+  are known by the scheduler (running, delayed, blocked on MVar,
+  async IO operation etc).
+
+  When you make a callback, a JavaScript function that runs some
+  Haskell code in a regular or asynchronous thread, the runtime
+  cannot determine whether there are still JS references to the callback.
+
+  When a callback is not retained, the following will happen:
+
+   * Weak references are not kept alive
+   * CAFs are reset to their unevaluated state, some recomputation
+     may be necessary
+   * The action does not keep MVars alive, threads blocked on the
+     MVar can get an exception unless there are other references.
+
+  When a callback is retained by the RTS, the function and all the
+  data it references is kept alive and cannot be garbage collected.
+  Be careful to not create memory leaks.
+
+  You can still use a callback even if it's not retained, as long as
+  you bear in mind the caveats mentioned above. Note that lazy IO
+  or FRP libraries might depend on weak references internally.
+ -}
+
+data ForeignRetention
+  = NeverRetain                   -- ^ do not retain data unless the callback is directly
+                                  --   referenced by a Haskell thread.
+  | AlwaysRetain                  -- ^ retain references indefinitely, until `freeCallback`
+                                  --   is called (the callback will be kept in memory until it's freed)
+  | DomRetain (forall a. JSRef a) -- ^ retain data as long as the `JSRef` is a DOM element in
+                                  --   `window.document` or in a DOM tree referenced by a Haskell
+                                  --    thread.
+
+retentionRef :: ForeignRetention -> JSRef ()
+retentionRef NeverRetain   = castRef jsFalse
+retentionRef AlwaysRetain  = castRef jsTrue
+retentionRef (DomRetain r) = castRef r
+
+{- | Make a callback (JavaScript function) that runs the supplied IO action in a synchronous
+     thread when called.
+ -}
+syncCallback :: ForeignRetention                        -- ^ how Haskell data is retained by the callback
+             -> Bool                                    -- ^ continue thread asynchronously when blocked, see `GHCJS.Concurrent`
+             -> IO a                                    -- ^ the Haskell action
+             -> IO (JSFun (IO a))                       -- ^ the callback
 syncCallback retain continueAsync x = do
   x' <- evaluate x
-  js_syncCallback retain continueAsync (unsafeCoerce x')
+  js_syncCallback (retentionRef retain) continueAsync (unsafeCoerce x')
 
-syncCallback1 :: Bool -> Bool -> (JSRef a -> IO b) -> IO (JSFun (JSRef a -> IO b))
+
+{- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
+     thread when called. The callback takes one argument that it passes as a JSRef value to
+     the Haskell function
+ -}
+syncCallback1 :: ForeignRetention                        -- ^ how Haskell data is retained by the callback
+              -> Bool                                    -- ^ continue thread asynchronously when blocked, see `GHCJS.Concurrent`
+              -> (JSRef a -> IO b)                       -- ^ the Haskell function
+              -> IO (JSFun (JSRef a -> IO b))            -- ^ the callback
 syncCallback1 retain continueAsync x = do
   x' <- evaluate x
-  js_syncCallbackApply retain continueAsync 1 (unsafeCoerce x')
+  js_syncCallbackApply (retentionRef retain) continueAsync 1 (unsafeCoerce x')
 
-syncCallback2 :: Bool -> Bool -> (JSRef a -> JSRef b -> IO c) -> IO (JSFun (JSRef a -> JSRef b -> IO c))
+
+{- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
+     thread when called. The callback takes two arguments that it passes as JSRef values to
+     the Haskell function
+ -}
+syncCallback2 :: ForeignRetention                        -- ^ how Haskell data is retained by the callback
+              -> Bool                                    -- ^ continue thread asynchronously when blocked, see `GHCJS.Concurrent`
+              -> (JSRef a -> JSRef b -> IO c)            -- ^ the Haskell function
+              -> IO (JSFun (JSRef a -> JSRef b -> IO c)) -- ^ the callback
 syncCallback2 retain continueAsync x = do
   x' <- evaluate x
-  js_syncCallbackApply retain continueAsync 2 (unsafeCoerce x')
+  js_syncCallbackApply (retentionRef retain) continueAsync 2 (unsafeCoerce x')
 
-asyncCallback :: Bool -> IO a -> IO (JSFun (IO a))
+
+{- | Make a callback (JavaScript function) that runs the supplied IO action in an asynchronous
+     thread when called.
+ -}
+asyncCallback :: ForeignRetention  -- ^ how Haskell data is retained by the callback
+              -> IO a              -- ^ the action that the callback runs
+              -> IO (JSFun (IO a)) -- ^ the callback
 asyncCallback retain x = do
   x' <- evaluate x
-  js_asyncCallback retain (unsafeCoerce x')
+  js_asyncCallback (retentionRef retain) (unsafeCoerce x')
 
-asyncCallback1 :: Bool -> (JSRef a -> IO b) -> IO (JSFun (JSRef a -> IO b))
+asyncCallback1 :: ForeignRetention             -- ^ how Haskell data is retained by the callback
+               -> (JSRef a -> IO b)            -- ^ the function that the callback calls
+               -> IO (JSFun (JSRef a -> IO b)) -- ^ the calback
 asyncCallback1 retain x = do
   x' <- evaluate x
-  js_asyncCallbackApply retain 1 (unsafeCoerce x')
+  js_asyncCallbackApply (retentionRef retain) 1 (unsafeCoerce x')
 
-asyncCallback2 :: Bool -> (JSRef a -> JSRef b -> IO c) -> IO (JSFun (JSRef a -> JSRef b -> IO c))
+asyncCallback2 :: ForeignRetention                        -- ^ how Haskell data is retained by the callback
+               -> (JSRef a -> JSRef b -> IO c)            -- ^ the Haskell function that the callback calls
+               -> IO (JSFun (JSRef a -> JSRef b -> IO c)) -- ^ the callback
 asyncCallback2 retain x = do
   x' <- evaluate x
-  js_asyncCallbackApply retain 2 (unsafeCoerce x')
+  js_asyncCallbackApply (retentionRef retain) 2 (unsafeCoerce x')
 
-freeCallback :: JSFun a -> IO ()
-freeCallback = js_freeCallback
+{- | Retain the data associated with this callback until `release` is called. -}
+retain :: JSFun a -- ^ the callback
+       -> IO ()
+retain = js_retain
+{-# INLINE retain #-}
+
+{- | Retain the data associated with this callback as long as the DOM
+     element is in `window.document` or in a DOM tree referenced by
+     an active Haskell thread.
+ -}
+retainDom :: JSRef a -- ^ the DOM element
+          -> JSFun b -- ^ the callback
+          -> IO ()
+retainDom = js_retainDom
+{-#  INLINE retainDom #-}
+
+{- | Free all retention associated with the callback
+ -}
+releaseAll :: JSFun a  -- ^ the callback
+        -> IO ()
+releaseAll = js_releaseAll
+{-# INLINE release #-}
+
+{- | free the retention associated with DOM element for the callback, if any
+ -}
+releaseDom :: JSRef a -- ^ the DOM element
+           -> JSFun b -- ^ the callback
+           -> IO ()
+releaseDom = js_releaseDom
+{-# INLINE releaseDom #-}
+
+{- | remove any permanent retention associated with the callback, DOM retention
+     is unchanged.
+ -}
+release :: JSFun a -- ^ the callback
+                 -> IO ()
+release= js_release
 
 foreign import javascript unsafe "$r = h$toStr($1,$2,$3);" js_toString :: Ref# -> Int# -> Int# -> Ref#
 foreign import javascript unsafe "$r = h$fromStr($1); $r2 = h$ret1;" js_fromString :: Ref# -> Ptr ()
-foreign import javascript unsafe "$r = $1;" js_fromBool :: JSBool -> Bool
+foreign import javascript unsafe "$r = $1;" js_unsafeFromBool :: JSBool -> Bool
 foreign import javascript unsafe "$1 ? true : false" js_isTruthy :: JSRef a -> Bool
 foreign import javascript unsafe "$r = true"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false" js_false :: Int# -> Ref#
@@ -90,29 +241,43 @@ foreign import javascript unsafe "$r = null"  js_null :: Int# -> Ref#
 foreign import javascript unsafe "$r = undefined"  js_undefined :: Int# -> Ref#
 foreign import javascript unsafe "$r = []" js_emptyArray :: IO (JSArray a)
 foreign import javascript unsafe "$r = {}" js_emptyObj :: IO (JSRef a)
-foreign import javascript unsafe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
-foreign import javascript unsafe "$1.length" js_length :: JSArray a -> IO Int
-foreign import javascript unsafe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
-foreign import javascript unsafe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
-foreign import javascript unsafe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
-foreign import javascript unsafe "h$listprops($1)" js_listProps :: JSRef a -> IO (JSArray JSString)
+foreign import javascript safe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
+foreign import javascript safe "$1.length" js_length :: JSArray a -> IO Int
+foreign import javascript unsafe "$2.push($1)" js_unsafePush :: JSRef a -> JSArray a -> IO ()
+foreign import javascript unsafe "$1.length" js_unsafeLength :: JSArray a -> IO Int
+foreign import javascript safe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
+foreign import javascript safe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
+foreign import javascript safe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
+foreign import javascript unsafe "$2[$1]" js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
+foreign import javascript unsafe "$2[$1]" js_unsafeGetProp :: JSString -> JSRef a -> IO (JSRef b)
+foreign import javascript unsafe "$3[$1] = $2" js_unsafeSetProp :: JSString -> JSRef a -> JSRef b -> IO ()
+foreign import javascript safe "h$listprops($1)" js_listProps :: JSRef a -> IO (JSArray JSString)
 foreign import javascript unsafe "h$typeOf($1)" js_typeOf :: JSRef a -> IO Int
 
--- foreign import javascript unsafe "h$flattenObj($1)" js_flattenObj :: JSRef a -> JSArray (JSString, JSRef (Any *))
-
-
 foreign import javascript unsafe "h$makeCallback($1, h$runSync, [$2], $3)"
-  js_syncCallback :: Bool -> Bool -> Int -> IO (JSFun (IO a))
+  js_syncCallback :: JSRef a -> Bool -> Int -> IO (JSFun (IO b))
 foreign import javascript unsafe "h$makeCallback($1, h$run, [], $2)"
-  js_asyncCallback :: Bool -> Int -> IO (JSFun (IO a))
+  js_asyncCallback :: JSRef a -> Int -> IO (JSFun (IO b))
 
 foreign import javascript unsafe "h$makeCallbackApply($1, $3, h$runSync, [$2], $4)"
-  js_syncCallbackApply :: Bool -> Bool -> Int -> Int -> IO (JSRef a)
+  js_syncCallbackApply :: JSRef a -> Bool -> Int -> Int -> IO (JSRef b)
 foreign import javascript unsafe "h$makeCallbackApply($1, $2, h$run, [], $3)"
-  js_asyncCallbackApply :: Bool -> Int -> Int -> IO (JSRef a)
+  js_asyncCallbackApply :: JSRef a -> Int -> Int -> IO (JSRef b)
 
-foreign import javascript unsafe "h$freeCallback($1)"
-  js_freeCallback :: JSFun a -> IO ()
+foreign import javascript unsafe "h$retain($1)"
+  js_retain :: JSFun a -> IO ()
+
+foreign import javascript unsafe "h$retainDom($1, $2)"
+  js_retainDom :: JSRef a -> JSFun b -> IO ()
+
+foreign import javascript unsafe "h$releaseAll($1)"
+  js_releaseAll :: JSFun a -> IO ()
+
+foreign import javascript unsafe "h$releaseDom($1)"
+  js_releaseDom :: JSRef a -> JSFun b -> IO ()
+
+foreign import javascript unsafe "h$release($1)"
+  js_release :: JSFun a -> IO ()
 
 class ToJSString a where
   toJSString :: a -> JSString
@@ -153,7 +318,7 @@ instance IsString JSString where
   {-# INLINE fromString #-}
 
 fromJSBool :: JSBool -> Bool
-fromJSBool b = js_fromBool b
+fromJSBool b = js_unsafeFromBool b
 {-# INLINE fromJSBool #-}
 
 toJSBool :: Bool -> JSBool
@@ -247,10 +412,6 @@ newObj :: IO (JSRef a)
 newObj = js_emptyObj
 {-# INLINE newObj #-}
 
-getProp :: ToJSString a => a -> JSRef b -> IO (JSRef c)
-getProp p o = js_getProp (toJSString p) o
-{-# INLINE getProp #-}
-
 listProps :: JSRef a -> IO [JSRef JSString]
 listProps o = fromArray =<< js_listProps o
 {-# INLINE listProps #-}
@@ -259,12 +420,117 @@ typeOf :: JSRef a -> IO Int
 typeOf r = js_typeOf r
 {-# INLINE typeOf #-}
 
-getPropMaybe :: ToJSString a => a -> JSRef b -> IO (Maybe (JSRef c))
+{- | Read a property from a JS object. Throws a 'JSException' if
+     o is not a JS object or the property cannot be accessed
+ -}
+getProp :: ToJSString a => a            -- ^ the property name
+                        -> JSRef b      -- ^ the object
+                        -> IO (JSRef c) -- ^ the property value
+getProp p o = js_getProp (toJSString p) o
+{-# INLINE getProp #-}
+
+{- | Read a property from a JS object. Kills the Haskell thread
+     if o is not a JS object or the property cannot be accessed
+ -}
+unsafeGetProp :: ToJSString a => a             -- ^ the property name
+                              -> JSRef b       -- ^ the object
+                              -> IO (JSRef c)  -- ^ the property value, Nothing if the object doesn't have a property with the given name
+unsafeGetProp p o = js_unsafeGetProp (toJSString p) o
+{-# INLINE unsafeGetProp #-}
+
+{- | Read a property from a JS object. Throws a JSException if
+     o is not a JS object or the property cannot be accessed
+ -}
+getPropMaybe :: ToJSString a => a                    -- ^ the property name
+                             -> JSRef b              -- ^ the object
+                             -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
 getPropMaybe p o = do
   p' <- js_getProp (toJSString p) o
   if isUndefined p' then return Nothing else return (Just p')
 {-# INLINE getPropMaybe #-}
 
-setProp :: ToJSString a => a -> JSRef b -> JSRef c -> IO ()
+{- | Read a property from a JS object. Kills the Haskell thread
+     if o is not a JS object or the property cannot be accessed
+ -}
+unsafeGetPropMaybe :: ToJSString a => a                    -- ^ the property name
+                                   -> JSRef b              -- ^ the object
+                                   -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
+unsafeGetPropMaybe p o = do
+  p' <- js_unsafeGetProp (toJSString p) o
+  if isUndefined p' then return Nothing else return (Just p')
+{-# INLINE unsafeGetPropMaybe #-}
+
+{- | set a property in a JS object. Throws a 'JSException' if
+     o is not a reference to a JS object or the property cannot
+     be set
+ -}
+setProp :: ToJSString a => a       -- ^ the property name
+                        -> JSRef b -- ^ the value
+                        -> JSRef c -- ^ the object
+                        -> IO ()
 setProp p v o = js_setProp (toJSString p) v o
 {-# INLINE setProp #-}
+
+{- | set a property in a JS object. Kills the Haskell thread
+     if the property cannot be set.
+-}
+unsafeSetProp :: ToJSString a => a       -- ^ the property name
+                              -> JSRef b -- ^ the value
+                              -> JSRef c -- ^ the object
+                              -> IO ()
+unsafeSetProp p v o = js_unsafeSetProp (toJSString p) v o
+
+{- | Convert a JavaScript ArrayBuffer to a 'ByteArray' without copying. Throws
+     a 'JSException' if the 'JSRef' is not an ArrayBuffer.
+ -}
+wrapBuffer :: Int          -- ^ the offset in bytes, if this is not a multiple of 8,
+                           --   not all types can be read from the ByteArray#
+           -> Int          -- ^ length in bytes
+           -> JSRef a      -- ^ JavaScript ArrayBuffer object
+           -> IO ByteArray -- ^ result
+wrapBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
+{-# INLINE wrapBuffer #-}
+
+{- | Convert a JavaScript ArrayBuffer to a 'MutableByteArray' without copying. Throws
+     a 'JSException' if the 'JSRef' is not an ArrayBuffer.
+ -}
+wrapMutableBuffer :: Int          -- ^ the offset in bytes, if this is not a multiple of 8,
+                                  --   not all types can be read from / written to the ByteArray#
+                  -> Int          -- ^ th length, in bytes
+                  -> JSRef a
+                  -> IO (MutableByteArray s)
+wrapMutableBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
+{-# INLINE wrapMutableBuffer #-}
+
+{- | Get the underlying JS object from a 'ByteArray#'. The object o
+     contains an ArrayBuffer (o.buf) and several typed array views on it (which
+     can have an offset from the start of the buffer and/or a reduced length):
+      * o.i3 : 32 bit signed
+      * o.u8 : 8  bit unsigned
+      * o.u1 : 16 bit unsigned
+      * o.f3 : 32 bit single precision float
+      * o.f6 : 64 bit double precision float
+      * o.dv : a DataView
+    Some of the views will be null if the offset is not a multiple of 8.
+ -}
+byteArrayJSRef :: ByteArray# -> JSRef a
+byteArrayJSRef a = unsafeCoerce (ByteArray a)
+{-# INLINE byteArrayJSRef #-}
+
+{- | Get the underlying JS object from a 'MutableByteArray#'. The object o
+     contains an ArrayBuffer (o.buf) and several typed array views on it (which
+     can have an offset from the start of the buffer and/or a reduced length):
+      * o.i3 : 32 bit signed
+      * o.u8 : 8  bit unsigned
+      * o.u1 : 16 bit unsigned
+      * o.f3 : 32 bit single precision float
+      * o.f6 : 64 bit double precision float
+      * o.dv : a DataView
+    Some of the views will be null if the offset is not a multiple of 8.
+ -}
+mutableByteArrayJSRef :: MutableByteArray# s -> JSRef a
+mutableByteArrayJSRef a = unsafeCoerce (MutableByteArray a)
+{-# INLINE mutableByteArrayJSRef #-}
+
+foreign import javascript safe "h$wrapBuffer($3, true, $1, $2);"
+  js_wrapBuffer :: Int -> Int -> JSRef a -> IO (JSRef ())
