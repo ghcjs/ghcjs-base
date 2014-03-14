@@ -39,15 +39,6 @@ import           Data.Typeable
 
 import           Unsafe.Coerce
 
-{- | If a synchronous thread tries to do something that can only
-     be done asynchronously, and the thread is set up to not
-     continue asynchronously, it receives this exception.
- -}
-data WouldBlockException = WouldBlockException String
-  deriving (Show, Typeable)
-
-instance Ex.Exception WouldBlockException
-
 isThreadSynchronous :: ThreadId -> IO Bool
 isThreadSynchronous = fmap (`testBit` 0) . syncThreadState
 
