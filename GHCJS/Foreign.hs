@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, JavaScriptFFI, 
-    MagicHash, FlexibleInstances, BangPatterns, Rank2Types #-}
+    MagicHash, FlexibleInstances, BangPatterns, Rank2Types, CPP #-}
 
 {- | Basic interop between Haskell and JavaScript.
 
@@ -73,6 +73,8 @@ module GHCJS.Foreign ( ToJSString(..)
                      , release, releaseDom, releaseAll
                      , wrapBuffer, wrapMutableBuffer
                      , byteArrayJSRef, mutableByteArrayJSRef
+                     , bufferByteString, byteArrayByteString
+                     , unsafeMutableByteArrayByteString
                      ) where
 
 import           GHCJS.Types
@@ -83,13 +85,21 @@ import           GHC.Exts
 import           Control.Applicative
 import           Control.Concurrent.MVar
 import           Control.Exception (evaluate, Exception)
+
 import qualified Data.Text as T
+
+import           Foreign.ForeignPtr.Safe
 import           Foreign.Ptr
+
+import           Data.Primitive.Addr (Addr(..))
+import           Data.Primitive.ByteArray
+
+import           Data.ByteString (ByteString)
+import           Data.ByteString.Unsafe (unsafePackAddressLen)
+import qualified Data.Text.Array as A
+
 import           Unsafe.Coerce
 
-import           Data.Primitive.ByteArray (ByteArray(..), MutableByteArray(..))
-
-import qualified Data.Text.Array as A
 
 {- |
   Retention options affect how callbacks keep Haskell data alive.
@@ -484,9 +494,9 @@ unsafeSetProp p v o = js_unsafeSetProp (toJSString p) v o
 {- | Convert a JavaScript ArrayBuffer to a 'ByteArray' without copying. Throws
      a 'JSException' if the 'JSRef' is not an ArrayBuffer.
  -}
-wrapBuffer :: Int          -- ^ the offset in bytes, if this is not a multiple of 8,
+wrapBuffer :: Int          -- ^ offset from the start in bytes, if this is not a multiple of 8,
                            --   not all types can be read from the ByteArray#
-           -> Int          -- ^ length in bytes
+           -> Int          -- ^ length in bytes (use zero or a negative number to use the whole ArrayBuffer)
            -> JSRef a      -- ^ JavaScript ArrayBuffer object
            -> IO ByteArray -- ^ result
 wrapBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
@@ -495,10 +505,10 @@ wrapBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
 {- | Convert a JavaScript ArrayBuffer to a 'MutableByteArray' without copying. Throws
      a 'JSException' if the 'JSRef' is not an ArrayBuffer.
  -}
-wrapMutableBuffer :: Int          -- ^ the offset in bytes, if this is not a multiple of 8,
+wrapMutableBuffer :: Int          -- ^ offset from the start in bytes, if this is not a multiple of 8,
                                   --   not all types can be read from / written to the ByteArray#
-                  -> Int          -- ^ th length, in bytes
-                  -> JSRef a
+                  -> Int          -- ^ the length in bytes (use zero or a negative number to use the whole ArrayBuffer)
+                  -> JSRef a      -- ^ JavaScript ArrayBuffer object
                   -> IO (MutableByteArray s)
 wrapMutableBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
 {-# INLINE wrapMutableBuffer #-}
@@ -535,3 +545,47 @@ mutableByteArrayJSRef a = unsafeCoerce (MutableByteArray a)
 
 foreign import javascript safe "h$wrapBuffer($3, true, $1, $2);"
   js_wrapBuffer :: Int -> Int -> JSRef a -> IO (JSRef ())
+
+{- | Convert an ArrayBuffer to a strict 'ByteString'
+     this wraps the original buffer, without copying.
+     Use 'byteArrayByteString' if you already have a wrapped buffer
+ -}
+bufferByteString :: Int        -- ^ offset from the start in bytes
+                 -> Int        -- ^ length in bytes (use zero or a negative number to get the whole ArrayBuffer)
+                 -> JSRef a
+                 -> IO ByteString
+bufferByteString offset length buf = do
+  (ByteArray ba) <- wrapBuffer offset length buf
+  byteArrayByteString ba
+
+{- | Pack a ByteArray# primitive into a ByteString
+     without copying the buffer.
+
+     This is unsafe in native code
+ -}
+byteArrayByteString :: ByteArray#
+                    -> IO ByteString
+byteArrayByteString arr =
+#ifdef ghcjs_HOST_OS
+  let ba        = ByteArray arr
+      !(Addr a) = byteArrayContents ba
+  in  unsafePackAddressLen (sizeofByteArray ba) a
+#else
+  error "GHCJS.Foreign.byteArrayToByteString: not JS"
+#endif
+
+{- | Pack a MutableByteArray# primitive into a 'ByteString' without
+     copying. The byte array shouldn't be modified after converting.
+
+     This is unsafe in native code
+ -}
+unsafeMutableByteArrayByteString :: MutableByteArray# s
+                                 -> IO ByteString
+unsafeMutableByteArrayByteString arr =
+#ifdef ghcjs_HOST_OS
+  let ba        = MutableByteArray arr
+      !(Addr a) = mutableByteArrayContents ba
+  in  unsafePackAddressLen (sizeofMutableByteArray ba) a
+#else
+  error "GHCJS.Foreign.unsafeMutableByteArrayToByteString: no JS"
+#endif

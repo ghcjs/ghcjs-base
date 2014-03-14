@@ -24,6 +24,7 @@ library
   build-depends:   base >= 4.7 && < 5,
                    ghc-prim,
                    ghcjs-prim,
+                   bytestring >= 0.10 && < 0.11,
                    text >= 0.11 && < 1.2,
                    aeson >= 0.7 && < 0.8,
                    scientific >= 0.2 && < 0.3,
