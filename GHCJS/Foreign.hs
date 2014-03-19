@@ -543,7 +543,7 @@ mutableByteArrayJSRef :: MutableByteArray# s -> JSRef a
 mutableByteArrayJSRef a = unsafeCoerce (MutableByteArray a)
 {-# INLINE mutableByteArrayJSRef #-}
 
-foreign import javascript safe "h$wrapBuffer($3, true, $1, $2);"
+foreign import javascript safe "h$wrapBuffer($3, true, $1, $2)"
   js_wrapBuffer :: Int -> Int -> JSRef a -> IO (JSRef ())
 
 {- | Convert an ArrayBuffer to a strict 'ByteString'
