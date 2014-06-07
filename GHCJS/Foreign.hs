@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, JavaScriptFFI, 
+{-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes, JavaScriptFFI,
     MagicHash, FlexibleInstances, BangPatterns, Rank2Types, CPP #-}
 
 {- | Basic interop between Haskell and JavaScript.
@@ -225,7 +225,7 @@ retainDom = js_retainDom
 releaseAll :: JSFun a  -- ^ the callback
         -> IO ()
 releaseAll = js_releaseAll
-{-# INLINE release #-}
+{-# INLINE releaseAll #-}
 
 {- | free the retention associated with DOM element for the callback, if any
  -}
