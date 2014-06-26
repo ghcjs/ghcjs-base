@@ -25,7 +25,7 @@ module GHCJS.Marshal ( FromJSRef(..)
 
 import           Control.Applicative
 import           Control.Monad
-import           Control.Monad.Trans.Maybe (MaybeT(..))
+import           Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import           Data.Aeson (FromJSON(..), ToJSON(..), Value(..), object)
 import           Data.Attoparsec.Number (Number(..))
 import           Data.Bits ((.&.))
