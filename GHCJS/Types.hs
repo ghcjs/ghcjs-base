@@ -52,14 +52,6 @@ mkRef :: Addr# -> JSRef a
 mkRef x = JSRef x
 #endif
 
-isNull :: JSRef a -> Bool
-isNull ref = js_isNull ref
-{-# INLINE isNull #-}
-
-isUndefined :: JSRef a -> Bool
-isUndefined ref = js_isUndefined ref
-{-# INLINE isUndefined #-}
-
 eqRef :: JSRef a -> JSRef b -> Bool
 eqRef x y = js_eqRef x y
 {-# INLINE eqRef #-}
@@ -93,9 +85,6 @@ fromPtr = unsafeCoerce
 {-# INLINE fromPtr #-}
 #endif
 
-
-foreign import javascript unsafe "$1 === null"      js_isNull      :: JSRef a -> Bool
-foreign import javascript unsafe "$1 === undefined" js_isUndefined :: JSRef a -> Bool
 foreign import javascript unsafe "$1 === $2"        js_eqRef       :: JSRef a -> JSRef b -> Bool
 foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
 
