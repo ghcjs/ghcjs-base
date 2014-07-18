@@ -78,6 +78,7 @@ module GHCJS.Foreign ( ToJSString(..)
                      ) where
 
 import           GHCJS.Types
+import qualified GHCJS.Prim as Prim
 
 import           GHC.Prim
 import           GHC.Exts
@@ -266,14 +267,14 @@ foreign import javascript safe "h$listprops($1)" js_listProps :: JSRef a -> IO (
 foreign import javascript unsafe "h$typeOf($1)" js_typeOf :: JSRef a -> IO Int
 
 foreign import javascript unsafe "h$makeCallback($1, h$runSync, [$2], $3)"
-  js_syncCallback :: JSRef a -> Bool -> Int -> IO (JSFun (IO b))
+  js_syncCallback :: JSRef a -> Bool -> Double -> IO (JSFun (IO b))
 foreign import javascript unsafe "h$makeCallback($1, h$run, [], $2)"
-  js_asyncCallback :: JSRef a -> Int -> IO (JSFun (IO b))
+  js_asyncCallback :: JSRef a -> Double -> IO (JSFun (IO b))
 
 foreign import javascript unsafe "h$makeCallbackApply($1, $3, h$runSync, [$2], $4)"
-  js_syncCallbackApply :: JSRef a -> Bool -> Int -> Int -> IO (JSRef b)
+  js_syncCallbackApply :: JSRef a -> Bool -> Int -> Double -> IO (JSRef b)
 foreign import javascript unsafe "h$makeCallbackApply($1, $2, h$run, [], $3)"
-  js_asyncCallbackApply :: JSRef a -> Int -> Int -> IO (JSRef b)
+  js_asyncCallbackApply :: JSRef a -> Int -> Double -> IO (JSRef b)
 
 foreign import javascript unsafe "h$retain($1)"
   js_retain :: JSFun a -> IO ()
@@ -297,11 +298,11 @@ class FromJSString a where
   fromJSString :: JSString -> a
 
 instance ToJSString [Char] where
-  toJSString = toJSString . T.pack
+  toJSString = Prim.toJSString
   {-# INLINE toJSString #-}
 
 instance FromJSString [Char] where
-  fromJSString = T.unpack . fromJSString
+  fromJSString = Prim.fromJSString
   {-# INLINE fromJSString #-}
 
 instance ToJSString T.Text where
