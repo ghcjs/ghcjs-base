@@ -69,6 +69,7 @@ class FromJSRef a where
   fromJSRef = fromJSRef_generic id
 
 instance FromJSRef (JSRef a) where fromJSRef = return . Just . castRef
+instance FromJSRef ()        where fromJSRef _ = return (Just ())
 
 instance FromJSRef a => FromJSRef [a] where fromJSRef = fromJSRefListOf
 instance FromJSRef Text   where fromJSRef = fromJSRef_fromJSString
