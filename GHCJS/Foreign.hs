@@ -88,6 +88,7 @@ import           Control.Concurrent.MVar
 import           Control.Exception (evaluate, Exception)
 
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
 
 import           Foreign.ForeignPtr.Safe
 import           Foreign.Ptr
@@ -315,6 +316,14 @@ instance FromJSString T.Text where
   fromJSString (JSRef ref) =
     let !(Ptr' ba l) = ptrToPtr' (js_fromString ref)
     in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
+  {-# INLINE fromJSString #-}
+
+instance ToJSString TL.Text where
+  toJSString = toJSString . TL.toStrict
+  {-# INLINE toJSString #-}
+
+instance FromJSString TL.Text where
+  fromJSString = TL.fromStrict . fromJSString
   {-# INLINE fromJSString #-}
 
 instance ToJSString JSString where
