@@ -319,10 +319,10 @@ instance FromJSString T.Text where
   {-# INLINE fromJSString #-}
 
 instance ToJSString TL.Text where
-  toJSString = toStrict . toJSString
+  toJSString = TL.toStrict . toJSString
 
 instance FromJSString TL.Text where
-  toJSString = fromStrict . fromJSString
+  toJSString = TL.fromStrict . fromJSString
 
 instance ToJSString JSString where
   toJSString t = t
