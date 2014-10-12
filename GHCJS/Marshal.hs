@@ -112,7 +112,15 @@ instance FromJSRef Value where
                         v <- MaybeT (fromJSRef =<< getProp p' r)
                         return (fromJSString p', v)
                     return (Object (H.fromList propVals))
-                    
+
+instance FromJSRef a => FromJSRef (Maybe a) where
+  fromJSRef r = if eqRef r jsNull || eqRef r jsUndefined
+    then return $ Just Nothing
+    else do
+      mx <- fromJSRef $ castRef r
+      return $ case mx of
+        Just x  -> Just (Just x)
+        Nothing -> Nothing
 
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
