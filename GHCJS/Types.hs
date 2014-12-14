@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns,
-    CPP, ForeignFunctionInterface, JavaScriptFFI #-}
+    CPP, ForeignFunctionInterface, JavaScriptFFI, TypeFamilies #-}
 
 module GHCJS.Types ( JSRef(..)
                    , isNull
@@ -38,7 +38,8 @@ type JSObject a = JSRef (JSObject_ a)
 type JSFun a    = JSRef (JSFun_ a)
 -- type JSObject'  = JSRef (JSObject (Any *))
 
-type JSArray a  = JSRef (JSArray_ a)
+type family JSArray a :: *
+type instance JSArray (JSRef a) = JSRef (JSArray_ a)
 
 #ifdef ghcjs_HOST_OS
 type Ref# = ByteArray#

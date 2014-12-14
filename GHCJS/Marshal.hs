@@ -108,11 +108,10 @@ instance FromJSRef Value where
                 props <- listProps r
                 runMaybeT $ do
                     propVals <- forM props $ \p -> do
-                        p' <- MaybeT $ fromJSRef p
-                        v <- MaybeT (fromJSRef =<< getProp p' r)
-                        return (fromJSString p', v)
+                        v <- MaybeT (fromJSRef =<< getProp p r)
+                        return (fromJSString p, v)
                     return (Object (H.fromList propVals))
-                    
+
 
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
@@ -184,7 +183,7 @@ jr a = castRef <$> toJSRef a
 
 fromJSNumber :: (JSRef a -> a) -> JSRef a -> Maybe a
 fromJSNumber f x = if isUndefined x || isNull x
-                     then Nothing 
+                     then Nothing
                      else Just (f x)
 
 toJSRef_aeson :: ToJSON a => a -> IO (JSRef a)
@@ -213,7 +212,7 @@ class GToJSProp a where
   gToJSProp :: (String -> String) -> JSRef () -> a -> IO ()
 
 class GToJSArr a where
-  gToJSArr :: (String -> String) -> JSArray () -> a -> IO ()
+  gToJSArr :: (String -> String) -> JSArray (JSRef ()) -> a -> IO ()
 
 instance (ToJSRef b) => GToJSRef (K1 a b c) where
   gToJSRef _ _ (K1 x) = castRef <$> toJSRef x
@@ -285,7 +284,7 @@ class GFromJSProp a where
   gFromJSProp :: (String -> String) -> JSRef () -> IO (Maybe a)
 
 class GFromJSArr a where
-  gFromJSArr :: (String -> String) -> JSArray () -> Int -> IO (Maybe (a,Int))
+  gFromJSArr :: (String -> String) -> JSArray (JSRef ()) -> Int -> IO (Maybe (a,Int))
 
 instance FromJSRef b => GFromJSRef (K1 a b c) where
   gFromJSRef _ _ r = fmap K1 <$> fromJSRef (castRef r)
