@@ -21,6 +21,7 @@ library
                    GHCJS.Types
                    GHCJS.Foreign
                    GHCJS.Marshal
+                   GHCJS.Marshal.Pure
   build-depends:   base >= 4.7 && < 5,
                    ghc-prim,
                    ghcjs-prim,
