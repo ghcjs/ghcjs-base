@@ -253,11 +253,11 @@ foreign import javascript unsafe "$r = null"  js_null :: Int# -> Ref#
 foreign import javascript unsafe "$r = undefined"  js_undefined :: Int# -> Ref#
 foreign import javascript unsafe "$r = []" js_emptyArray :: IO (JSArray a)
 foreign import javascript unsafe "$r = {}" js_emptyObj :: IO (JSRef a)
-foreign import javascript safe "$2.push($1)" js_push :: JSRef a -> JSArray a -> IO ()
+foreign import javascript safe "$2.push($1)" js_push :: JSRef a -> JSArray (JSRef a) -> IO ()
 foreign import javascript safe "$1.length" js_length :: JSArray a -> IO Int
-foreign import javascript unsafe "$2.push($1)" js_unsafePush :: JSRef a -> JSArray a -> IO ()
+foreign import javascript unsafe "$2.push($1)" js_unsafePush :: JSRef a -> JSArray (JSRef a) -> IO ()
 foreign import javascript unsafe "$1.length" js_unsafeLength :: JSArray a -> IO Int
-foreign import javascript safe "$2[$1]" js_index :: Int -> JSArray a -> IO (JSRef a)
+foreign import javascript safe "$2[$1]" js_index :: Int -> JSArray (JSRef a) -> IO (JSRef a)
 foreign import javascript safe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript safe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
 foreign import javascript unsafe "$2[$1]" js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
@@ -386,7 +386,7 @@ ptrToPtr' = unsafeCoerce
 ptr'ToPtr :: Ptr' a -> Ptr b
 ptr'ToPtr = unsafeCoerce
 
-toArray :: [JSRef a] -> IO (JSArray a)
+toArray :: [JSRef a] -> IO (JSArray (JSRef a))
 toArray xs = do
   a <- js_emptyArray
   let go ys = case ys of
@@ -396,11 +396,11 @@ toArray xs = do
   return a
 {-# INLINE toArray #-}
 
-pushArray :: JSRef b -> JSArray a -> IO ()
+pushArray :: JSRef b -> JSArray (JSRef a) -> IO ()
 pushArray r arr = js_push (castRef r) arr
 {-# INLINE pushArray #-}
 
-fromArray :: JSArray a -> IO [JSRef a]
+fromArray :: JSArray (JSRef a) -> IO [JSRef a]
 fromArray a = do
   l <- js_length a
   let go i | i < l     = (:) <$> js_index i a <*> go (i+1)
@@ -412,7 +412,7 @@ lengthArray :: JSArray a -> IO Int
 lengthArray a = js_length a
 {-# INLINE lengthArray #-}
 
-indexArray :: Int -> JSArray a -> IO (JSRef a)
+indexArray :: Int -> JSArray (JSRef a) -> IO (JSRef a)
 indexArray = js_index
 {-# INLINE indexArray #-}
 
@@ -424,7 +424,7 @@ newObj :: IO (JSRef a)
 newObj = js_emptyObj
 {-# INLINE newObj #-}
 
-listProps :: JSRef a -> IO [JSRef JSString]
+listProps :: JSRef a -> IO [JSString]
 listProps o = fromArray =<< js_listProps o
 {-# INLINE listProps #-}
 

@@ -1,4 +1,5 @@
-{-# LANGUAGE DefaultSignatures,
+{-# LANGUAGE CPP,
+             DefaultSignatures,
              TypeOperators,
              ScopedTypeVariables,
              DefaultSignatures,
@@ -24,6 +25,9 @@ import           Data.Int (Int8, Int16, Int32)
 import           Data.Maybe
 import           Data.Text (Text)
 import           Data.Word (Word8, Word16, Word32, Word)
+#ifdef ghcjs_HOST_OS
+import           Data.Bits ((.&.))
+#endif
 import           Unsafe.Coerce (unsafeCoerce)
 import           GHC.Int
 import           GHC.Word
@@ -37,30 +41,20 @@ import           GHCJS.Foreign
 class PToJSRef a where
   ptoJSRef :: a -> (JSRef a)
 
-  ptoJSRefListOf :: [a] -> (JSRef [a])
-  ptoJSRefListOf = error "ptoJSRefListOf"
-
 class PFromJSRef a where
   pfromJSRef :: JSRef a -> a
-
-  pfromJSRefListOf :: JSRef [a] -> [a]
-  pfromJSRefListOf = error "ptoJSRefListOf"
 
 instance PFromJSRef (JSRef a) where pfromJSRef = castRef
                                     {-# INLINE pfromJSRef #-}
 instance PFromJSRef ()        where pfromJSRef _ = ()
                                     {-# INLINE pfromJSRef #-}
 
-instance PFromJSRef a => PFromJSRef [a] where pfromJSRef = pfromJSRefListOf
-                                              {-# INLINE pfromJSRef #-}
-instance PFromJSRef Text   where pfromJSRef = pfromJSRef_fromJSString
+instance PFromJSRef [Char] where pfromJSRef   = pfromJSRef_fromJSString
                                  {-# INLINE pfromJSRef #-}
-instance PFromJSRef Char   where
-  pfromJSRef x     = C# (jsrefToChar x)
-  {-# INLINE pfromJSRef #-}
-  pfromJSRefListOf = pfromJSRef_fromJSString
-  {-# INLINE pfromJSRefListOf #-}
-
+instance PFromJSRef Text   where pfromJSRef   = pfromJSRef_fromJSString
+                                 {-# INLINE pfromJSRef #-}
+instance PFromJSRef Char   where pfromJSRef x = C# (jsrefToChar x)
+                                 {-# INLINE pfromJSRef #-}
 instance PFromJSRef Bool   where pfromJSRef   = fromJSBool . castRef
                                  {-# INLINE pfromJSRef #-}
 instance PFromJSRef Int    where pfromJSRef x = I# (jsrefToInt x)
@@ -84,31 +78,22 @@ instance PFromJSRef Float  where pfromJSRef x = F# (jsrefToFloat x)
 instance PFromJSRef Double where pfromJSRef x = D# (jsrefToDouble x)
                                  {-# INLINE pfromJSRef #-}
 
-{-
-instance (PFromJSRef a, PFromJSRef b) => PFromJSRef (a,b) where
-   fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
-   {-# INLINE pfromJSRef #-}
-instance (PFromJSRef a, PFromJSRef b, PFromJSRef c) => PFromJSRef (a,b,c) where
-   fromJSRef r = runMaybeT $ (,,) <$> jf r 0 <*> jf r 1 <*> jf r 2
-   {-# INLINE pfromJSRef #-}
-instance (PFromJSRef a, PFromJSRef b, PFromJSRef c, PFromJSRef d) => PFromJSRef (a,b,c,d) where
-   fromJSRef r = runMaybeT $ (,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3
-   {-# INLINE pfromJSRef #-}
--}
+instance PFromJSRef a => PFromJSRef (Maybe a) where
+    pfromJSRef x | isUndefined x || isNull x = Nothing
+    pfromJSRef x = Just (pfromJSRef (castRef x))
+    {-# INLINE pfromJSRef #-}
 
 instance PToJSRef (JSRef a) where ptoJSRef = castRef
                                   {-# INLINE ptoJSRef #-}
 
-instance PToJSRef Text where ptoJSRef = ptoJSRef_toJSString
-                             {-# INLINE ptoJSRef #-}
-instance PToJSRef Char   where
-  ptoJSRef (C# c) = charToJSRef c
-  {-# INLINE ptoJSRef #-}
-  ptoJSRefListOf = ptoJSRef_toJSString
-  {-# INLINE ptoJSRefListOf #-}
-
-instance PToJSRef Bool   where ptoJSRef True  = castRef jsTrue
-                               ptoJSRef False = castRef jsFalse
+instance PToJSRef [Char] where ptoJSRef         = ptoJSRef_toJSString
+                               {-# INLINE ptoJSRef #-}
+instance PToJSRef Text   where ptoJSRef          = ptoJSRef_toJSString
+                               {-# INLINE ptoJSRef #-}
+instance PToJSRef Char   where ptoJSRef (C# c)   = charToJSRef c
+                               {-# INLINE ptoJSRef #-}
+instance PToJSRef Bool   where ptoJSRef True     = castRef jsTrue
+                               ptoJSRef False    = castRef jsFalse
                                {-# INLINE ptoJSRef #-}
 instance PToJSRef Int    where ptoJSRef (I# x)   = intToJSRef x
                                {-# INLINE ptoJSRef #-}
@@ -131,36 +116,10 @@ instance PToJSRef Float  where ptoJSRef (F# x)   = floatToJSRef x
 instance PToJSRef Double where ptoJSRef (D# x)   = doubleToJSRef x
                                {-# INLINE ptoJSRef #-}
 
-instance PToJSRef a => PToJSRef [a] where ptoJSRef = ptoJSRefListOf
-                                          {-# INLINE ptoJSRef #-}
-
 instance PToJSRef a => PToJSRef (Maybe a) where
     ptoJSRef Nothing  = jsNull
     ptoJSRef (Just a) = castRef (ptoJSRef a)
     {-# INLINE ptoJSRef #-}
-
-instance (PToJSRef a, PToJSRef b) => PToJSRef (a,b) where
-  ptoJSRef (a,b) = arr2 (jr a) (jr b)
-  {-# INLINE ptoJSRef #-}
-instance (PToJSRef a, PToJSRef b, PToJSRef c) => PToJSRef (a,b,c) where
-  ptoJSRef (a,b,c) = arr3 (jr a) (jr b) (jr c)
-  {-# INLINE ptoJSRef #-}
-instance (PToJSRef a, PToJSRef b, PToJSRef c, PToJSRef d) => PToJSRef (a,b,c,d) where
-  ptoJSRef (a,b,c,d) = arr4 (jr a) (jr b) (jr c) (jr d)
-  {-# INLINE ptoJSRef #-}
-instance (PToJSRef a, PToJSRef b, PToJSRef c, PToJSRef d, PToJSRef e) => PToJSRef (a,b,c,d,e) where
-  ptoJSRef (a,b,c,d,e) = arr5 (jr a) (jr b) (jr c) (jr d) (jr e)
-  {-# INLINE ptoJSRef #-}
-instance (PToJSRef a, PToJSRef b, PToJSRef c, PToJSRef d, PToJSRef e, PToJSRef f) => PToJSRef (a,b,c,d,e,f) where
-  ptoJSRef (a,b,c,d,e,f) = arr6 (jr a) (jr b) (jr c) (jr d) (jr e) (jr f)
-  {-# INLINE ptoJSRef #-}
-instance (PToJSRef a, PToJSRef b, PToJSRef c, PToJSRef d, PToJSRef e, PToJSRef f, PToJSRef g) => PToJSRef (a,b,c,d,e,f,g) where
-  ptoJSRef (a,b,c,d,e,f,g) = arr7 (jr a) (jr b) (jr c) (jr d) (jr e) (jr f) (jr g)
-  {-# INLINE ptoJSRef #-}
-
-jr :: PToJSRef a => a -> JSRef ()
-jr = castRef . ptoJSRef
-{-# INLINE jr #-}
 
 ptoJSRef_toJSString :: ToJSString a => a -> (JSRef a)
 ptoJSRef_toJSString = castRef . toJSString
@@ -170,28 +129,50 @@ pfromJSRef_fromJSString :: FromJSString a => JSRef a -> a
 pfromJSRef_fromJSString = fromJSString . castRef
 {-# INLINE pfromJSRef_fromJSString #-}
 
-foreign import javascript unsafe "$r = $1|0;" jsrefToWord   :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1&0xff;" jsrefToWord8  :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1&0xffff;" jsrefToWord16 :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1|0;" jsrefToInt    :: JSRef a -> Int#
-foreign import javascript unsafe "$r = $1&0xff;" jsrefToInt8    :: JSRef a -> Int#
-foreign import javascript unsafe "$r = $1&0xffff;" jsrefToInt16    :: JSRef a -> Int#
-foreign import javascript unsafe "$r = +$1;" jsrefToFloat  :: JSRef a -> Float#
-foreign import javascript unsafe "$r = +$1;"  jsrefToDouble :: JSRef a -> Double#
-foreign import javascript unsafe "$r = $1&0x7fffffff;" jsrefToChar :: JSRef a -> Char#
+#ifdef ghcjs_HOST_OS
+foreign import javascript unsafe "$r = $1|0;"          jsrefToWord   :: JSRef a -> Word#
+foreign import javascript unsafe "$r = $1&0xff;"       jsrefToWord8  :: JSRef a -> Word#
+foreign import javascript unsafe "$r = $1&0xffff;"     jsrefToWord16 :: JSRef a -> Word#
+foreign import javascript unsafe "$r = $1|0;"          jsrefToInt    :: JSRef a -> Int#
+foreign import javascript unsafe "$r = $1&0xff;"       jsrefToInt8   :: JSRef a -> Int#
+foreign import javascript unsafe "$r = $1&0xffff;"     jsrefToInt16  :: JSRef a -> Int#
+foreign import javascript unsafe "$r = +$1;"           jsrefToFloat  :: JSRef a -> Float#
+foreign import javascript unsafe "$r = +$1;"           jsrefToDouble :: JSRef a -> Double#
+foreign import javascript unsafe "$r = $1&0x7fffffff;" jsrefToChar   :: JSRef a -> Char#
 
 foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef a
 foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef a
 foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef a
 foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef a
 foreign import javascript unsafe "$r = $1;" charToJSRef   :: Char#   -> JSRef a
+#else
+jsrefToWord   :: JSRef a -> Word#
+jsrefToWord r   = let !(W# x) = unsafeCoerce r .&. 0xffffffff in x
+jsrefToWord8  :: JSRef a -> Word#
+jsrefToWord8 r  = let !(W# x) = unsafeCoerce r .&. 0xff in x
+jsrefToWord16 :: JSRef a -> Word#
+jsrefToWord16 r = let !(W# x) = unsafeCoerce r .&. 0xffff in x
+jsrefToInt    :: JSRef a -> Int#
+jsrefToInt r    = let !(I# x) = unsafeCoerce r .&. 0xffffffff in x
+jsrefToInt8   :: JSRef a -> Int#
+jsrefToInt8 r   = let !(I# x) = unsafeCoerce r .&. 0xff in x
+jsrefToInt16  :: JSRef a -> Int#
+jsrefToInt16 r  = let !(I# x) = unsafeCoerce r .&. 0xffff in x
+jsrefToFloat  :: JSRef a -> Float#
+jsrefToFloat r  = let !(F# x) = unsafeCoerce r in x
+jsrefToDouble :: JSRef a -> Double#
+jsrefToDouble r = let !(D# x) = unsafeCoerce r in x
+jsrefToChar   :: JSRef a -> Int#
+jsrefToChar r   = let !(C# x) = chr (ord (unsafeCoerce r) .&. 0x7fffffff) in x
 
-foreign import javascript unsafe "[$1]"                   arr1     :: JSRef a -> JSRef b
-foreign import javascript unsafe "[$1,$2]"                arr2     :: JSRef a -> JSRef b -> JSRef c
-foreign import javascript unsafe "[$1,$2,$3]"             arr3     :: JSRef a -> JSRef b -> JSRef c -> JSRef d
-foreign import javascript unsafe "[$1,$2,$3,$4]"          arr4     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e
-foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> JSRef f
-foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> JSRef f -> JSRef g
-foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> JSRef f -> JSRef g -> JSRef h
+wordToJSRef   :: Word# -> JSRef a
+wordToJSRef x   = unsafeCoerce (W# x)
+intToJSRef    :: Int# -> JSRef a
+intToJSRef x    = unsafeCoerce (I# x)
+doubleToJSRef :: Double# -> JSRef a
+doubleToJSRef x = unsafeCoerce (D# x)
+floatToJSRef  :: Float# -> JSRef a
+floatToJSRef  x = unsafeCoerce (F# x)
+#endif
 
 

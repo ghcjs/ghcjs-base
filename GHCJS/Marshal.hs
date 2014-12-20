@@ -18,9 +18,7 @@ module GHCJS.Marshal ( FromJSRef(..)
                      , ToJSRef(..)
                      , toJSRef_aeson
                      , toJSRef_generic
-                     , toJSRef_toJSString
                      , fromJSRef_generic
-                     , fromJSRef_fromJSString
                      ) where
 
 import           Control.Applicative
@@ -47,6 +45,7 @@ import           GHC.Prim
 
 import           GHCJS.Types
 import           GHCJS.Foreign
+import           GHCJS.Marshal.Pure
 
 import           GHC.Generics
 
@@ -62,32 +61,105 @@ class ToJSRef a where
 class FromJSRef a where
   fromJSRef :: JSRef a -> IO (Maybe a)
 
+  fromJSRefUnchecked :: JSRef a -> IO a
+  fromJSRefUnchecked = fmap fromJust . fromJSRef
+  {-# INLINE fromJSRefUnchecked #-}
+
   fromJSRefListOf :: JSRef [a] -> IO (Maybe [a])
   fromJSRefListOf = fmap sequence . (mapM fromJSRef <=< fromArray . castRef) -- fixme should check that it's an array
+
+  fromJSRefUncheckedListOf :: JSRef [a] -> IO [a]
+  fromJSRefUncheckedListOf = mapM fromJSRefUnchecked <=< fromArray . castRef
 
   default fromJSRef :: (Generic a, GFromJSRef (Rep a ())) => JSRef a -> IO (Maybe a)
   fromJSRef = fromJSRef_generic id
 
-instance FromJSRef (JSRef a) where fromJSRef = return . Just . castRef
-instance FromJSRef ()        where fromJSRef _ = return (Just ())
-
-instance FromJSRef a => FromJSRef [a] where fromJSRef = fromJSRefListOf
-instance FromJSRef Text   where fromJSRef = fromJSRef_fromJSString
-instance FromJSRef Char   where
-  fromJSRef       = fmap (fmap (chr.(.&.0x7fffffff))) . fromJSRef . castRef
-  fromJSRefListOf = fromJSRef_fromJSString
-instance FromJSRef Bool   where fromJSRef = return . Just . fromJSBool . castRef
-instance FromJSRef Int    where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> I# (jsrefToInt x))
-instance FromJSRef Int8   where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber (\x -> I8# (jsrefToInt x))
-instance FromJSRef Int16  where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber (\x -> I16# (jsrefToInt x))
-instance FromJSRef Int32  where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> I32# (jsrefToInt x))
-instance FromJSRef Word   where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> W# (jsrefToWord x))
-instance FromJSRef Word8  where fromJSRef = return . fmap (.&.0xff)       . fromJSNumber (\x -> W8# (jsrefToWord x))
-instance FromJSRef Word16 where fromJSRef = return . fmap (.&.0xffff)     . fromJSNumber (\x -> W16# (jsrefToWord x))
-instance FromJSRef Word32 where fromJSRef = return . fmap (.&.0xffffffff) . fromJSNumber (\x -> W32# (jsrefToWord x))
-instance FromJSRef Float  where fromJSRef = return . fromJSNumber (\x -> F# (jsrefToFloat x))
-instance FromJSRef Double where fromJSRef = return . fromJSNumber (\x -> D# (jsrefToDouble x))
-
+instance FromJSRef (JSRef a) where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef () where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef a => FromJSRef [a] where
+    fromJSRef = fromJSRefListOf
+    {-# INLINE fromJSRef #-}
+instance FromJSRef a => FromJSRef (Maybe a) where
+    fromJSRef x | isUndefined x || isNull x = return (Just Nothing)
+                | otherwise = fmap (fmap Just) fromJSRef (castRef x)
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Text where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Char where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+    fromJSRefListOf = return . pfromJSRef . castRef
+    {-# INLINE fromJSRefListOf #-}
+    fromJSRefUncheckedListOf = return . pfromJSRef
+    {-# INLINE fromJSRefUncheckedListOf #-}
+instance FromJSRef Bool where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Int where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Int8 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Int16 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Int32 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Word where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Word8 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Word16 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Word32 where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Float where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
+instance FromJSRef Double where
+    fromJSRefUnchecked = return . pfromJSRef
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = return . pfromJSRef . castRef
+    {-# INLINE fromJSRef #-}
 instance FromJSRef Value where
     fromJSRef r = do
         ty <- typeOf r
@@ -108,26 +180,31 @@ instance FromJSRef Value where
                 props <- listProps r
                 runMaybeT $ do
                     propVals <- forM props $ \p -> do
-                        p' <- MaybeT $ fromJSRef p
-                        v <- MaybeT (fromJSRef =<< getProp p' r)
-                        return (fromJSString p', v)
+                        v <- MaybeT (fromJSRef =<< getProp p r)
+                        return (fromJSString p, v)
                     return (Object (H.fromList propVals))
-                    
-
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
-   fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
+    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c) => FromJSRef (a,b,c) where
-   fromJSRef r = runMaybeT $ (,,) <$> jf r 0 <*> jf r 1 <*> jf r 2
+    fromJSRef r = runMaybeT $ (,,) <$> jf r 0 <*> jf r 1 <*> jf r 2
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d) => FromJSRef (a,b,c,d) where
-   fromJSRef r = runMaybeT $ (,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3
+    fromJSRef r = runMaybeT $ (,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e) => FromJSRef (a,b,c,d,e) where
-   fromJSRef r = runMaybeT $ (,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4
+    fromJSRef r = runMaybeT $ (,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f) => FromJSRef (a,b,c,d,e,f) where
-   fromJSRef r = runMaybeT $ (,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5
+    fromJSRef r = runMaybeT $ (,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f, FromJSRef g) => FromJSRef (a,b,c,d,e,f,g) where
-   fromJSRef r = runMaybeT $ (,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6
+    fromJSRef r = runMaybeT $ (,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6
+    {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f, FromJSRef g, FromJSRef h) => FromJSRef (a,b,c,d,e,f,g,h) where
-   fromJSRef r = runMaybeT $ (,,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6 <*> jf r 7
+    fromJSRef r = runMaybeT $ (,,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6 <*> jf r 7
+    {-# INLINE fromJSRef #-}
 
 jf :: FromJSRef a => JSRef b -> Int -> MaybeT IO a
 jf r n = MaybeT $ do
@@ -136,56 +213,86 @@ jf r n = MaybeT $ do
     then return Nothing
     else fromJSRef r'
 
-instance ToJSRef (JSRef a) where toJSRef = fmap castRef . return
-
-instance ToJSRef Value     where toJSRef = toJSRef_aeson
-
-instance ToJSRef Text where toJSRef = toJSRef_toJSString
+instance ToJSRef (JSRef a) where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Value where
+    toJSRef = toJSRef_aeson
+    {-# INLINE toJSRef #-}
+instance ToJSRef Text where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
 instance ToJSRef Char   where
-  toJSRef       = fmap castRef . toJSRef . ord
-  toJSRefListOf = toJSRef_toJSString
-
-instance ToJSRef Bool   where toJSRef = return . castRef . toJSBool
-instance ToJSRef Int    where toJSRef (I# x)   = return (intToJSRef x)
-instance ToJSRef Int8   where toJSRef (I8# x)  = return (intToJSRef x)
-instance ToJSRef Int16  where toJSRef (I16# x) = return (intToJSRef x)
-instance ToJSRef Int32  where toJSRef (I32# x) = return (intToJSRef x)
-instance ToJSRef Word   where toJSRef (W# x)   = return (wordToJSRef x)
-instance ToJSRef Word8  where toJSRef (W8# x)  = return (wordToJSRef x)
-instance ToJSRef Word16 where toJSRef (W16# x) = return (wordToJSRef x)
-instance ToJSRef Word32 where toJSRef (W32# x) = return (wordToJSRef x)
-instance ToJSRef Float  where toJSRef (F# x)   = return (floatToJSRef x)
-instance ToJSRef Double where toJSRef (D# x)   = return (doubleToJSRef x)
-
-instance ToJSRef a => ToJSRef [a] where toJSRef = toJSRefListOf
-
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+    toJSRefListOf = return . ptoJSRef
+    {-# INLINE toJSRefListOf #-}
+instance ToJSRef Bool where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Int where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Int8 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Int16 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Int32 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Word where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Word8 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Word16 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Word32 where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Float where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef Double where
+    toJSRef = return . ptoJSRef
+    {-# INLINE toJSRef #-}
+instance ToJSRef a => ToJSRef [a] where
+    toJSRef = toJSRefListOf
+    {-# INLINE toJSRef #-}
 instance ToJSRef a => ToJSRef (Maybe a) where
     toJSRef Nothing  = return jsNull
     toJSRef (Just a) = castRef <$> toJSRef a
-
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b) => ToJSRef (a,b) where
-  toJSRef (a,b) = ja [jr a, jr b]
+    toJSRef (a,b) = join $ arr2 <$> toJSRef a <*> toJSRef b
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b, ToJSRef c) => ToJSRef (a,b,c) where
-  toJSRef (a,b,c) = ja [jr a, jr b, jr c]
+    toJSRef (a,b,c) = join $ arr3 <$> toJSRef a <*> toJSRef b <*> toJSRef c
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d) => ToJSRef (a,b,c,d) where
-  toJSRef (a,b,c,d) = ja [jr a, jr b, jr c, jr d]
+    toJSRef (a,b,c,d) = join $ arr4 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e) => ToJSRef (a,b,c,d,e) where
-  toJSRef (a,b,c,d,e) = ja [jr a, jr b, jr c, jr d, jr e]
+    toJSRef (a,b,c,d,e) = join $ arr5 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e, ToJSRef f) => ToJSRef (a,b,c,d,e,f) where
-  toJSRef (a,b,c,d,e,f) = ja [jr a, jr b, jr c, jr d, jr e, jr f]
+    toJSRef (a,b,c,d,e,f) = join $ arr6 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e <*> toJSRef f
+    {-# INLINE toJSRef #-}
 instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e, ToJSRef f, ToJSRef g) => ToJSRef (a,b,c,d,e,f,g) where
-  toJSRef (a,b,c,d,e,f,g) = ja [jr a, jr b, jr c, jr d, jr e, jr f, jr g]
+    toJSRef (a,b,c,d,e,f,g) = join $ arr7 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e <*> toJSRef f <*> toJSRef g
+    {-# INLINE toJSRef #-}
 
-ja :: [IO (JSRef a)] -> IO (JSRef b)
-ja = fmap castRef . (toArray <=< sequence)
-
-jr :: ToJSRef a => a -> IO (JSRef ())
-jr a = castRef <$> toJSRef a
-
-fromJSNumber :: (JSRef a -> a) -> JSRef a -> Maybe a
-fromJSNumber f x = if isUndefined x || isNull x
-                     then Nothing 
-                     else Just (f x)
+foreign import javascript unsafe "[$1]"                   arr1     :: JSRef a -> IO (JSRef b)
+foreign import javascript unsafe "[$1,$2]"                arr2     :: JSRef a -> JSRef b -> IO (JSRef c)
+foreign import javascript unsafe "[$1,$2,$3]"             arr3     :: JSRef a -> JSRef b -> JSRef c -> IO (JSRef d)
+foreign import javascript unsafe "[$1,$2,$3,$4]"          arr4     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> IO (JSRef e)
+foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> IO (JSRef f)
+foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> JSRef f -> IO (JSRef g)
+foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSRef a -> JSRef b -> JSRef c -> JSRef d -> JSRef e -> JSRef f -> JSRef g -> IO (JSRef h)
 
 toJSRef_aeson :: ToJSON a => a -> IO (JSRef a)
 toJSRef_aeson x = cv (toJSON x)
@@ -203,9 +310,6 @@ toJSRef_aeson x = cv (toJSON x)
       mapM_ (\(k,v) -> convertValue v >>= \v' -> setProp k v' obj) (H.toList o)
       return obj
 
-toJSRef_toJSString :: ToJSString a => a -> IO (JSRef a)
-toJSRef_toJSString = return . castRef . toJSString
-
 class GToJSRef a where
   gToJSRef :: (String -> String) -> Bool -> a -> IO (JSRef ())
 
@@ -213,7 +317,7 @@ class GToJSProp a where
   gToJSProp :: (String -> String) -> JSRef () -> a -> IO ()
 
 class GToJSArr a where
-  gToJSArr :: (String -> String) -> JSArray () -> a -> IO ()
+  gToJSArr :: (String -> String) -> JSArray (JSRef ()) -> a -> IO ()
 
 instance (ToJSRef b) => GToJSRef (K1 a b c) where
   gToJSRef _ _ (K1 x) = castRef <$> toJSRef x
@@ -285,7 +389,7 @@ class GFromJSProp a where
   gFromJSProp :: (String -> String) -> JSRef () -> IO (Maybe a)
 
 class GFromJSArr a where
-  gFromJSArr :: (String -> String) -> JSArray () -> Int -> IO (Maybe (a,Int))
+  gFromJSArr :: (String -> String) -> JSArray (JSRef ()) -> Int -> IO (Maybe (a,Int))
 
 instance FromJSRef b => GFromJSRef (K1 a b c) where
   gFromJSRef _ _ r = fmap K1 <$> fromJSRef (castRef r)
@@ -362,36 +466,4 @@ fromJSRef_generic :: forall a . (Generic a, GFromJSRef (Rep a ()))
                 => (String -> String) -> JSRef a -> IO (Maybe a)
 fromJSRef_generic f x = fmap to <$> (gFromJSRef f False (castRef x) :: IO (Maybe (Rep a ())))
 
-fromJSRef_fromJSString :: FromJSString a => JSRef a -> IO (Maybe a)
-fromJSRef_fromJSString = return . Just . fromJSString . castRef
-
-#ifdef ghcjs_HOST_OS
-foreign import javascript unsafe "$r = $1;" jsrefToWord   :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1;" jsrefToInt    :: JSRef a -> Int#
-foreign import javascript unsafe "$r = $1;" jsrefToFloat  :: JSRef a -> Float#
-foreign import javascript unsafe "$r = $1;" jsrefToDouble :: JSRef a -> Double#
-
-foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef a
-foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef a
-foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef a
-foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef a
-#else
-jsrefToWord :: JSRef a -> Word#
-jsrefToWord r = let !(W# x) = unsafeCoerce r in x
-jsrefToInt :: JSRef a -> Int#
-jsrefToInt r = let !(I# x) = unsafeCoerce r in x
-jsrefToFloat :: JSRef a -> Float#
-jsrefToFloat r = let !(F# x) = unsafeCoerce r in x
-jsrefToDouble :: JSRef a -> Double#
-jsrefToDouble r = let !(D# x) = unsafeCoerce r in x
-
-wordToJSRef :: Word# -> JSRef a
-wordToJSRef x = unsafeCoerce (W# x)
-intToJSRef :: Int# -> JSRef a
-intToJSRef x = unsafeCoerce (I# x)
-doubleToJSRef :: Double# -> JSRef a
-doubleToJSRef x = unsafeCoerce (D# x)
-floatToJSRef :: Float# -> JSRef a
-floatToJSRef  x = unsafeCoerce (F# x)
-#endif
 
