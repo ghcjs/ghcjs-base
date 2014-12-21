@@ -44,7 +44,7 @@ import           GHC.Float
 import           GHC.Prim
 
 import           GHCJS.Types
-import           GHCJS.Foreign
+import           GHCJS.Foreign.Internal
 import           GHCJS.Marshal.Pure
 
 import           GHC.Generics
@@ -180,8 +180,8 @@ instance FromJSRef Value where
                 props <- listProps r
                 runMaybeT $ do
                     propVals <- forM props $ \p -> do
-                        v <- MaybeT (fromJSRef =<< getProp p r)
-                        return (fromJSString p, v)
+                        v <- MaybeT (fromJSRef =<< js_getProp p r)
+                        return (pfromJSRef (castRef p), v)
                     return (Object (H.fromList propVals))
     {-# INLINE fromJSRef #-}
 instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
@@ -301,13 +301,13 @@ toJSRef_aeson x = cv (toJSON x)
 
     convertValue :: Value -> IO (JSRef ())
     convertValue Null       = return jsNull
-    convertValue (String t) = return (castRef $ toJSString t)
+    convertValue (String t) = return (castRef $ ptoJSRef t)
     convertValue (Array a)  = castRef <$> (toArray =<< mapM convertValue (V.toList a))
     convertValue (Number n) = castRef <$> toJSRef (realToFrac n :: Double)
     convertValue (Bool b)   = return (castRef $ toJSBool b)
     convertValue (Object o) = do
       obj <- newObj
-      mapM_ (\(k,v) -> convertValue v >>= \v' -> setProp k v' obj) (H.toList o)
+      mapM_ (\(k,v) -> convertValue v >>= \v' -> js_setProp (castRef $ ptoJSRef k) v' obj) (H.toList o)
       return obj
 
 class GToJSRef a where
@@ -339,7 +339,7 @@ instance (Constructor c, GToJSRef (a p)) => GToJSRef (M1 C c a p) where
   gToJSRef f True m@(M1 x) = do
     obj <- newObj
     v   <- gToJSRef f (conIsRecord m) x
-    setProp (f $ conName m) v obj
+    js_setProp (castRef . ptoJSRef . f $ conName m) v obj
     return obj
   gToJSRef f _ m@(M1 x) = gToJSRef f (conIsRecord m) x
 
@@ -362,7 +362,7 @@ instance (GToJSProp (a p), GToJSProp (b p)) => GToJSProp ((a :*: b) p) where
 instance (Selector c, GToJSRef (a p)) => GToJSProp (M1 S c a p) where
   gToJSProp f o m@(M1 x) = do
     r <- gToJSRef f False x
-    setProp (f $ selName m) r o
+    js_setProp (castRef . ptoJSRef . f $ selName m) r o
 
 instance (GToJSArr (a p), GToJSArr (b p)) => GToJSArr ((a :*: b) p) where
   gToJSArr f a (x :*: y) = gToJSArr f a x >> gToJSArr f a y
@@ -412,7 +412,7 @@ instance (Datatype c, GFromJSRef (a p)) => GFromJSRef (M1 D c a p) where
 
 instance forall c a p . (Constructor c, GFromJSRef (a p)) => GFromJSRef (M1 C c a p) where
   gFromJSRef f True r = do
-    r' <- getProp (f (conName (undefined :: M1 C c a p))) r
+    r' <- js_getProp (castRef . ptoJSRef . f $ conName (undefined :: M1 C c a p)) r
     if isUndefined r'
       then return Nothing
       else fmap M1 <$> gFromJSRef f (conIsRecord (undefined :: M1 C c a p)) r'
@@ -434,7 +434,7 @@ instance (GFromJSProp (a p), GFromJSProp (b p)) => GFromJSProp ((a :*: b) p) whe
 
 instance forall c a p . (Selector c, GFromJSRef (a p)) => GFromJSProp (M1 S c a p) where
   gFromJSProp f o = do
-    p <- getProp (f $ selName (undefined :: M1 S c a p)) o
+    p <- js_getProp (castRef . ptoJSRef . f $ selName (undefined :: M1 S c a p)) o
     if isUndefined p
       then return Nothing
       else fmap M1 <$> gFromJSRef f False p

@@ -36,7 +36,8 @@ import           GHC.Float
 import           GHC.Prim
 
 import           GHCJS.Types
-import           GHCJS.Foreign
+import qualified GHCJS.Prim as Prim
+import           GHCJS.Foreign.Internal
 
 class PToJSRef a where
   ptoJSRef :: a -> (JSRef a)
@@ -49,9 +50,9 @@ instance PFromJSRef (JSRef a) where pfromJSRef = castRef
 instance PFromJSRef ()        where pfromJSRef _ = ()
                                     {-# INLINE pfromJSRef #-}
 
-instance PFromJSRef [Char] where pfromJSRef   = pfromJSRef_fromJSString
+instance PFromJSRef [Char] where pfromJSRef   = Prim.fromJSString
                                  {-# INLINE pfromJSRef #-}
-instance PFromJSRef Text   where pfromJSRef   = pfromJSRef_fromJSString
+instance PFromJSRef Text   where pfromJSRef   = textFromJSString
                                  {-# INLINE pfromJSRef #-}
 instance PFromJSRef Char   where pfromJSRef x = C# (jsrefToChar x)
                                  {-# INLINE pfromJSRef #-}
@@ -86,9 +87,9 @@ instance PFromJSRef a => PFromJSRef (Maybe a) where
 instance PToJSRef (JSRef a) where ptoJSRef = castRef
                                   {-# INLINE ptoJSRef #-}
 
-instance PToJSRef [Char] where ptoJSRef         = ptoJSRef_toJSString
+instance PToJSRef [Char] where ptoJSRef          = Prim.toJSString
                                {-# INLINE ptoJSRef #-}
-instance PToJSRef Text   where ptoJSRef          = ptoJSRef_toJSString
+instance PToJSRef Text   where ptoJSRef          = textToJSString
                                {-# INLINE ptoJSRef #-}
 instance PToJSRef Char   where ptoJSRef (C# c)   = charToJSRef c
                                {-# INLINE ptoJSRef #-}
@@ -120,14 +121,6 @@ instance PToJSRef a => PToJSRef (Maybe a) where
     ptoJSRef Nothing  = jsNull
     ptoJSRef (Just a) = castRef (ptoJSRef a)
     {-# INLINE ptoJSRef #-}
-
-ptoJSRef_toJSString :: ToJSString a => a -> (JSRef a)
-ptoJSRef_toJSString = castRef . toJSString
-{-# INLINE ptoJSRef_toJSString #-}
-
-pfromJSRef_fromJSString :: FromJSString a => JSRef a -> a
-pfromJSRef_fromJSString = fromJSString . castRef
-{-# INLINE pfromJSRef_fromJSString #-}
 
 #ifdef ghcjs_HOST_OS
 foreign import javascript unsafe "$r = $1|0;"          jsrefToWord   :: JSRef a -> Word#

@@ -40,42 +40,41 @@
      the foreign code is running.
  -}
 
-module GHCJS.Foreign ( ToJSString(..)
-                     , FromJSString(..)
-                     , mvarRef
-                     , fromJSBool
-                     , fromJSBool'
-                     , toJSBool
-                     , jsTrue
-                     , jsFalse
-                     , jsNull
-                     , jsUndefined
-                     , toArray
-                     , newArray
-                     , fromArray
-                     , pushArray
-                     , indexArray
-                     , lengthArray
-                     , newObj
-                     , getProp, unsafeGetProp
-                     , getPropMaybe, unsafeGetPropMaybe
-                     , setProp, unsafeSetProp
-                     , listProps
-                     , typeOf
-                     , asyncCallback
-                     , asyncCallback1
-                     , asyncCallback2
-                     , syncCallback
-                     , syncCallback1
-                     , syncCallback2
-                     , ForeignRetention(..)
-                     , retain, retainDom
-                     , release, releaseDom, releaseAll
-                     , wrapBuffer, wrapMutableBuffer
-                     , byteArrayJSRef, mutableByteArrayJSRef
-                     , bufferByteString, byteArrayByteString
-                     , unsafeMutableByteArrayByteString
-                     ) where
+module GHCJS.Foreign.Internal ( textToJSString
+                              , textFromJSString
+                              , mvarRef
+                              , fromJSBool
+                              , fromJSBool'
+                              , toJSBool
+                              , jsTrue
+                              , jsFalse
+                              , jsNull
+                              , jsUndefined
+                              , toArray
+                              , newArray
+                              , fromArray
+                              , pushArray
+                              , indexArray
+                              , lengthArray
+                              , newObj
+                              , js_getProp, js_unsafeGetProp
+                              , js_setProp, js_unsafeSetProp
+                              , listProps
+                              , typeOf
+                              , asyncCallback
+                              , asyncCallback1
+                              , asyncCallback2
+                              , syncCallback
+                              , syncCallback1
+                              , syncCallback2
+                              , ForeignRetention(..)
+                              , retain, retainDom
+                              , release, releaseDom, releaseAll
+                              , wrapBuffer, wrapMutableBuffer
+                              , byteArrayJSRef, mutableByteArrayJSRef
+                              , bufferByteString, byteArrayByteString
+                              , unsafeMutableByteArrayByteString
+                              ) where
 
 import           GHCJS.Types
 import qualified GHCJS.Prim as Prim
@@ -255,12 +254,12 @@ foreign import javascript unsafe "$r = []" js_emptyArray :: IO (JSArray a)
 foreign import javascript unsafe "$r = {}" js_emptyObj :: IO (JSRef a)
 foreign import javascript safe "$2.push($1)" js_push :: JSRef a -> JSArray (JSRef a) -> IO ()
 foreign import javascript safe "$1.length" js_length :: JSArray a -> IO Int
-foreign import javascript unsafe "$2.push($1)" js_unsafePush :: JSRef a -> JSArray (JSRef a) -> IO ()
-foreign import javascript unsafe "$1.length" js_unsafeLength :: JSArray a -> IO Int
+--foreign import javascript unsafe "$2.push($1)" js_unsafePush :: JSRef a -> JSArray (JSRef a) -> IO ()
+--foreign import javascript unsafe "$1.length" js_unsafeLength :: JSArray a -> IO Int
 foreign import javascript safe "$2[$1]" js_index :: Int -> JSArray (JSRef a) -> IO (JSRef a)
 foreign import javascript safe "$2[$1]" js_getProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript safe "$3[$1] = $2" js_setProp :: JSString -> JSRef a -> JSRef b -> IO ()
-foreign import javascript unsafe "$2[$1]" js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
+--foreign import javascript unsafe "$2[$1]" js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
 foreign import javascript unsafe "$2[$1]" js_unsafeGetProp :: JSString -> JSRef a -> IO (JSRef b)
 foreign import javascript unsafe "$3[$1] = $2" js_unsafeSetProp :: JSString -> JSRef a -> JSRef b -> IO ()
 foreign import javascript safe "h$listprops($1)" js_listProps :: JSRef a -> IO (JSArray JSString)
@@ -291,43 +290,15 @@ foreign import javascript unsafe "h$releaseDom($1)"
 foreign import javascript unsafe "h$release($1)"
   js_release :: JSFun a -> IO ()
 
-class ToJSString a where
-  toJSString :: a -> JSString
+textToJSString t =
+  let !(Text'' (Array'' b) (I# offset) (I# length)) = unsafeCoerce t
+  in  mkRef (js_toString b offset length)
+{-# INLINE textToJSString #-}
 
-class FromJSString a where
-  fromJSString :: JSString -> a
-
-instance ToJSString [Char] where
-  toJSString = Prim.toJSString
-  {-# INLINE toJSString #-}
-
-instance FromJSString [Char] where
-  fromJSString = Prim.fromJSString
-  {-# INLINE fromJSString #-}
-
-instance ToJSString T.Text where
-  toJSString t =
-    let !(Text'' (Array'' b) (I# offset) (I# length)) = unsafeCoerce t
-    in  mkRef (js_toString b offset length)
-  {-# INLINE toJSString #-}
-
-instance FromJSString T.Text where
-  fromJSString (JSRef ref) =
-    let !(Ptr' ba l) = ptrToPtr' (js_fromString ref)
-    in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
-  {-# INLINE fromJSString #-}
-
-instance ToJSString JSString where
-  toJSString t = t
-  {-# INLINE toJSString #-}
-
-instance FromJSString JSString where
-  fromJSString t = t
-  {-# INLINE fromJSString #-}
-
-instance IsString JSString where
-  fromString = toJSString
-  {-# INLINE fromString #-}
+textFromJSString (JSRef ref) =
+  let !(Ptr' ba l) = ptrToPtr' (js_fromString ref)
+  in  unsafeCoerce (Text' (Array' ba) 0 (I# l))
+{-# INLINE textFromJSString #-}
 
 fromJSBool :: JSBool -> Bool
 fromJSBool b = js_unsafeFromBool b
@@ -431,66 +402,6 @@ listProps o = fromArray =<< js_listProps o
 typeOf :: JSRef a -> IO Int
 typeOf r = js_typeOf r
 {-# INLINE typeOf #-}
-
-{- | Read a property from a JS object. Throws a 'JSException' if
-     o is not a JS object or the property cannot be accessed
- -}
-getProp :: ToJSString a => a            -- ^ the property name
-                        -> JSRef b      -- ^ the object
-                        -> IO (JSRef c) -- ^ the property value
-getProp p o = js_getProp (toJSString p) o
-{-# INLINE getProp #-}
-
-{- | Read a property from a JS object. Kills the Haskell thread
-     if o is not a JS object or the property cannot be accessed
- -}
-unsafeGetProp :: ToJSString a => a             -- ^ the property name
-                              -> JSRef b       -- ^ the object
-                              -> IO (JSRef c)  -- ^ the property value, Nothing if the object doesn't have a property with the given name
-unsafeGetProp p o = js_unsafeGetProp (toJSString p) o
-{-# INLINE unsafeGetProp #-}
-
-{- | Read a property from a JS object. Throws a JSException if
-     o is not a JS object or the property cannot be accessed
- -}
-getPropMaybe :: ToJSString a => a                    -- ^ the property name
-                             -> JSRef b              -- ^ the object
-                             -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
-getPropMaybe p o = do
-  p' <- js_getProp (toJSString p) o
-  if isUndefined p' then return Nothing else return (Just p')
-{-# INLINE getPropMaybe #-}
-
-{- | Read a property from a JS object. Kills the Haskell thread
-     if o is not a JS object or the property cannot be accessed
- -}
-unsafeGetPropMaybe :: ToJSString a => a                    -- ^ the property name
-                                   -> JSRef b              -- ^ the object
-                                   -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
-unsafeGetPropMaybe p o = do
-  p' <- js_unsafeGetProp (toJSString p) o
-  if isUndefined p' then return Nothing else return (Just p')
-{-# INLINE unsafeGetPropMaybe #-}
-
-{- | set a property in a JS object. Throws a 'JSException' if
-     o is not a reference to a JS object or the property cannot
-     be set
- -}
-setProp :: ToJSString a => a       -- ^ the property name
-                        -> JSRef b -- ^ the value
-                        -> JSRef c -- ^ the object
-                        -> IO ()
-setProp p v o = js_setProp (toJSString p) v o
-{-# INLINE setProp #-}
-
-{- | set a property in a JS object. Kills the Haskell thread
-     if the property cannot be set.
--}
-unsafeSetProp :: ToJSString a => a       -- ^ the property name
-                              -> JSRef b -- ^ the value
-                              -> JSRef c -- ^ the object
-                              -> IO ()
-unsafeSetProp p v o = js_unsafeSetProp (toJSString p) v o
 
 {- | Convert a JavaScript ArrayBuffer to a 'ByteArray' without copying. Throws
      a 'JSException' if the 'JSRef' is not an ArrayBuffer.
