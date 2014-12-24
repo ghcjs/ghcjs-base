@@ -88,6 +88,9 @@ instance FromJSRef a => FromJSRef [a] where
     fromJSRef = fromJSRefListOf
     {-# INLINE fromJSRef #-}
 instance FromJSRef a => FromJSRef (Maybe a) where
+    fromJSRefUnchecked x | isUndefined x || isNull x = return Nothing
+                         | otherwise = fromJSRef (castRef x)
+    {-# INLINE fromJSRefUnchecked #-}
     fromJSRef x | isUndefined x || isNull x = return (Just Nothing)
                 | otherwise = fmap (fmap Just) fromJSRef (castRef x)
     {-# INLINE fromJSRef #-}
