@@ -38,7 +38,7 @@ type JSObject a = JSRef (JSObject_ a)
 type JSFun a    = JSRef (JSFun_ a)
 -- type JSObject'  = JSRef (JSObject (Any *))
 
-type JSArray a  = JSRef (JSArray_ a)
+type JSArray a = JSRef (JSArray_ a)
 
 #ifdef ghcjs_HOST_OS
 type Ref# = ByteArray#

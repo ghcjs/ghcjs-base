@@ -20,7 +20,9 @@ library
   exposed-modules: GHCJS.Concurrent
                    GHCJS.Types
                    GHCJS.Foreign
+                   GHCJS.Foreign.Internal
                    GHCJS.Marshal
+                   GHCJS.Marshal.Pure
   build-depends:   base >= 4.7 && < 5,
                    ghc-prim,
                    ghcjs-prim,
