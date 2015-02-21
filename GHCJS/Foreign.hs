@@ -481,6 +481,84 @@ unsafeGetPropMaybe p o = do
   if isUndefined p' then return Nothing else return (Just p')
 {-# INLINE unsafeGetPropMaybe #-}
 
+{- | Read a property chain from a JS object. Throws a 'JSException' if
+     o is not a JS object or one of the properties in chain
+     cannot be accessed. Useful for reading nested properties, e.g. to
+     read value from `window.location.href` use
+     '["location","href"] `getPropCascade` windowObj'
+-}
+getPropCascade :: ToJSString a
+               => [a]          -- ^ property chain
+               -> JSRef b      -- ^ the object
+               -> IO (JSRef c) -- ^ last chain property value
+getPropCascade [] o = return o
+-- FIXME ensure that exception will be thrown if o is not an Object.
+getPropCascade (p:ps) o = do
+    x <- getProp p o
+    getPropCascade ps x
+    {-# INLINE getPropCascade #-}
+
+
+{- | Read a property chain from a JS object. Kills the Haskell thread
+     if o is not a JS object or one of the properties in chain
+     cannot be accessed. Useful for reading nested properties, e.g. to
+     read value from `window.location.href` use
+     '["location","href"] `getPropCascade` windowObj'
+-}
+unsafeGetPropCascade :: ToJSString a
+                     => [a]          -- ^ property chain
+                     -> JSRef b      -- ^ the object
+                     -> IO (JSRef c) -- ^ last chain property value
+unsafeGetPropCascade [] o = return o
+-- FIXME ensure that thread will be killed if o is not an Obejct.
+unsafeGetPropCascade (p:ps) o = do
+    x <- unsafeGetProp p o
+    unsafeGetPropCascade ps x
+    {-# INLINE unsafeGetPropCascade #-}
+
+{- | Cascade read a chian of properties from a JS object and return
+     value of the last one. Throws a JSException if
+     o is not a JS object or the property cannot be accessed
+ -}
+getPropCascadeMaybe :: ToJSString a
+                    => [a]
+                    -> JSRef b
+                    -> IO (Maybe (JSRef c))
+getPropCascadeMaybe [] o = return . Just $ o
+getPropCascadeMaybe (p:ps) o = do
+    x <- getProp p o
+    if isUndefined x
+       then return Nothing
+       else getPropCascadeMaybe ps o
+{-# INLINE getPropCascadeMaybe #-}
+
+{- | Cascade read a chian of properties from a JS object.
+     Kills the Haskell thread if o is not a JS object
+     or the property cannot be accessed
+ -}
+unsafeGetPropCascadeMaybe :: ToJSString a
+                          => [a]                  -- ^ the property name
+                          -> JSRef b              -- ^ the object
+                          -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
+unsafeGetPropCascadeMaybe (p:ps) o = do
+  x <- js_unsafeGetProp (toJSString p) o
+  if isUndefined x then return Nothing else unsafeGetPropCascadeMaybe ps x
+unsafeGetPropCascadeMaybe [] o = return . Just $ o
+-- FIXME ensure described behaviuor (i.e. thread kill).
+{-# INLINE unsafeGetPropCascadeMaybe #-}
+
+{-
+   TODO:
+   Rewrite as folds
+
+       * getPropCascade
+       * unsafeGetPropCascade
+       * getPropCascadeMaybe
+       * unsafeGetPropCascadeMaybe
+
+-}
+
+
 {- | set a property in a JS object. Throws a 'JSException' if
      o is not a reference to a JS object or the property cannot
      be set
