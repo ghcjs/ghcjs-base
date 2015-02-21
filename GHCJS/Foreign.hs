@@ -494,9 +494,9 @@ getPropCascade :: ToJSString a
 getPropCascade [] o = return o
 -- FIXME ensure that exception will be thrown if o is not an Object.
 getPropCascade (p:ps) o = do
-    x <- getProp p o
+    x <- getProp (toJSString p) o
     getPropCascade ps x
-    {-# INLINE getPropCascade #-}
+{-# INLINE getPropCascade #-}
 
 
 {- | Read a property chain from a JS object. Kills the Haskell thread
@@ -512,9 +512,9 @@ unsafeGetPropCascade :: ToJSString a
 unsafeGetPropCascade [] o = return o
 -- FIXME ensure that thread will be killed if o is not an Obejct.
 unsafeGetPropCascade (p:ps) o = do
-    x <- unsafeGetProp p o
+    x <- unsafeGetProp (toJSString p) o
     unsafeGetPropCascade ps x
-    {-# INLINE unsafeGetPropCascade #-}
+{-# INLINE unsafeGetPropCascade #-}
 
 {- | Cascade read a chian of properties from a JS object and return
      value of the last one. Throws a JSException if
@@ -526,24 +526,29 @@ getPropCascadeMaybe :: ToJSString a
                     -> IO (Maybe (JSRef c))
 getPropCascadeMaybe [] o = return . Just $ o
 getPropCascadeMaybe (p:ps) o = do
-    x <- getProp p o
-    if isUndefined x
-       then return Nothing
-       else getPropCascadeMaybe ps o
+    x <- getPropMaybe (toJSString p) o
+    case x of
+      Nothing -> return Nothing
+      Just x' -> getPropCascadeMaybe ps x'
 {-# INLINE getPropCascadeMaybe #-}
 
 {- | Cascade read a chian of properties from a JS object.
      Kills the Haskell thread if o is not a JS object
      or the property cannot be accessed
  -}
-unsafeGetPropCascadeMaybe :: ToJSString a
-                          => [a]                  -- ^ the property name
-                          -> JSRef b              -- ^ the object
-                          -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
-unsafeGetPropCascadeMaybe (p:ps) o = do
-  x <- js_unsafeGetProp (toJSString p) o
-  if isUndefined x then return Nothing else unsafeGetPropCascadeMaybe ps x
+unsafeGetPropCascadeMaybe 
+  :: ToJSString a
+  => [a]                  -- ^ the property name
+  -> JSRef b              -- ^ the object
+  -> IO (Maybe (JSRef c)) -- ^ the property value
+                          --   Nothing if the object doesn't have
+                          --   a property with the given name
 unsafeGetPropCascadeMaybe [] o = return . Just $ o
+unsafeGetPropCascadeMaybe (p:ps) o = do
+  x <- unsafeGetPropMaybe (toJSString p) o
+  case x of
+      Nothing -> return Nothing 
+      Just x' -> unsafeGetPropCascadeMaybe ps x'
 -- FIXME ensure described behaviuor (i.e. thread kill).
 {-# INLINE unsafeGetPropCascadeMaybe #-}
 
