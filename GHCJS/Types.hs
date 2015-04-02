@@ -1,60 +1,51 @@
 {-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns,
     CPP, ForeignFunctionInterface, JavaScriptFFI #-}
 
-module GHCJS.Types ( JSRef(..)
+module GHCJS.Types ( JSRef
                    , isNull
                    , isUndefined
-                   , eqRef
                    , nullRef
                    , castRef
                    , JSString
-                   , JSObject
-                   , JSBool
-                   , JSNumber
-                   , JSArray
-                   , JSFun
+--                   , JSObject
+--                   , JSBool
+--                   , JSNumber
+--                   , JSFun
                    , mkRef
                    , Ref#
                    ) where
+
+import Data.JSString.Internal.Type (JSString)
 
 import GHC.Int
 import GHC.Types
 import GHC.Prim
 import GHC.Ptr
 import GHCJS.Prim
+
+import Control.DeepSeq
+
 import Unsafe.Coerce
 
+instance NFData (JSRef a) where
+  rnf x = x `seq` ()
+
+-- fixme remove
 data JSBool_
 data JSNumber_
-data JSString_
 data JSObject_ a
-data JSArray_ a
+-- data JSArray_ a
 data JSFun_ a
 
 type JSBool     = JSRef JSBool_
 type JSNumber   = JSRef JSNumber_
-type JSString   = JSRef JSString_
 type JSObject a = JSRef (JSObject_ a)
 type JSFun a    = JSRef (JSFun_ a)
--- type JSObject'  = JSRef (JSObject (Any *))
 
-type JSArray a  = JSRef (JSArray_ a)
-
-#ifdef ghcjs_HOST_OS
 type Ref# = ByteArray#
 
 mkRef :: ByteArray# -> JSRef a
 mkRef x = JSRef x
-#else
-type Ref# = Addr#
-
-mkRef :: Addr# -> JSRef a
-mkRef x = JSRef x
-#endif
-
-eqRef :: JSRef a -> JSRef b -> Bool
-eqRef x y = js_eqRef x y
-{-# INLINE eqRef #-}
 
 nullRef :: JSRef a
 nullRef = js_nullRef
@@ -64,7 +55,6 @@ castRef :: JSRef a -> JSRef b
 castRef = unsafeCoerce
 {-# INLINE castRef #-}
 
-#ifdef ghcjs_HOST_OS
 toPtr :: JSRef a -> Ptr b
 toPtr (JSRef x) = unsafeCoerce (Ptr' x 0#)
 {-# INLINE toPtr #-}
@@ -75,16 +65,6 @@ fromPtr p = let !(Ptr' x _) = unsafeCoerce p
 {-# INLINE fromPtr #-}
 
 data Ptr' a = Ptr' ByteArray# Int#
-#else
-toPtr :: JSRef a -> Ptr b
-toPtr = unsafeCoerce
-{-# INLINE toPtr #-}
 
-fromPtr :: Ptr a -> JSRef b
-fromPtr = unsafeCoerce
-{-# INLINE fromPtr #-}
-#endif
-
-foreign import javascript unsafe "$1 === $2"        js_eqRef       :: JSRef a -> JSRef b -> Bool
 foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
 
