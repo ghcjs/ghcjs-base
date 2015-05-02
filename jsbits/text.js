@@ -23,11 +23,11 @@ function h$textToString(arr, off, len) {
     return s + String.fromCharCode.apply(this, a);
 }
 
-/* 
+/*
    convert a JavaScript string to a Data.Text buffer, second return
    value is length
  */
-function h$textFromString(str) {
+function h$textFromString(s) {
     var l = s.length;
     var b = h$newByteArray(l * 2);
     var u1 = b.u1;
