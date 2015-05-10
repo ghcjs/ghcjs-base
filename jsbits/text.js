@@ -9,7 +9,7 @@ function h$textToString(arr, off, len) {
     var a = [];
     var end = off+len;
     var k = 0;
-    var u1 = b.u1;
+    var u1 = arr.u1;
     var s = '';
     for(var i=off;i<end;i++) {
 	var cc = u1[i];
