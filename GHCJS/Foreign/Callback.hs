@@ -62,7 +62,7 @@ releaseCallback x = js_release x
 syncCallback :: OnBlocked                               -- ^ what to do when the thread blocks
              -> IO ()                                   -- ^ the Haskell action
              -> IO (Callback (IO ()))                   -- ^ the callback
-syncCallback onBlocked x = js_syncCallback (fromEnum onBlocked) (unsafeCoerce x)
+syncCallback onBlocked x = js_syncCallback (onBlocked == ContinueAsync) (unsafeCoerce x)
 
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
@@ -75,7 +75,7 @@ syncCallback onBlocked x = js_syncCallback (fromEnum onBlocked) (unsafeCoerce x)
 syncCallback1 :: OnBlocked                               -- ^ what to do when the thread blocks
               -> (JSRef a -> IO ())                      -- ^ the Haskell function
               -> IO (Callback (JSRef a -> IO ()))        -- ^ the callback
-syncCallback1 onBlocked x = js_syncCallbackApply (fromEnum onBlocked) 1 (unsafeCoerce x)
+syncCallback1 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 1 (unsafeCoerce x)
 
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
@@ -88,7 +88,7 @@ syncCallback1 onBlocked x = js_syncCallbackApply (fromEnum onBlocked) 1 (unsafeC
 syncCallback2 :: OnBlocked                                   -- ^ what to do when the thread blocks
               -> (JSRef a -> JSRef b -> IO ())               -- ^ the Haskell function
               -> IO (Callback (JSRef a -> JSRef b -> IO ())) -- ^ the callback
-syncCallback2 onBlocked x = js_syncCallbackApply (fromEnum onBlocked) 2 (unsafeCoerce x)
+syncCallback2 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 2 (unsafeCoerce x)
 
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in an asynchronous
@@ -112,12 +112,12 @@ asyncCallback2 x = js_asyncCallbackApply 2 (unsafeCoerce x)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe "h$makeCallback(h$runSync, [$1], $2)"
-  js_syncCallback :: Int -> Exts.Any -> IO (Callback (IO b))
+  js_syncCallback :: Bool -> Exts.Any -> IO (Callback (IO b))
 foreign import javascript unsafe "h$makeCallback(h$run, [], $1)"
   js_asyncCallback :: Exts.Any -> IO (Callback (IO b))
 
 foreign import javascript unsafe "h$makeCallbackApply($2, h$runSync, [$1], $3)"
-  js_syncCallbackApply :: Int -> Int -> Exts.Any -> IO (Callback b)
+  js_syncCallbackApply :: Bool -> Int -> Exts.Any -> IO (Callback b)
 foreign import javascript unsafe "h$makeCallbackApply($1, h$run, [], $2)"
   js_asyncCallbackApply :: Int -> Exts.Any -> IO (Callback b)
 
