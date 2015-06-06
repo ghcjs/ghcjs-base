@@ -24,12 +24,6 @@ import           Data.Typeable
 
 import           Unsafe.Coerce
 
-instance PToJSRef (Callback a) where
-  pToJSRef (Callback x) = castRef x
-
-instance ToJSRef (Callback a) where
-  toJSRef          = toJSRef_pure
-
 {- |
      The runtime tries to run synchronous threads to completion. Sometimes it's
      not possible to continue running a thread, for example when the thread
