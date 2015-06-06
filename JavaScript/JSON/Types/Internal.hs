@@ -139,10 +139,10 @@ type MutableValue' = SomeValue' Mutable
 -- immutable lookup
 
 class Lookup k a where
-  (!)       :: k -> a -> Value             -- | throws when result is not a JSON value
-  lookup    :: k -> a -> Maybe Value       -- | returns Nothing when result is not a JSON value
+  (!)       :: k -> a -> Value             -- ^ throws when result is not a JSON value
+  lookup    :: k -> a -> Maybe Value       -- ^ returns Nothing when result is not a JSON value
 -- fixme more optimized matching
---  lookup'   :: k -> a -> Maybe Value'      -- | returns Nothing when result is not a JSON value
+--  lookup'   :: k -> a -> Maybe Value'      -- ^ returns Nothing when result is not a JSON value
 
 instance Lookup JSString Object where
   p ! d      = fromMaybe (throw UnknownKey) (lookup p d)
@@ -168,9 +168,9 @@ instance Lookup Int Value where
 -- mutable lookup
 
 class IOLookup k a where
-  (^!)      :: k -> a -> IO MutableValue          -- | throws when result is not a JSON value
-  lookupIO  :: k -> a -> IO (Maybe MutableValue)  -- | returns Nothing when result is not a JSON value
-  lookupIO' :: k -> a -> IO (Maybe MutableValue') -- | returns Nothing when result is not a JSON value
+  (^!)      :: k -> a -> IO MutableValue          -- ^ throws when result is not a JSON value
+  lookupIO  :: k -> a -> IO (Maybe MutableValue)  -- ^ returns Nothing when result is not a JSON value
+  lookupIO' :: k -> a -> IO (Maybe MutableValue') -- ^ returns Nothing when result is not a JSON value
 
 -- -----------------------------------------------------------------------------
 
