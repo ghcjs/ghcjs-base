@@ -140,7 +140,8 @@ test-suite tests
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Tests.hs
-  other-modules:  Tests.Properties
+  other-modules:  Tests.Marshal
+                  Tests.Properties
                   Tests.Properties.Numeric
                   Tests.SlowFunctions
                   Tests.QuickCheckUtils
