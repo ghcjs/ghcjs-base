@@ -80,6 +80,11 @@ instance FromJSRef a => FromJSRef (Maybe a) where
     fromJSRef x | isUndefined x || isNull x = return (Just Nothing)
                 | otherwise = fmap (fmap Just) fromJSRef (castRef x)
     {-# INLINE fromJSRef #-}
+instance FromJSRef JSString where
+    fromJSRefUnchecked = fromJSRefUnchecked_pure
+    {-# INLINE fromJSRefUnchecked #-}
+    fromJSRef = fromJSRef_pure
+    {-# INLINE fromJSRef #-}
 instance FromJSRef Text where
     fromJSRefUnchecked = fromJSRefUnchecked_pure
     {-# INLINE fromJSRefUnchecked #-}
@@ -201,6 +206,9 @@ instance ToJSRef (JSRef a) where
   {-# INLINE toJSRef #-}
 instance ToJSRef AE.Value where
     toJSRef = toJSRef_aeson
+    {-# INLINE toJSRef #-}
+instance ToJSRef JSString where
+    toJSRef = toJSRef_pure
     {-# INLINE toJSRef #-}
 instance ToJSRef Text where
     toJSRef = toJSRef_pure

@@ -61,6 +61,8 @@ instance PFromJSRef (JSRef a) where pFromJSRef = castRef
 instance PFromJSRef ()        where pFromJSRef _ = ()
                                     {-# INLINE pFromJSRef #-}
 
+instance PFromJSRef JSString where pFromJSRef = JSString . castRef
+                                   {-# INLINE pFromJSRef #-}
 instance PFromJSRef [Char] where pFromJSRef   = Prim.fromJSString
                                  {-# INLINE pFromJSRef #-}
 instance PFromJSRef Text   where pFromJSRef   = textFromJSRef
