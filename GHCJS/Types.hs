@@ -4,7 +4,6 @@
 module GHCJS.Types ( JSRef(..)
                    , isNull
                    , isUndefined
-                   , eqRef
                    , nullRef
                    , castRef
                    , JSString
