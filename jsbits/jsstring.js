@@ -42,14 +42,14 @@ if(String.prototype.codePointAt) {
     h$jsstringHead = function(str) {
         TRACE_JSSTRING("(codePointAt) head: " + str);
 	var cp = ch.codePointAt(0);
-	return (cp != cp) ? -1 : (cp|0); // test for NaN
+	return (cp === undefined) ? -1 : (cp|0);
     }
     h$jsstringTail = function(str) {
         TRACE_JSSTRING("(codePointAt) tail: " + str);
 	var l = str.length;
 	if(l===0) return null;
 	var ch = str.codePointAt(0);
-	if(ch!=ch) return null; // NaN test
+	if(ch === undefined) return null;
 	// string length is at least two if ch comes from a surrogate pair
 	return str.substr(IS_ASTRAL(ch)?2:1);
     }
@@ -66,7 +66,7 @@ if(String.prototype.codePointAt) {
 	var l = str.length;
 	if(l===0) return null;
 	var ch = str.codePointAt(0);
-	if(ch!=ch) return null;
+	if(ch === undefined) return null;
 	h$ret1 = MK_JSREF(str.substr(IS_ASTRAL(ch)?2:1));
 	return ch;
     }
@@ -74,7 +74,7 @@ if(String.prototype.codePointAt) {
     h$jsstringIndex = function(i, str) {
         TRACE_JSSTRING("(codePointAt) index: " + i + " '" + str + "'");
 	var ch = str.codePointAt(i);
-	if(ch != ch) return -1;
+	if(ch === undefined) return -1;
 	return ch;
     }
     h$jsstringUncheckedIndex = function(i, str) {
@@ -137,7 +137,7 @@ if(String.prototype.codePointAt) {
     h$jsstringIndex = function(i, str) {
         // TRACE_JSSTRING("(no codePointAt) index: " + i + " '" + str + "'");
 	var ch = str.charCodeAt(i);
-	if(ch != ch) return -1;
+	if(ch != ch) return -1; // NaN test
 	return (IS_HI_SURR(ch)) ? FROM_SURR(ch, str.charCodeAt(i+1)) : ch;
     }
     h$jsstringUncheckedIndex = function(i, str) {
