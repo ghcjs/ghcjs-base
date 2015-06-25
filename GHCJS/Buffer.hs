@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
-             MagicHash, PolyKinds
+             MagicHash, PolyKinds, BangPatterns
   #-}
 {-|
     GHCJS implements the ByteArray# primitive with a JavaScript object
@@ -15,6 +15,7 @@
 module GHCJS.Buffer
     ( Buffer
     , MutableBuffer
+    , create
     , thaw, freeze, clone
       -- * JavaScript properties
     , byteLength
@@ -43,7 +44,10 @@ import GHCJS.Internal.Types
 
 import Data.Int
 import Data.Word
-import Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Unsafe as BS
+import qualified Data.ByteString.Internal as BS
 import Data.Primitive.ByteArray
 
 import qualified JavaScript.TypedArray.Internal.Types as I
@@ -51,8 +55,13 @@ import           JavaScript.TypedArray.ArrayBuffer.Internal (SomeArrayBuffer)
 import           JavaScript.TypedArray.DataView.Internal    (SomeDataView)
 import qualified JavaScript.TypedArray.Internal as I
 
+import Foreign.ForeignPtr
+import Foreign.ForeignPtr.Unsafe
+import System.IO.Unsafe
+
 create :: Int -> IO MutableBuffer
-create n = js_create n
+create n | n >= 0    = js_create n
+         | otherwise = error "create: negative size"
 {-# INLINE create #-}
 
 createFromArrayBuffer :: SomeArrayBuffer any -> SomeBuffer any
@@ -131,13 +140,37 @@ toMutableByteArrayPrim :: Buffer -> MutableByteArray# s
 toMutableByteArrayPrim (SomeBuffer buf) = js_toMutableByteArray buf
 {-# INLINE toMutableByteArrayPrim #-}
 
+-- | Convert a 'ByteString' into a triple of (buffer, offset, length)
+-- Warning: if the 'ByteString''s internal 'ForeignPtr' has a
+-- finalizer associated with it, the returned 'Buffer' will not count
+-- as a reference for the purpose of determining when that finalizer
+-- should run.
 fromByteString :: ByteString -> (Buffer, Int, Int)
-fromByteString = undefined
+fromByteString (BS.PS fp off len) =
+  -- not super happy with this.  What if the bytestring's foreign ptr
+  -- has a nontrivial finalizer attached to it?  I don't think there's
+  -- a way to do that without someone else messing with the PS constructor
+  -- directly though.
+  let !(Ptr addr) = unsafeForeignPtrToPtr fp
+  in (js_fromAddr addr, off, len)
 {-# INLINE fromByteString #-}
 
-toByteString :: Int -> Maybe Int -> Buffer-> ByteString
-toByteString = undefined
-{-# INLINE toByteString #-}
+-- | Wrap a 'Buffer' into a 'ByteString' using the given offset
+-- and length.
+toByteString :: Int -> Maybe Int -> Buffer -> ByteString
+toByteString off _ buf
+  | off < 0                    = error "toByteString: negative offset"
+  | off > byteLength buf       = error "toByteString: offset past end of buffer"
+toByteString off (Just len) buf
+  | len < 0                    = error "toByteString: negative length"
+  | len > byteLength buf - off = error "toByteString: length past end of buffer"
+  | otherwise                  = unsafeToByteString off len buf
+toByteString off Nothing buf   = unsafeToByteString off (byteLength buf - off) buf
+
+unsafeToByteString :: Int -> Int -> Buffer -> ByteString
+unsafeToByteString off len buf =
+  let fp = unsafePerformIO (newForeignPtr_ (unsafeToPtr buf))
+  in BS.PS fp off len
 
 toPtr :: MutableBuffer -> Ptr a
 toPtr buf = Ptr (js_toAddr buf)
@@ -161,7 +194,7 @@ foreign import javascript unsafe
   "h$wrapBuffer($1.buf.slice($1.u8.byteOffset, $1.len))"
   js_clone :: SomeBuffer any1 -> IO (SomeBuffer any2)
 foreign import javascript unsafe
-  "$1.byteLength" js_byteLength :: SomeBuffer any -> Int
+  "$1.len" js_byteLength :: SomeBuffer any -> Int
 foreign import javascript unsafe
   "$1.buf" js_getArrayBuffer    :: SomeBuffer any -> SomeArrayBuffer any
 foreign import javascript unsafe
@@ -191,3 +224,5 @@ foreign import javascript unsafe
   "$r = $1;" js_toMutableByteArray   :: JSRef ()            -> MutableByteArray# s
 foreign import javascript unsafe
   "$r1 = $1; $r2 = 0;"  js_toAddr    :: SomeBuffer any      -> Addr#
+foreign import javascript unsafe
+  "$r = $1;" js_fromAddr             :: Addr#               -> SomeBuffer any
