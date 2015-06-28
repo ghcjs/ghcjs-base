@@ -57,7 +57,7 @@ import qualified JavaScript.TypedArray.Internal as I
 
 import Foreign.ForeignPtr
 import Foreign.ForeignPtr.Unsafe
-import System.IO.Unsafe
+import GHC.ForeignPtr
 
 create :: Int -> IO MutableBuffer
 create n | n >= 0    = js_create n
@@ -168,8 +168,8 @@ toByteString off (Just len) buf
 toByteString off Nothing buf   = unsafeToByteString off (byteLength buf - off) buf
 
 unsafeToByteString :: Int -> Int -> Buffer -> ByteString
-unsafeToByteString off len buf =
-  let fp = unsafePerformIO (newForeignPtr_ (unsafeToPtr buf))
+unsafeToByteString off len buf@(SomeBuffer bufRef) =
+  let fp = ForeignPtr (js_toAddr buf) (PlainPtr (js_toMutableByteArray bufRef))
   in BS.PS fp off len
 
 toPtr :: MutableBuffer -> Ptr a
