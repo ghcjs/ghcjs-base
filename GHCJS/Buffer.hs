@@ -55,8 +55,6 @@ import           JavaScript.TypedArray.ArrayBuffer.Internal (SomeArrayBuffer)
 import           JavaScript.TypedArray.DataView.Internal    (SomeDataView)
 import qualified JavaScript.TypedArray.Internal as I
 
-import Foreign.ForeignPtr
-import Foreign.ForeignPtr.Unsafe
 import GHC.ForeignPtr
 
 create :: Int -> IO MutableBuffer
