@@ -12,13 +12,13 @@ function h$textToString(arr, off, len) {
     var u1 = arr.u1;
     var s = '';
     for(var i=off;i<end;i++) {
-	var cc = u1[i];
-	a[k++] = cc;
-	if(k === 60000) {
-	    s += String.fromCharCode.apply(this, a);
-	    k = 0;
-	    a = [];
-	}
+        var cc = u1[i];
+        a[k++] = cc;
+        if(k === 60000) {
+            s += String.fromCharCode.apply(this, a);
+            k = 0;
+            a = [];
+        }
     }
     return s + String.fromCharCode.apply(this, a);
 }
@@ -37,16 +37,17 @@ function h$textFromString(s) {
 
 function h$lazyTextToString(txt) {
     var s = '';
-    while(CONSTR_TAG(txt) === 2) {
-	var h = LAZY_TEXT_CHUNK_HEAD(txt);
-	s += h$textToString(TEXT_ARR(h), TEXT_OFF(h), TEXT_LEN(h));
-	txt = LAZY_TEXT_CHUNK_TAIL(txt);
+    while(LAZY_TEXT_IS_CHUNK(txt)) {
+        var head = LAZY_TEXT_CHUNK_HEAD(txt);
+        s  += h$textToString(DATA_TEXT_ARRAY(head), DATA_TEXT_OFFSET(head), DATA_TEXT_LENGTH(head));
+        txt = LAZY_TEXT_CHUNK_TAIL(txt);
     }
+    return s;
 }
 
 function h$safeTextFromString(x) {
     if(typeof x !== 'string') {
-	RETURN_UBX_TUP2(null, 0);
+        RETURN_UBX_TUP2(null, 0);
     }
     return h$textFromString(x);
 }
