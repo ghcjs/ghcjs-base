@@ -16,9 +16,11 @@ module GHCJS.Buffer
     ( Buffer
     , MutableBuffer
     , create
+    , createFromArrayBuffer
     , thaw, freeze, clone
       -- * JavaScript properties
     , byteLength
+    , getArrayBuffer
     , getUint8Array
     , getUint16Array
     , getInt32Array

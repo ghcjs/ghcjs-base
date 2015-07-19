@@ -24,6 +24,8 @@ import GHCJS.Marshal
 import GHCJS.Marshal.Pure
 import GHCJS.Internal.Types
 
+import qualified GHCJS.Buffer as Buffer
+
 import GHC.Generics
 
 import Data.ByteString
@@ -184,7 +186,8 @@ xhrText :: Request -> IO (Response Text)
 xhrText = fmap (fmap textFromJSString) . xhr
 
 xhrByteString :: Request -> IO (Response ByteString)
-xhrByteString = error "xhrByteString" -- fixme
+xhrByteString = fmap
+  (fmap (Buffer.toByteString 0 Nothing . Buffer.createFromArrayBuffer)) . xhr
 
 -- -----------------------------------------------------------------------------
 
@@ -204,7 +207,7 @@ foreign import javascript unsafe
   "$3.open($1,$2)"
   js_open2 :: JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "$5.open($1,$2,false,$4,$5);"
+  "$5.open($1,$2,true,$4,$5);"
   js_open4 :: JSString -> JSString -> JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
   "new FormData()"

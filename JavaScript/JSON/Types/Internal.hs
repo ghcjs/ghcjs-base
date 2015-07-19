@@ -59,13 +59,12 @@ import           Prelude           hiding (lookup)
 import           Control.DeepSeq
 import           Control.Exception
 
+import           Data.Coerce
 import           Data.Data
 import qualified Data.JSString     as JSS
 import           Data.JSString.Internal.Type (JSString(..))
 import           Data.Maybe (fromMaybe)
 import           Data.Typeable
-
-import           Unsafe.Coerce
 
 import qualified GHC.Exts          as Exts
 import           GHC.Types (IO(..))
@@ -73,6 +72,7 @@ import           GHC.Types (IO(..))
 import qualified GHCJS.Foreign     as F
 import           GHCJS.Internal.Types
 import           GHCJS.Types
+import qualified GHCJS.Prim.Internal.Build as IB
 
 import qualified JavaScript.Array          as A
 import qualified JavaScript.Array.Internal as AI
@@ -200,24 +200,8 @@ emptyObject = js_emptyObject
 
 object :: [Pair] -> Object
 object []      = js_emptyObject
-object xs      = rnf xs `seq` js_object (unsafeCoerce xs)
-{-# INLINE [1] object #-}
-{-# RULES
-  "objectLiteral1" [~1] forall k v. 
-    object [(k,v)] = js_object1 k v
-  #-}
-{-# RULES
-  "objectLiteral2" [~1] forall k1 v1 k2 v2.
-    object [(k1,v1),(k2,v2)] = js_object2 k2 v2 k1 v1
-  #-}
-{-# RULES
-  "objectLiteral3" [~1] forall k1 v1 k2 v2 k3 v3.
-    object [(k1,v1),(k2,v2),(k3,v3)] = js_object3 k3 v3 k2 v2 k1 v1
-  #-}
-{-# RULES
-  "objectLiteral4" [~1] forall k1 v1 k2 v2 k3 v3 k4 v4.
-    object [(k1,v1),(k2,v2),(k3,v3),(k4,v4)] = js_object4 k4 v4 k3 v3 k2 v2 k1 v1
-  #-}
+object xs      = SomeObject (IB.buildObjectI $ coerce xs)
+{-# INLINE object #-}
 
 freeze :: MutableValue -> IO Value
 freeze v = js_clone v
@@ -259,7 +243,7 @@ nullValue :: Value
 nullValue = SomeValue F.jsNull
 
 arrayValueList :: [Value] -> AI.JSArray
-arrayValueList xs = A.fromList (unsafeCoerce xs) -- fixme should be normal coerce
+arrayValueList xs = A.fromList (coerce xs)
 {-# INLINE arrayValueList #-}
 
 indexV :: AI.JSArray -> Int -> Value
@@ -287,25 +271,6 @@ foreign import javascript unsafe
   "$r = true;" js_trueValue :: Value
 foreign import javascript unsafe
   "$r = false;" js_falseValue :: Value
-
-
-foreign import javascript unsafe
-  "h$buildObject($1)" js_object :: Exts.Any -> Object
-
--- fixme these should be inline object literals!
-foreign import javascript unsafe
-  "$r = {}; $r[$1] = $2;" js_object1
-  :: JSString -> Value -> Object
-foreign import javascript unsafe
-  "$r = {}; $r[$1] = $2; $r[$3] = $4;" js_object2
-  :: JSString -> Value -> JSString -> Value -> Object
-foreign import javascript unsafe
-  "$r = {}; $r[$1] = $2; $r[$3] = $4; $r[$5] = $6;" js_object3
-  :: JSString -> Value -> JSString -> Value -> JSString -> Value -> Object
-foreign import javascript unsafe
-  "$r = {}; $r[$1] = $2; $r[$3] = $4; $r[$5] = $6; $r[$7] = $8;" js_object4
-  :: JSString -> Value -> JSString -> Value -> JSString -> Value
-  -> JSString -> Value -> Object
 
 -- -----------------------------------------------------------------------------
 -- types must be checked before using these conversions
