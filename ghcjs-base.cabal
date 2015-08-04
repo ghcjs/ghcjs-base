@@ -44,7 +44,7 @@ library
                     GeneralizedNewtypeDeriving
                     ScopedTypeVariables
                     TypeOperators
-                    
+
   ghc-options:     -O
   exposed-modules: Data.JSString
                    Data.JSString.Int
@@ -106,6 +106,7 @@ library
                    JavaScript.Web.File
                    JavaScript.Web.MessageEvent
                    JavaScript.Web.MessageEvent.Internal
+                   JavaScript.Web.Performance
                    JavaScript.Web.Storage
                    JavaScript.Web.Storage.Internal
                    JavaScript.Web.StorageEvent
@@ -167,5 +168,3 @@ test-suite tests
     test-framework >= 0.4,
     test-framework-hunit >= 0.2,
     test-framework-quickcheck2 >= 0.2
-
-
