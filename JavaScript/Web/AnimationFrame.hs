@@ -34,22 +34,24 @@ newtype AnimationFrameHandle = AnimationFrameHandle JSRef
 {- |
      Wait for an animation frame callback to continue running the current
      thread. Use 'GHCJS.Concurrent.synchronously' if the thread should
-     not be preempted.
+     not be preempted. This will return the high-performance clock time
+     stamp once an animation frame is reached.
  -}
-waitForAnimationFrame :: IO ()
+waitForAnimationFrame :: IO Double
 waitForAnimationFrame = do
   h <- js_makeAnimationFrameHandle
   js_waitForAnimationFrame h `onException` js_cancelAnimationFrame h
 
 {- |
      Run the action in an animationframe callback. The action runs in a
-     synchronous thread.
+     synchronous thread, and is passed the high-performance clock time
+     stamp for that frame.
  -}
-inAnimationFrame :: OnBlocked -- ^ what to do when encountering a blocking call
-                 -> IO ()     -- ^ the action to run
+inAnimationFrame :: OnBlocked       -- ^ what to do when encountering a blocking call
+                 -> (Double -> IO ())  -- ^ the action to run
                  -> IO AnimationFrameHandle
 inAnimationFrame onBlocked x = do
-  cb <- syncCallback onBlocked x
+  cb <- syncCallback1 onBlocked (x . pFromJSRef)
   h  <- js_makeAnimationFrameHandleCallback (jsref cb)
   js_requestAnimationFrame h
   return h
@@ -68,6 +70,6 @@ foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
 foreign import javascript interruptible
   "$1.handle = window.requestAnimationFrame($c);"
-  js_waitForAnimationFrame :: AnimationFrameHandle -> IO ()
+  js_waitForAnimationFrame :: AnimationFrameHandle -> IO Double
 foreign import javascript unsafe "h$animationFrameRequest"
   js_requestAnimationFrame :: AnimationFrameHandle -> IO ()
