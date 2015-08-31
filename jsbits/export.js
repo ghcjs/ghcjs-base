@@ -1,11 +1,12 @@
 function h$exportValue(fp1a,fp1b,fp2a,fp2b,o) {
     var e = { fp1a: fp1a
             , fp1b: fp1b
-            , fp1c: fp1c
-            , fp1d: fp1d
+            , fp2a: fp2a
+            , fp2b: fp2b
             , root: o
-	    , _key: -1
+	        , _key: -1
             };
+    h$retain(e);
     return e;
 }
 
