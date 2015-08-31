@@ -84,7 +84,7 @@ foreign import javascript unsafe
   "h$exportValue"
   js_export :: Word64 -> Word64 -> Any -> IO (Export a)
 foreign import javascript unsafe
-  "h$derefExportedValue"
+  "h$derefExport"
   js_derefExport :: Word64 -> Word64 -> JSRef a -> IO (JSRef ())
 foreign import javascript unsafe
   "$r = $1;" js_toHeapObject :: JSRef a -> (# b #)
