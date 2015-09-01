@@ -1,4 +1,7 @@
-{-# LANGUAGE EmptyDataDecls, DeriveDataTypeable, TypeFamilies, DataKinds, PolyKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 
 module JavaScript.TypedArray.Internal.Types where
 
@@ -10,11 +13,11 @@ import Data.Typeable
 import Data.Word
 
 newtype SomeTypedArray (e :: TypedArrayElem) (m :: MutabilityType s) =
-  SomeTypedArray (JSRef ())
-  deriving (Typeable)
+  SomeTypedArray JSRef deriving Typeable
+instance IsJSRef (SomeTypedArray e m)
 
 {-
-newtype SomeSTTypedArray s e = SomeSTTypedArray (JSRef ())
+newtype SomeSTTypedArray s e = SomeSTTypedArray JSRef
   deriving (Typeable)
 -}
 

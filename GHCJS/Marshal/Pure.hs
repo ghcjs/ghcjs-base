@@ -1,21 +1,21 @@
-{-# LANGUAGE CPP,
-             DefaultSignatures,
-             TypeOperators,
-             ScopedTypeVariables,
-             DefaultSignatures,
-             FlexibleContexts,
-             FlexibleInstances,
-             OverloadedStrings,
-             TupleSections,
-             MagicHash,
-             JavaScriptFFI,
-             ForeignFunctionInterface,
-             UnliftedFFITypes,
-             BangPatterns,
-             TypeFamilies,
-             DataKinds,
-             DeriveDataTypeable
-  #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+
 {-
   experimental pure marshalling for lighter weight interaction in the quasiquoter
  -}
@@ -56,12 +56,12 @@ type family IsPureExclusive a where
   IsPureExclusive PureShared    = True
   -}
 
-instance PFromJSRef (JSRef a) where pFromJSRef = castRef
-                                    {-# INLINE pFromJSRef #-}
-instance PFromJSRef ()        where pFromJSRef _ = ()
-                                    {-# INLINE pFromJSRef #-}
+instance PFromJSRef JSRef where pFromJSRef = id
+                                {-# INLINE pFromJSRef #-}
+instance PFromJSRef ()    where pFromJSRef _ = ()
+                                {-# INLINE pFromJSRef #-}
 
-instance PFromJSRef JSString where pFromJSRef = JSString . castRef
+instance PFromJSRef JSString where pFromJSRef = JSString
                                    {-# INLINE pFromJSRef #-}
 instance PFromJSRef [Char] where pFromJSRef   = Prim.fromJSString
                                  {-# INLINE pFromJSRef #-}
@@ -69,7 +69,7 @@ instance PFromJSRef Text   where pFromJSRef   = textFromJSRef
                                  {-# INLINE pFromJSRef #-}
 instance PFromJSRef Char   where pFromJSRef x = C# (jsrefToChar x)
                                  {-# INLINE pFromJSRef #-}
-instance PFromJSRef Bool   where pFromJSRef   = isTruthy -- fromJSBool . castRef
+instance PFromJSRef Bool   where pFromJSRef   = isTruthy
                                  {-# INLINE pFromJSRef #-}
 instance PFromJSRef Int    where pFromJSRef x = I# (jsrefToInt x)
                                  {-# INLINE pFromJSRef #-}
@@ -94,21 +94,21 @@ instance PFromJSRef Double where pFromJSRef x = D# (jsrefToDouble x)
 
 instance PFromJSRef a => PFromJSRef (Maybe a) where
     pFromJSRef x | isUndefined x || isNull x = Nothing
-    pFromJSRef x = Just (pFromJSRef (castRef x))
+    pFromJSRef x = Just (pFromJSRef x)
     {-# INLINE pFromJSRef #-}
 
-instance PToJSRef (JSRef a) where pToJSRef = castRef
+instance PToJSRef JSRef     where pToJSRef = id
                                   {-# INLINE pToJSRef #-}
-instance PToJSRef JSString  where pToJSRef          = castRef . unJSString
+instance PToJSRef JSString  where pToJSRef          = jsref
                                   {-# INLINE pToJSRef #-}
 instance PToJSRef [Char]    where pToJSRef          = Prim.toJSString
                                   {-# INLINE pToJSRef #-}
-instance PToJSRef Text      where pToJSRef          = castRef . unJSString . textToJSString
+instance PToJSRef Text      where pToJSRef          = jsref . textToJSString
                                   {-# INLINE pToJSRef #-}
 instance PToJSRef Char      where pToJSRef (C# c)   = charToJSRef c
                                   {-# INLINE pToJSRef #-}
-instance PToJSRef Bool      where pToJSRef True     = castRef jsTrue
-                                  pToJSRef False    = castRef jsFalse
+instance PToJSRef Bool      where pToJSRef True     = jsTrue
+                                  pToJSRef False    = jsFalse
                                   {-# INLINE pToJSRef #-}
 instance PToJSRef Int       where pToJSRef (I# x)   = intToJSRef x
                                   {-# INLINE pToJSRef #-}
@@ -133,22 +133,22 @@ instance PToJSRef Double    where pToJSRef (D# x)   = doubleToJSRef x
 
 instance PToJSRef a => PToJSRef (Maybe a) where
     pToJSRef Nothing  = jsNull
-    pToJSRef (Just a) = castRef (pToJSRef a)
+    pToJSRef (Just a) = pToJSRef a
     {-# INLINE pToJSRef #-}
 
-foreign import javascript unsafe "$r = $1|0;"          jsrefToWord   :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1&0xff;"       jsrefToWord8  :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1&0xffff;"     jsrefToWord16 :: JSRef a -> Word#
-foreign import javascript unsafe "$r = $1|0;"          jsrefToInt    :: JSRef a -> Int#
-foreign import javascript unsafe "$r = $1<<24>>24;"    jsrefToInt8   :: JSRef a -> Int#
-foreign import javascript unsafe "$r = $1<<16>>16;"    jsrefToInt16  :: JSRef a -> Int#
-foreign import javascript unsafe "$r = +$1;"           jsrefToFloat  :: JSRef a -> Float#
-foreign import javascript unsafe "$r = +$1;"           jsrefToDouble :: JSRef a -> Double#
-foreign import javascript unsafe "$r = $1&0x7fffffff;" jsrefToChar   :: JSRef a -> Char#
+foreign import javascript unsafe "$r = $1|0;"          jsrefToWord   :: JSRef -> Word#
+foreign import javascript unsafe "$r = $1&0xff;"       jsrefToWord8  :: JSRef -> Word#
+foreign import javascript unsafe "$r = $1&0xffff;"     jsrefToWord16 :: JSRef -> Word#
+foreign import javascript unsafe "$r = $1|0;"          jsrefToInt    :: JSRef -> Int#
+foreign import javascript unsafe "$r = $1<<24>>24;"    jsrefToInt8   :: JSRef -> Int#
+foreign import javascript unsafe "$r = $1<<16>>16;"    jsrefToInt16  :: JSRef -> Int#
+foreign import javascript unsafe "$r = +$1;"           jsrefToFloat  :: JSRef -> Float#
+foreign import javascript unsafe "$r = +$1;"           jsrefToDouble :: JSRef -> Double#
+foreign import javascript unsafe "$r = $1&0x7fffffff;" jsrefToChar   :: JSRef -> Char#
 
-foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef a
-foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef a
-foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef a
-foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef a
-foreign import javascript unsafe "$r = $1;" charToJSRef   :: Char#   -> JSRef a
+foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef
+foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef
+foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef
+foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef
+foreign import javascript unsafe "$r = $1;" charToJSRef   :: Char#   -> JSRef
 

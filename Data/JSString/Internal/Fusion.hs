@@ -185,10 +185,10 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.length" js_length :: JSString -> Int#
 foreign import javascript unsafe
-  "$r = [$1];" js_newSingletonArray :: Char -> IO (JSRef ())
+  "$r = [$1];" js_newSingletonArray :: Char -> IO JSRef
 foreign import javascript unsafe
-  "$3[$2] = $1;" js_writeArray :: Char -> Int -> (JSRef ()) -> IO ()
+  "$3[$2] = $1;" js_writeArray :: Char -> Int -> JSRef -> IO ()
 foreign import javascript unsafe
-  "h$jsstringPackArray" js_packString :: (JSRef ()) -> IO JSString
+  "h$jsstringPackArray" js_packString :: JSRef -> IO JSString
 foreign import javascript unsafe
-  "h$jsstringPackArrayReverse" js_packReverse :: (JSRef ()) -> IO JSString
+  "h$jsstringPackArrayReverse" js_packReverse :: JSRef -> IO JSString

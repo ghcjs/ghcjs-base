@@ -88,14 +88,14 @@ import qualified Data.Text as T
 class ToJSString a where
   toJSString :: a -> JSString
 
---  toJSString = castRef . ptoJSRef
+--  toJSString = ptoJSRef
 
 
 class FromJSString a where
   fromJSString :: JSString -> a
 
 --  default PFromJSRef
---  fromJSString = pfromJSRef . castRef
+--  fromJSString = pfromJSRef
 --  {-# INLINE fromJSString #-}
 {-
 instance ToJSString   [Char]

@@ -1,6 +1,7 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, InterruptibleFFI,
-             DeriveDataTypeable
-  #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE InterruptibleFFI #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 {- |
      Animation frames are the browser's mechanism for smooth animation.
@@ -27,7 +28,7 @@ import GHCJS.Types
 import Control.Exception (onException)
 import Data.Typeable
 
-newtype AnimationFrameHandle = AnimationFrameHandle (JSRef ())
+newtype AnimationFrameHandle = AnimationFrameHandle JSRef
   deriving (Typeable)
 
 {- |
@@ -49,7 +50,7 @@ inAnimationFrame :: OnBlocked -- ^ what to do when encountering a blocking call
                  -> IO AnimationFrameHandle
 inAnimationFrame onBlocked x = do
   cb <- syncCallback onBlocked x
-  h  <- js_makeAnimationFrameHandleCallback (pToJSRef cb)
+  h  <- js_makeAnimationFrameHandleCallback (jsref cb)
   js_requestAnimationFrame h
   return h
 
@@ -62,7 +63,7 @@ cancelAnimationFrame h = js_cancelAnimationFrame h
 foreign import javascript unsafe "{ handle: null, callback: null }"
   js_makeAnimationFrameHandle :: IO AnimationFrameHandle
 foreign import javascript unsafe "{ handle: null, callback: $1 }"
-  js_makeAnimationFrameHandleCallback :: JSRef a -> IO AnimationFrameHandle
+  js_makeAnimationFrameHandleCallback :: JSRef -> IO AnimationFrameHandle
 foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
 foreign import javascript interruptible

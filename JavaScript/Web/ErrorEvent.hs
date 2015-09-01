@@ -1,4 +1,5 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
 
 module JavaScript.Web.ErrorEvent ( ErrorEvent
                                  , message
@@ -32,14 +33,19 @@ colno :: ErrorEvent -> Int
 colno ee = js_getColno ee
 {-# INLINE colno #-}
 
-error :: ErrorEvent -> JSRef ()
+error :: ErrorEvent -> JSRef
 error ee = js_getError ee
 {-# INLINE error #-}
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$1.message"  js_getMessage  :: ErrorEvent -> JSString
-foreign import javascript unsafe "$1.filename" js_getFilename :: ErrorEvent -> JSString
-foreign import javascript unsafe "$1.lineno"   js_getLineno   :: ErrorEvent -> Int
-foreign import javascript unsafe "$1.colno"    js_getColno    :: ErrorEvent -> Int
-foreign import javascript unsafe "$1.error"    js_getError    :: ErrorEvent -> JSRef ()
+foreign import javascript unsafe "$1.message"
+  js_getMessage  :: ErrorEvent -> JSString
+foreign import javascript unsafe "$1.filename"
+  js_getFilename :: ErrorEvent -> JSString
+foreign import javascript unsafe "$1.lineno"
+  js_getLineno   :: ErrorEvent -> Int
+foreign import javascript unsafe "$1.colno"
+  js_getColno    :: ErrorEvent -> Int
+foreign import javascript unsafe "$1.error"
+  js_getError    :: ErrorEvent -> JSRef

@@ -1,6 +1,9 @@
-{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface, GHCForeignImportPrim,
-             UnliftedFFITypes, UnboxedTuples, MagicHash
-  #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE MagicHash #-}
 
 module Data.JSString.RegExp ( RegExp
                             , pattern
@@ -18,8 +21,9 @@ import GHCJS.Prim
 import GHC.Exts (Int#, Int(..))
 
 import Data.JSString
+import Data.Typeable
 
-newtype RegExp = RegExp (JSRef ())
+newtype RegExp = RegExp JSRef deriving Typeable
 
 data REFlags = REFlags { multiline  :: !Bool
                        , ignoreCase :: !Bool

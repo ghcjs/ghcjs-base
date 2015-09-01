@@ -1,7 +1,12 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
-             GHCForeignImportPrim, ScopedTypeVariables, UnboxedTuples,
-             MagicHash, EmptyDataDecls, CPP
-  #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE CPP #-}
 
 {- | 
      Dynamically export Haskell values to JavaScript
@@ -25,8 +30,7 @@ import Unsafe.Coerce
 
 import GHCJS.Prim
 
-data (Export_ a)
-type Export a = JSRef (Export_ a)
+type Export a = JSRef
 
 {- |
      Export any Haskell value to a JavaScript reference without evaluating it.
@@ -39,17 +43,14 @@ type Export a = JSRef (Export_ a)
 export :: Typeable a => a -> IO (Export a)
 export x = js_export w1 w2 (unsafeCoerce x)
   where
-#if __GLASGOW_HASKELL__ >= 709
     TypeRep (Fingerprint w1 w2) _ _ _ = typeOf x
-#else
-    TypeRep (Fingerprint w1 w2) _ _ = typeOf x
-#endif
 
 {- |
      Export the value and run the action. The value is only exported for the
      duration of the action. Dereferencing it after the 'withExport' call
      has returned will always return 'Nothing'.
  -}
+-- fixme is this safe with nested exports?
 withExport :: Typeable a => a -> (Export a -> IO b) -> IO b
 withExport x m = bracket (export x) releaseExport m
 
@@ -60,11 +61,7 @@ withExport x m = bracket (export x) releaseExport m
 
 derefExport :: forall a. Typeable a => Export a -> IO (Maybe a)
 derefExport e = do
-#if __GLASGOW_HASKELL__ >= 709
   let TypeRep (Fingerprint w1 w2) _ _ _ = typeOf (undefined :: a)
-#else
-  let TypeRep (Fingerprint w1 w2) _ _ = typeOf (undefined :: a)
-#endif
   r <- js_derefExport w1 w2 e
   if isNull r
     then return Nothing
@@ -85,10 +82,10 @@ foreign import javascript unsafe
   js_export :: Word64 -> Word64 -> Any -> IO (Export a)
 foreign import javascript unsafe
   "h$derefExport"
-  js_derefExport :: Word64 -> Word64 -> JSRef a -> IO (JSRef ())
+  js_derefExport :: Word64 -> Word64 -> JSRef -> IO JSRef
 foreign import javascript unsafe
-  "$r = $1;" js_toHeapObject :: JSRef a -> (# b #)
+  "$r = $1;" js_toHeapObject :: JSRef -> (# b #)
 
 foreign import javascript unsafe
   "h$releaseExport"
-  js_releaseExport :: JSRef a -> IO ()
+  js_releaseExport :: JSRef -> IO ()

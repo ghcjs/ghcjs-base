@@ -128,65 +128,65 @@ data JSONType = JSONNull
               | JSONObject
               deriving (Show, Eq, Ord, Enum, Typeable)
 
-fromJSBool :: JSRef Bool -> Bool
+fromJSBool :: JSRef -> Bool
 fromJSBool b = js_fromBool b
 {-# INLINE fromJSBool #-}
 
-toJSBool :: Bool -> JSRef Bool
+toJSBool :: Bool -> JSRef
 toJSBool True = jsTrue
 toJSBool _    = jsFalse
 {-# INLINE toJSBool #-}
 
-jsTrue :: JSRef Bool
+jsTrue :: JSRef
 jsTrue = mkRef (js_true 0#)
 {-# INLINE jsTrue #-}
 
-jsFalse :: JSRef Bool
+jsFalse :: JSRef
 jsFalse = mkRef (js_false 0#)
 {-# INLINE jsFalse #-}
 
-jsNull :: JSRef a
+jsNull :: JSRef
 jsNull = mkRef (js_null 0#)
 {-# INLINE jsNull #-}
 
-jsUndefined :: JSRef a
+jsUndefined :: JSRef
 jsUndefined = mkRef (js_undefined 0#)
 {-# INLINE jsUndefined #-}
 
 -- check whether a reference is `truthy' in the JavaScript sense
-isTruthy :: JSRef a -> Bool
+isTruthy :: JSRef -> Bool
 isTruthy b = js_isTruthy b
 {-# INLINE isTruthy #-}
 
--- isUndefined :: JSRef a -> Bool
+-- isUndefined :: JSRef -> Bool
 -- isUndefined o = js_isUndefined o
 -- {-# INLINE isUndefined #-}
 
--- isNull :: JSRef a -> Bool
+-- isNull :: JSRef -> Bool
 -- isNull o = js_isNull o
 -- {-# INLINE isNull #-}
 
-isObject :: JSRef a -> Bool
+isObject :: JSRef -> Bool
 isObject o = js_isObject o
 {-# INLINE isObject #-}
 
-isNumber :: JSRef a -> Bool
+isNumber :: JSRef -> Bool
 isNumber o = js_isNumber o
 {-# INLINE isNumber #-}
 
-isString :: JSRef a -> Bool
+isString :: JSRef -> Bool
 isString o = js_isString o
 {-# INLINE isString #-}
 
-isBoolean :: JSRef a -> Bool
+isBoolean :: JSRef -> Bool
 isBoolean o = js_isBoolean o
 {-# INLINE isBoolean #-}
 
-isFunction :: JSRef a -> Bool
+isFunction :: JSRef -> Bool
 isFunction o = js_isFunction o
 {-# INLINE isFunction #-}
 
-isSymbol :: JSRef a -> Bool
+isSymbol :: JSRef -> Bool
 isSymbol o = js_isSymbol o
 {-# INLINE isSymbol #-}
 
@@ -222,7 +222,7 @@ ptr'ToPtr = unsafeCoerce
 -}
 {-
 toArray :: [JSRef a] -> IO (JSArray a)
-toArray xs = fmap castRef (Prim.toJSArray xs)
+toArray xs = Prim.toJSArray xs
 {-# INLINE toArray #-}
 
 pushArray :: JSRef a -> JSArray a -> IO ()
@@ -230,7 +230,7 @@ pushArray r arr = js_push r arr
 {-# INLINE pushArray #-}
 
 fromArray :: JSArray (JSRef a) -> IO [JSRef a]
-fromArray a = Prim.fromJSArray (castRef a)
+fromArray a = Prim.fromJSArray a
 {-# INLINE fromArray #-}
 
 lengthArray :: JSArray a -> IO Int
@@ -257,11 +257,11 @@ listProps :: JSRef a -> IO [JSString]
 listProps o = fmap unsafeCoerce . Prim.fromJSArray =<< js_listProps o
 {-# INLINE listProps #-}
 -}
-jsTypeOf :: JSRef a -> JSType
+jsTypeOf :: JSRef -> JSType
 jsTypeOf r = tagToEnum# (js_jsTypeOf r)
 {-# INLINE jsTypeOf #-}
 
-jsonTypeOf :: JSRef a -> JSONType
+jsonTypeOf :: JSRef -> JSONType
 jsonTypeOf r = tagToEnum# (js_jsonTypeOf r)
 {-# INLINE jsonTypeOf #-}
 
@@ -370,10 +370,10 @@ unsafeMutableByteArrayByteString arr =
 
 foreign import javascript unsafe
   "$r = $1===true;"
-  js_fromBool :: JSRef a -> Bool
+  js_fromBool :: JSRef -> Bool
 foreign import javascript unsafe
   "$1 ? true : false"
-  js_isTruthy :: JSRef a -> Bool
+  js_isTruthy :: JSRef -> Bool
 foreign import javascript unsafe "$r = true;"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false;" js_false :: Int# -> Ref#
 foreign import javascript unsafe "$r = null;"  js_null :: Int# -> Ref#
@@ -392,26 +392,26 @@ foreign import javascript unsafe "$r = undefined;"  js_undefined :: Int# -> Ref#
 --foreign import javascript unsafe "$2[$1]"
 --  js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
 foreign import javascript unsafe "$2[$1]"
-  js_unsafeGetProp :: JSString -> JSRef a -> IO (JSRef b)
+  js_unsafeGetProp :: JSString -> JSRef -> IO JSRef
 foreign import javascript unsafe "$3[$1] = $2"
-  js_unsafeSetProp :: JSString -> JSRef a -> JSRef b -> IO ()
+  js_unsafeSetProp :: JSString -> JSRef -> JSRef -> IO ()
 {-
 foreign import javascript safe "h$listProps($1)"
   js_listProps :: JSRef a -> IO (JSArray JSString)
 -}
 foreign import javascript unsafe "h$jsTypeOf($1)"
-  js_jsTypeOf :: JSRef a -> Int#
+  js_jsTypeOf :: JSRef -> Int#
 foreign import javascript unsafe "h$jsonTypeOf($1)"
-  js_jsonTypeOf :: JSRef a -> Int#
+  js_jsonTypeOf :: JSRef -> Int#
 -- foreign import javascript unsafe "h$listToArray"
 --  js_toArray :: Any -> IO (JSArray a)
 -- foreign import javascript unsafe "$1 === null"
 --  js_isNull      :: JSRef a -> Bool
 
 -- foreign import javascript unsafe "h$isUndefined" js_isUndefined :: JSRef a -> Bool
-foreign import javascript unsafe "h$isObject"    js_isObject    :: JSRef a -> Bool
-foreign import javascript unsafe "h$isBoolean"   js_isBoolean   :: JSRef a -> Bool
-foreign import javascript unsafe "h$isNumber"    js_isNumber    :: JSRef a -> Bool
-foreign import javascript unsafe "h$isString"    js_isString    :: JSRef a -> Bool
-foreign import javascript unsafe "h$isSymbol"    js_isSymbol    :: JSRef a -> Bool
-foreign import javascript unsafe "h$isFunction"  js_isFunction  :: JSRef a -> Bool
+foreign import javascript unsafe "h$isObject"    js_isObject    :: JSRef -> Bool
+foreign import javascript unsafe "h$isBoolean"   js_isBoolean   :: JSRef -> Bool
+foreign import javascript unsafe "h$isNumber"    js_isNumber    :: JSRef -> Bool
+foreign import javascript unsafe "h$isString"    js_isString    :: JSRef -> Bool
+foreign import javascript unsafe "h$isSymbol"    js_isSymbol    :: JSRef -> Bool
+foreign import javascript unsafe "h$isFunction"  js_isFunction  :: JSRef -> Bool

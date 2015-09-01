@@ -1,8 +1,15 @@
-{-# LANGUAGE CPP, JavaScriptFFI, ForeignFunctionInterface,
-             UnliftedFFITypes, GHCForeignImportPrim, MagicHash,
-             UnboxedTuples, DeriveDataTypeable, DataKinds, KindSignatures,
-             PolyKinds
-  #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE PolyKinds #-}
+
 module JavaScript.TypedArray.DataView.Internal where
 
 import Data.Int
@@ -16,8 +23,8 @@ import GHCJS.Internal.Types
 
 import JavaScript.TypedArray.ArrayBuffer.Internal
 
-newtype SomeDataView (a :: MutabilityType s) = SomeDataView (JSRef ())
-  deriving (Typeable)
+newtype SomeDataView (a :: MutabilityType s) = SomeDataView JSRef
+  deriving Typeable
 
 type DataView        = SomeDataView Immutable
 type MutableDataView = SomeDataView Mutable
@@ -27,15 +34,15 @@ type STDataView s    = SomeDataView (STMutable s)
 #define JSS foreign import javascript safe
 
 JSU "new DataView($1)"
-    js_dataView1 :: JSRef () -> JSRef ()
+    js_dataView1 :: JSRef -> JSRef
 JSS "new DataView($2,$1)"
-    js_dataView2 :: Int -> JSRef () -> SomeDataView m
+    js_dataView2 :: Int -> JSRef -> SomeDataView m
 JSU "new DataView($2,$1)"
-    js_unsafeDataView2 :: Int -> JSRef () -> SomeDataView m
+    js_unsafeDataView2 :: Int -> JSRef-> SomeDataView m
 JSS "new DataView($3,$1,$2)"
-    js_dataView :: Int -> Int -> JSRef () -> SomeDataView m
+    js_dataView :: Int -> Int -> JSRef -> SomeDataView m
 JSU "new DataView($3,$1,$2)" 
-    js_unsafeDataView :: Int -> Int -> JSRef () -> JSRef ()
+    js_unsafeDataView :: Int -> Int -> JSRef -> JSRef
 JSU "new DataView($1.buffer.slice($1.byteOffset, $1.byteLength))"
     js_cloneDataView :: SomeDataView m -> IO (SomeDataView m1)
 

@@ -6,5 +6,4 @@ import Data.Typeable
 
 import GHCJS.Types
 
-newtype MessageEvent = MessageEvent (JSRef ())
-  deriving (Typeable)
+newtype MessageEvent = MessageEvent JSRef deriving (Typeable)
