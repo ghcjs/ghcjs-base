@@ -51,12 +51,12 @@ storageArea se | isNull r  = Nothing
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.key"         js_getKey         :: StorageEvent -> JSRef ()
+  "$1.key"         js_getKey         :: StorageEvent -> JSRef
 foreign import javascript unsafe
-  "$1.oldValue"    js_getOldValue    :: StorageEvent -> JSRef ()
+  "$1.oldValue"    js_getOldValue    :: StorageEvent -> JSRef
 foreign import javascript unsafe
-  "$1.newValue"    js_getNewValue    :: StorageEvent -> JSRef ()
+  "$1.newValue"    js_getNewValue    :: StorageEvent -> JSRef
 foreign import javascript unsafe
   "$1.url"         js_getUrl         :: StorageEvent -> JSString
 foreign import javascript unsafe
-  "$1.storageArea" js_getStorageArea :: StorageEvent -> JSRef ()
+  "$1.storageArea" js_getStorageArea :: StorageEvent -> JSRef

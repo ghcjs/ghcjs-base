@@ -1,70 +1,60 @@
-{-# LANGUAGE EmptyDataDecls, MagicHash, BangPatterns,
-    CPP, ForeignFunctionInterface, JavaScriptFFI #-}
+{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
 
 module GHCJS.Types ( JSRef
+                   , IsJSRef
+                   , jsref
                    , isNull
                    , isUndefined
                    , nullRef
-                   , castRef
                    , JSString
---                   , JSObject
---                   , JSBool
---                   , JSNumber
---                   , JSFun
                    , mkRef
                    , Ref#
+                   , toPtr
+                   , fromPtr
                    ) where
 
 import Data.JSString.Internal.Type (JSString)
+import GHCJS.Internal.Types
+
+import GHCJS.Prim
 
 import GHC.Int
 import GHC.Types
 import GHC.Prim
 import GHC.Ptr
-import GHCJS.Prim
 
 import Control.DeepSeq
-
 import Unsafe.Coerce
-
-instance NFData (JSRef a) where
-  rnf x = x `seq` ()
-
--- fixme remove
-data JSBool_
-data JSNumber_
-data JSObject_ a
--- data JSArray_ a
-data JSFun_ a
-
-type JSBool     = JSRef JSBool_
-type JSNumber   = JSRef JSNumber_
-type JSObject a = JSRef (JSObject_ a)
-type JSFun a    = JSRef (JSFun_ a)
 
 type Ref# = ByteArray#
 
-mkRef :: ByteArray# -> JSRef a
+mkRef :: ByteArray# -> JSRef
 mkRef x = JSRef x
 
-nullRef :: JSRef a
+nullRef :: JSRef
 nullRef = js_nullRef
 {-# INLINE nullRef #-}
 
-castRef :: JSRef a -> JSRef b
-castRef = unsafeCoerce
-{-# INLINE castRef #-}
-
-toPtr :: JSRef a -> Ptr b
+toPtr :: JSRef -> Ptr a
 toPtr (JSRef x) = unsafeCoerce (Ptr' x 0#)
 {-# INLINE toPtr #-}
 
-fromPtr :: Ptr a -> JSRef b
-fromPtr p = let !(Ptr' x _) = unsafeCoerce p
-            in  JSRef x
+fromPtr :: Ptr a -> JSRef
+fromPtr p = js_ptrVal p
 {-# INLINE fromPtr #-}
 
 data Ptr' a = Ptr' ByteArray# Int#
 
-foreign import javascript unsafe "$r = null"        js_nullRef     :: JSRef a
+foreign import javascript unsafe "$r = null;"
+  js_nullRef :: JSRef
 
+foreign import javascript unsafe "$r = $1_1;"
+  js_ptrVal  :: Ptr a -> JSRef
+
+foreign import javascript unsafe "$r1 = $1; $r2 = 0;"
+  js_mkPtr :: JSRef -> Ptr a

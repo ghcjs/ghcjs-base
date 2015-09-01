@@ -107,11 +107,11 @@ data Repeat = Repeat
             | NoRepeat
             deriving (Eq, Ord, Show, Enum, Data, Typeable)
 
-unsafeToCanvas :: JSRef () -> Canvas
-unsafeToCanvas r = Canvas (castRef r)
+unsafeToCanvas :: JSRef -> Canvas
+unsafeToCanvas r = Canvas r
 {-# INLINE unsafeToCanvas #-}
 
-toCanvas :: JSRef () -> Maybe Canvas
+toCanvas :: JSRef -> Maybe Canvas
 toCanvas x = error "toCanvas" -- fixme
 {-# INLINE toCanvas #-}
 

@@ -1,5 +1,10 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, DataKinds, KindSignatures,
-             DeriveDataTypeable, EmptyDataDecls #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE EmptyDataDecls #-}
+
 module JavaScript.Web.Blob.Internal where
 
 import Data.Typeable
@@ -9,7 +14,7 @@ import GHCJS.Types
 data BlobType = BlobTypeBlob
               | BlobTypeFile
 
-newtype SomeBlob (a :: BlobType) = SomeBlob (JSRef ()) deriving Typeable
+newtype SomeBlob (a :: BlobType) = SomeBlob JSRef deriving Typeable
 
 type File = SomeBlob BlobTypeFile
 type Blob = SomeBlob BlobTypeBlob

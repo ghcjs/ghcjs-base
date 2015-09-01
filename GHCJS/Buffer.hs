@@ -217,11 +217,11 @@ foreign import javascript unsafe
 foreign import javascript unsafe  
   "$r = $1;" js_toByteArray          :: SomeBuffer any      -> ByteArray#
 foreign import javascript unsafe  
-  "$r = $1;" js_fromByteArray        :: ByteArray#          -> JSRef ()
+  "$r = $1;" js_fromByteArray        :: ByteArray#          -> JSRef
 foreign import javascript unsafe
-  "$r = $1;" js_fromMutableByteArray :: MutableByteArray# s -> JSRef ()
+  "$r = $1;" js_fromMutableByteArray :: MutableByteArray# s -> JSRef
 foreign import javascript unsafe
-  "$r = $1;" js_toMutableByteArray   :: JSRef ()            -> MutableByteArray# s
+  "$r = $1;" js_toMutableByteArray   :: JSRef               -> MutableByteArray# s
 foreign import javascript unsafe
   "$r1 = $1; $r2 = 0;"  js_toAddr    :: SomeBuffer any      -> Addr#
 foreign import javascript unsafe

@@ -1,7 +1,16 @@
-{-# LANGUAGE MagicHash, UnboxedTuples, JavaScriptFFI, ForeignFunctionInterface,
-             UnliftedFFITypes, GHCForeignImportPrim, EmptyDataDecls, TypeFamilies,
-             TypeSynonymInstances, FlexibleInstances, DataKinds, PolyKinds, KindSignatures
-  #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE KindSignatures #-}
 
 module JavaScript.TypedArray.Internal where
 
@@ -499,29 +508,29 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "new Int8Array($1)"
-  js_int8ArrayFromJSRef         :: JSRef () -> SomeInt8Array m
+  js_int8ArrayFromJSRef         :: JSRef -> SomeInt8Array m
 foreign import javascript unsafe
   "new Int16Array($1)"
-  js_int16ArrayFromJSRef        :: JSRef () -> SomeInt16Array m
+  js_int16ArrayFromJSRef        :: JSRef -> SomeInt16Array m
 foreign import javascript unsafe
   "new Int32Array($1)"
-  js_int32ArrayFromJSRef        :: JSRef () -> SomeInt32Array m
+  js_int32ArrayFromJSRef        :: JSRef -> SomeInt32Array m
 foreign import javascript unsafe
   "new Uint8ClampedArray($1)"
-  js_uint8ClampedArrayFromJSRef :: JSRef () -> SomeUint8ClampedArray m
+  js_uint8ClampedArrayFromJSRef :: JSRef -> SomeUint8ClampedArray m
 foreign import javascript unsafe
   "new Uint8Array($1)"
-  js_uint8ArrayFromJSRef        :: JSRef () -> SomeUint8Array m
+  js_uint8ArrayFromJSRef        :: JSRef -> SomeUint8Array m
 foreign import javascript unsafe
   "new Uint16Array($1)"
-  js_uint16ArrayFromJSRef       :: JSRef () -> SomeUint16Array m
+  js_uint16ArrayFromJSRef       :: JSRef -> SomeUint16Array m
 foreign import javascript unsafe
   "new Uint32Array($1)"
-  js_uint32ArrayFromJSRef       :: JSRef () -> SomeUint32Array m
+  js_uint32ArrayFromJSRef       :: JSRef -> SomeUint32Array m
 foreign import javascript unsafe
   "new Float32Array($1)"
-  js_float32ArrayFromJSRef      :: JSRef () -> SomeFloat32Array m
+  js_float32ArrayFromJSRef      :: JSRef -> SomeFloat32Array m
 foreign import javascript unsafe
   "new Float64Array($1)"
-  js_float64ArrayFromJSRef      :: JSRef () -> SomeFloat64Array m
+  js_float64ArrayFromJSRef      :: JSRef -> SomeFloat64Array m
 

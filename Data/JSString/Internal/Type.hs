@@ -38,9 +38,11 @@ import GHC.Exts                       (Char(..), ord#, andI#, (/=#), isTrue#)
 
 import GHCJS.Prim (JSRef)
 
+import GHCJS.Internal.Types
+
 -- | A wrapper around a JavaScript string
-newtype JSString = JSString { unJSString :: JSRef () }
-  deriving Typeable
+newtype JSString = JSString JSRef
+instance IsJSRef JSString
 
 instance NFData JSString where rnf !x = ()
 

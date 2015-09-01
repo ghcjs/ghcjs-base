@@ -51,14 +51,14 @@ lazyTextFromJSString = TL.fromStrict . textFromJSString
 {-# INLINE lazyTextFromJSString #-}
 
 -- | returns the empty Text if not a string
-textFromJSRef :: JSRef a -> T.Text
+textFromJSRef :: JSRef -> T.Text
 textFromJSRef j = case js_fromString' j of
     (# _,  0#     #) -> T.empty
     (# ba, length #) -> T.Text (A.Array ba) 0 (I# length)
 {-# INLINE textFromJSRef #-}
 
 -- | returns the empty Text if not a string
-lazyTextFromJSRef :: JSRef a -> TL.Text
+lazyTextFromJSRef :: JSRef -> TL.Text
 lazyTextFromJSRef = TL.fromStrict . textFromJSRef
 {-# INLINE lazyTextFromJSRef #-}
 
@@ -72,7 +72,7 @@ foreign import javascript unsafe
   js_fromString :: JSString -> (# ByteArray#, Int# #)
 foreign import javascript unsafe
   "h$textFromString"
-  js_fromString' :: JSRef a -> (# ByteArray#, Int# #)
+  js_fromString' :: JSRef -> (# ByteArray#, Int# #)
 foreign import javascript unsafe
   "h$lazyTextToString"
   js_lazyTextToString :: Any -> JSString

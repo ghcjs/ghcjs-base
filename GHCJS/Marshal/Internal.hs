@@ -40,41 +40,41 @@ data Purity = PureShared    -- ^ conversion is pure even if the original value i
 
 class PToJSRef a where
 --  type PureOut a :: Purity
-  pToJSRef :: a -> JSRef a
+  pToJSRef :: a -> JSRef
 
 class PFromJSRef a where
 --  type PureIn a :: Purity
-  pFromJSRef :: JSRef a -> a
+  pFromJSRef :: JSRef -> a
 
 class ToJSRef a where
-  toJSRef :: a -> IO (JSRef a)
+  toJSRef :: a -> IO JSRef
 
-  toJSRefListOf :: [a] -> IO (JSRef [a])
-  toJSRefListOf = fmap castRef . (Prim.toJSArray <=< mapM toJSRef)
+  toJSRefListOf :: [a] -> IO JSRef
+  toJSRefListOf = Prim.toJSArray <=< mapM toJSRef
 
   -- default toJSRef :: PToJSRef a => a -> IO (JSRef a)
   -- toJSRef x = return (pToJSRef x)
 
-  default toJSRef :: (Generic a, GToJSRef (Rep a ())) => a -> IO (JSRef a)
+  default toJSRef :: (Generic a, GToJSRef (Rep a ())) => a -> IO JSRef
   toJSRef = toJSRef_generic id
 
 class FromJSRef a where
-  fromJSRef :: JSRef a -> IO (Maybe a)
+  fromJSRef :: JSRef -> IO (Maybe a)
 
-  fromJSRefUnchecked :: JSRef a -> IO a
+  fromJSRefUnchecked :: JSRef -> IO a
   fromJSRefUnchecked = fmap fromJust . fromJSRef
   {-# INLINE fromJSRefUnchecked #-}
 
-  fromJSRefListOf :: JSRef [a] -> IO (Maybe [a])
-  fromJSRefListOf = fmap sequence . (mapM fromJSRef <=< Prim.fromJSArray . castRef) -- fixme should check that it's an array
+  fromJSRefListOf :: JSRef -> IO (Maybe [a])
+  fromJSRefListOf = fmap sequence . (mapM fromJSRef <=< Prim.fromJSArray) -- fixme should check that it's an array
 
-  fromJSRefUncheckedListOf :: JSRef [a] -> IO [a]
-  fromJSRefUncheckedListOf = mapM fromJSRefUnchecked <=< Prim.fromJSArray . castRef
+  fromJSRefUncheckedListOf :: JSRef -> IO [a]
+  fromJSRefUncheckedListOf = mapM fromJSRefUnchecked <=< Prim.fromJSArray
   
   -- default fromJSRef :: PFromJSRef a => JSRef a -> IO (Maybe a)
   -- fromJSRef x = return (Just (pFromJSRef x))
 
-  default fromJSRef :: (Generic a, GFromJSRef (Rep a ())) => JSRef a -> IO (Maybe a)
+  default fromJSRef :: (Generic a, GFromJSRef (Rep a ())) => JSRef -> IO (Maybe a)
   fromJSRef = fromJSRef_generic id
 
   -- default fromJSRefUnchecked :: PFromJSRef a => a -> IO a
@@ -83,16 +83,16 @@ class FromJSRef a where
 -- -----------------------------------------------------------------------------
 
 class GToJSRef a where
-  gToJSRef :: (String -> String) -> Bool -> a -> IO (JSRef ())
+  gToJSRef :: (String -> String) -> Bool -> a -> IO JSRef
 
 class GToJSProp a where
-  gToJSProp :: (String -> String) -> JSRef () -> a -> IO ()
+  gToJSProp :: (String -> String) -> JSRef -> a -> IO ()
 
 class GToJSArr a where
   gToJSArr :: (String -> String) -> MutableJSArray -> a -> IO ()
 
 instance (ToJSRef b) => GToJSRef (K1 a b c) where
-  gToJSRef _ _ (K1 x) = castRef <$> toJSRef x
+  gToJSRef _ _ (K1 x) = toJSRef x
 
 instance GToJSRef p => GToJSRef (Par1 p) where
   gToJSRef f b (Par1 p) = gToJSRef f b p
@@ -123,7 +123,7 @@ instance (GToJSArr (a p), GToJSArr (b p), GToJSProp (a p), GToJSProp (b p)) => G
   gToJSRef f False xy = do
     arr@(AI.SomeJSArray arr') <- AI.create
     gToJSArr f arr xy
-    return (castRef arr')
+    return arr'
 
 instance GToJSRef (a p) => GToJSRef (M1 S c a p) where
   gToJSRef f b (M1 x) = gToJSRef f b x
@@ -142,31 +142,31 @@ instance (GToJSArr (a p), GToJSArr (b p)) => GToJSArr ((a :*: b) p) where
 instance GToJSRef (a p) => GToJSArr (M1 S c a p) where
   gToJSArr f a (M1 x) = do
     r <- gToJSRef f False x
-    AI.push (castRef r) a
+    AI.push r a
 
 instance GToJSRef (V1 p) where
   gToJSRef _ _ _ = return Prim.jsNull
 
 instance GToJSRef (U1 p) where
-  gToJSRef _ _ _ = return (castRef F.jsTrue)
+  gToJSRef _ _ _ = return F.jsTrue
 
 toJSRef_generic :: forall a . (Generic a, GToJSRef (Rep a ()))
-                => (String -> String) -> a -> IO (JSRef a)
-toJSRef_generic f x = castRef <$> gToJSRef f False (from x :: Rep a ())
+                => (String -> String) -> a -> IO JSRef
+toJSRef_generic f x = gToJSRef f False (from x :: Rep a ())
 
 -- -----------------------------------------------------------------------------
 
 class GFromJSRef a where
-  gFromJSRef :: (String -> String) -> Bool -> JSRef () -> IO (Maybe a)
+  gFromJSRef :: (String -> String) -> Bool -> JSRef -> IO (Maybe a)
 
 class GFromJSProp a where
-  gFromJSProp :: (String -> String) -> JSRef () -> IO (Maybe a)
+  gFromJSProp :: (String -> String) -> JSRef -> IO (Maybe a)
 
 class GFromJSArr a where
   gFromJSArr :: (String -> String) -> MutableJSArray -> Int -> IO (Maybe (a,Int))
 
 instance FromJSRef b => GFromJSRef (K1 a b c) where
-  gFromJSRef _ _ r = fmap K1 <$> fromJSRef (castRef r)
+  gFromJSRef _ _ r = fmap K1 <$> fromJSRef r
 
 instance GFromJSRef p => GFromJSRef (Par1 p) where
   gFromJSRef f b r = gFromJSRef f b r
@@ -228,7 +228,7 @@ instance (GFromJSRef (a p)) => GFromJSArr (M1 S c a p) where
     r <- AI.read n o
     if isUndefined r
       then return Nothing
-      else fmap ((,n+1) . M1) <$> gFromJSRef f False (castRef r)
+      else fmap ((,n+1) . M1) <$> gFromJSRef f False r
 
 instance GFromJSRef (V1 p) where
   gFromJSRef _ _ _ = return Nothing
@@ -237,20 +237,20 @@ instance GFromJSRef (U1 p) where
   gFromJSRef _ _ _ = return (Just U1)
 
 fromJSRef_generic :: forall a . (Generic a, GFromJSRef (Rep a ()))
-                => (String -> String) -> JSRef a -> IO (Maybe a)
-fromJSRef_generic f x = fmap to <$> (gFromJSRef f False (castRef x) :: IO (Maybe (Rep a ())))
+                => (String -> String) -> JSRef -> IO (Maybe a)
+fromJSRef_generic f x = fmap to <$> (gFromJSRef f False x :: IO (Maybe (Rep a ())))
 
 -- -----------------------------------------------------------------------------
 
-fromJSRef_pure :: PFromJSRef a => JSRef a -> IO (Maybe a)
+fromJSRef_pure :: PFromJSRef a => JSRef -> IO (Maybe a)
 fromJSRef_pure x = return (Just (pFromJSRef x))
 {-# INLINE fromJSRef_pure #-}
 
-fromJSRefUnchecked_pure :: PFromJSRef a => JSRef a -> IO a
+fromJSRefUnchecked_pure :: PFromJSRef a => JSRef -> IO a
 fromJSRefUnchecked_pure x = return (pFromJSRef x)
 {-# INLINE fromJSRefUnchecked_pure #-}
 
-toJSRef_pure :: PToJSRef a => a -> IO (JSRef a)
+toJSRef_pure :: PToJSRef a => a -> IO JSRef
 toJSRef_pure x = return (pToJSRef x)
 {-# INLINE toJSRef_pure #-}
 

@@ -1,12 +1,12 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module GHCJS.Foreign.Callback.Internal where
 
 import GHCJS.Types
 import GHCJS.Marshal.Internal
 
-newtype Callback a = Callback (JSRef ())
+import Data.Typeable
 
-instance PToJSRef (Callback a) where
-  pToJSRef (Callback x) = castRef x
+newtype Callback a = Callback JSRef deriving Typeable
+instance IsJSRef (Callback a)
 
-instance ToJSRef (Callback a) where
-  toJSRef               = toJSRef_pure

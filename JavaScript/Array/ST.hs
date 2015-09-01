@@ -55,35 +55,35 @@ append :: STJSArray s -> STJSArray s -> ST s (STJSArray s)
 append x y = ST (I.js_append x y)
 {-# INLINE append #-}
 
-fromList :: [JSRef a] -> ST s (STJSArray s)
+fromList :: [JSRef] -> ST s (STJSArray s)
 fromList xs = ST (\s -> rnf xs `seq` I.js_toJSArray (unsafeCoerce xs) s)
 {-# INLINE fromList #-}
 
-toList :: STJSArray s -> ST s [JSRef a]
+toList :: STJSArray s -> ST s [JSRef]
 toList x = ST (I.js_fromJSArray x)
 {-# INLINE toList #-}
 
-read :: Int -> STJSArray s -> ST s (JSRef a)
+read :: Int -> STJSArray s -> ST s (JSRef)
 read n x = ST (I.js_index n x)
 {-# INLINE read #-}
 
-write :: Int -> JSRef a -> STJSArray s -> ST s ()
+write :: Int -> JSRef -> STJSArray s -> ST s ()
 write n e x = ST (I.js_setIndex n e x)
 {-# INLINE write #-}
 
-push :: JSRef a -> STJSArray s -> ST s ()
+push :: JSRef -> STJSArray s -> ST s ()
 push e x = ST (I.js_push e x)
 {-# INLINE push #-}
 
-pop :: STJSArray s -> ST s (JSRef a)
+pop :: STJSArray s -> ST s JSRef
 pop x = ST (I.js_pop x)
 {-# INLINE pop #-}
 
-unshift :: JSRef a -> STJSArray s -> ST s ()
+unshift :: JSRef -> STJSArray s -> ST s ()
 unshift e x = ST (I.js_unshift e x)
 {-# INLINE unshift #-}
 
-shift :: STJSArray s -> ST s (JSRef a)
+shift :: STJSArray s -> ST s JSRef
 shift x = ST (I.js_shift x)
 {-# INLINE shift #-}
 

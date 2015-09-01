@@ -84,7 +84,7 @@ instance Exception JSONException
 
 -- any JSON value
 newtype SomeValue (m :: MutabilityType s) =
-  SomeValue (JSRef ()) deriving (Typeable)
+  SomeValue JSRef deriving (Typeable)
 type Value        = SomeValue Immutable
 type MutableValue = SomeValue Mutable
 instance NFData (SomeValue (m :: MutabilityType s)) where
@@ -92,7 +92,7 @@ instance NFData (SomeValue (m :: MutabilityType s)) where
 
 -- a dictionary (object)
 newtype SomeObject (m :: MutabilityType s) =
-  SomeObject (JSRef ()) deriving (Typeable)
+  SomeObject JSRef deriving (Typeable)
 type Object        = SomeObject Immutable
 type MutableObject = SomeObject Mutable
 instance NFData (SomeObject (m :: MutabilityType s)) where
@@ -276,29 +276,29 @@ foreign import javascript unsafe
 -- types must be checked before using these conversions
 
 foreign import javascript unsafe
-  "$r = $1;" js_jsrefToDouble :: JSRef () -> Double
+  "$r = $1;" js_jsrefToDouble :: JSRef -> Double
 foreign import javascript unsafe
-  "$r = $1;" js_jsrefToBool   :: JSRef () -> Bool
+  "$r = $1;" js_jsrefToBool   :: JSRef -> Bool
 
 -- -----------------------------------------------------------------------------
 -- various lookups
 
 foreign import javascript unsafe
   "$2[$1]"
-  js_lookupDictPure :: JSString -> Object -> JSRef ()
+  js_lookupDictPure :: JSString -> Object -> JSRef
 
 foreign import javascript unsafe
   "typeof($2)==='object'?$2[$1]:undefined"
-  js_lookupDictPureSafe :: JSString -> Value -> JSRef ()
+  js_lookupDictPureSafe :: JSString -> Value -> JSRef
 
 foreign import javascript unsafe
-  "$2[$1]" js_lookupArrayPure :: Int -> A.JSArray -> JSRef ()
+  "$2[$1]" js_lookupArrayPure :: Int -> A.JSArray -> JSRef
 foreign import javascript unsafe
   "h$isArray($2) ? $2[$1] : undefined"
-  js_lookupArrayPureSafe :: Int -> Value -> JSRef ()
+  js_lookupArrayPureSafe :: Int -> Value -> JSRef
 foreign import javascript unsafe
   "$r = $1;"
-  js_doubleToJSRef :: Double -> JSRef ()
+  js_doubleToJSRef :: Double -> JSRef
 
 foreign import javascript unsafe
   "JSON.decode(JSON.encode($1))"

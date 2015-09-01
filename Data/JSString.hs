@@ -166,7 +166,7 @@ import           Data.JSString.Internal.Fusion        (stream, unstream)
 import qualified Data.JSString.Internal.Fusion        as S
 import qualified Data.JSString.Internal.Fusion.Common as S
 
-getJSRef :: JSString -> JSRef ()
+getJSRef :: JSString -> JSRef
 getJSRef (JSString x) = x
 {-# INLINE getJSRef #-}
 
@@ -1687,7 +1687,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1===''" js_null :: JSString -> Bool
 foreign import javascript unsafe
-  "$1===null" js_isNull :: JSRef () -> Bool
+  "$1===null" js_isNull :: JSRef -> Bool
 foreign import javascript unsafe
   "$1===$2" js_eq :: JSString -> JSString -> Bool
 foreign import javascript unsafe
@@ -1731,9 +1731,9 @@ foreign import javascript unsafe
   "h$jsstringLast" js_last :: JSString -> Int#
 
 foreign import javascript unsafe
-  "h$jsstringInit" js_init :: JSString -> JSRef () -- null for empty string
+  "h$jsstringInit" js_init :: JSString -> JSRef -- null for empty string
 foreign import javascript unsafe
-  "h$jsstringTail" js_tail :: JSString -> JSRef () -- null for empty string
+  "h$jsstringTail" js_tail :: JSString -> JSRef -- null for empty string
 foreign import javascript unsafe
   "h$jsstringReverse" js_reverse :: JSString -> JSString
 foreign import javascript unsafe
