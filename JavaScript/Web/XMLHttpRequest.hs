@@ -10,7 +10,10 @@ module JavaScript.Web.XMLHttpRequest ( xhr
                                      , xhrString
                                      , Method(..)
                                      , Request(..)
+                                     , RequestData(..)
                                      , Response(..)
+                                     , ResponseType(..)
+                                     , FormDataVal(..)
                                      , XHRError(..)
                                      ) where
 
@@ -131,6 +134,8 @@ xhr req = js_createXHR >>= \x ->
             js_open2 (methodJSString (reqMethod req)) (reqURI req) x
           Just (user, pass) ->
             js_open4 (methodJSString (reqMethod req)) (reqURI req) user pass x
+        js_setResponseType
+          (getResponseTypeString (Proxy :: Proxy a)) x
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
         r <- case reqData req of
           NoData                            ->
