@@ -127,8 +127,6 @@ newtype XHR = XHR JSRef deriving (Typeable)
 xhr :: forall a. ResponseType a => Request -> IO (Response a)
 xhr req = js_createXHR >>= \x ->
   let doRequest = do
-        js_setResponseType
-          (getResponseTypeString (Proxy :: Proxy a)) x
         case reqLogin req of
           Nothing           ->
             js_open2 (methodJSString (reqMethod req)) (reqURI req) x
