@@ -20,7 +20,7 @@
      to avoid blocking. In some cases that might not be possible,
      for example when the data accessed is produced by a lazy IO
      operation. This is resolved the same way as blocking on an IO
-     action would.
+     action would be.
  -}
 
 module GHCJS.Concurrent ( isThreadSynchronous
