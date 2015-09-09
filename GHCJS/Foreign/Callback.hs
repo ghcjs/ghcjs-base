@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
-             GHCForeignImportPrim, DeriveDataTypeable, GHCForeignImportPrim #-}
+             GHCForeignImportPrim, DeriveDataTypeable, GHCForeignImportPrim, FlexibleInstances #-}
 module GHCJS.Foreign.Callback
     ( Callback
     , OnBlocked(..)
@@ -10,6 +10,9 @@ module GHCJS.Foreign.Callback
     , syncCallback
     , syncCallback1
     , syncCallback2
+    , CallbackFunction
+    , syncCallbackN
+    , asyncCallbackN
     ) where
 
 import           GHCJS.Marshal
@@ -17,6 +20,7 @@ import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
 import           GHCJS.Prim
 import           GHCJS.Types
+import qualified JavaScript.Array as JSA
 
 import qualified GHC.Exts as Exts
 
@@ -102,6 +106,54 @@ asyncCallback1 x = js_asyncCallbackApply 1 (unsafeCoerce x)
 asyncCallback2 :: (JSRef -> JSRef -> IO ())            -- ^ the Haskell function that the callback calls
                -> IO (Callback (JSRef -> JSRef -> IO ())) -- ^ the callback
 asyncCallback2 x = js_asyncCallbackApply 2 (unsafeCoerce x)
+
+-- | A class which contains all functions producing an @IO ()@ and which have an arbitrary number of
+-- arguments, where each argument is an instance of 'FromJSRef'.
+class CallbackFunction a where
+    applyFromArguments :: JSA.JSArray -> Int -> a -> IO ()
+
+instance CallbackFunction (IO ()) where
+    applyFromArguments _ _ x = x
+
+instance (FromJSRef a, CallbackFunction b) => CallbackFunction (a -> b) where
+    applyFromArguments args k f = do
+        ma <- fromJSRef $ if k >= JSA.length args then nullRef else JSA.index k args
+        a <- maybe (error $ "Unable to decode callback argument " ++ show k) return ma
+        applyFromArguments args (k+1) $ f a
+
+-- | Create a sync callback for any number of arguments.  The @func@ parameter can have any number of
+-- arguments (including zero), as long as it produces @IO ()@ and each argument implements
+-- 'FromJSRef'.  The callback will then use the javascript @arguments@ object to create the
+-- arguments to @func@.  Indeed, each argument to @func@ is converted from the cooresponding element
+-- in the javascript @arguments@ object using 'fromJSRef'.  If @func@ has more arguments than the
+-- @arguments@ javascript object, 'nullRef' is used for the conversion.  Since the 'Maybe' instance of
+-- 'FromJSRef' decodes 'nullRef' to 'Nothing', you can even support callbacks which accept a
+-- variable number of arguments.
+--
+-- For example,
+--
+-- >someFunc :: Int -> String -> IO ()
+-- >someFunc = ... do something
+-- >
+-- >register :: IO ()
+-- >register = do
+-- >    cb <- syncCallbackN ContinueAsync someFunc
+-- >    -- do something with cb
+--
+-- @cb@ will become a javascript function that accepts two arguments, and these arguments are then
+-- converted to @Int@ and @String@ before calling @someFunc@.
+syncCallbackN :: CallbackFunction func => OnBlocked -> func -> IO (Callback func)
+syncCallbackN onBlocked f = js_syncCallbackApply (onBlocked == ContinueAsync) (-1) (unsafeCoerce applyC)
+    where
+        applyC :: JSRef -> IO ()
+        applyC ref = applyFromArguments (unsafeCoerce ref) 0 f
+
+-- | The async analogue of 'syncCallbackN'.
+asyncCallbackN :: CallbackFunction func => func -> IO (Callback func)
+asyncCallbackN f = js_asyncCallbackApply (-1) (unsafeCoerce applyC)
+    where
+        applyC :: JSRef -> IO ()
+        applyC ref = applyFromArguments (unsafeCoerce ref) 0 f
 
 -- ----------------------------------------------------------------------------
 
