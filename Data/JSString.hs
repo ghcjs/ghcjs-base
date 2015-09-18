@@ -241,7 +241,7 @@ unpack = S.unstreamList . stream
 {-# INLINE [1] unpack #-}
 
 unpack' :: JSString -> String
-unpack' x = case js_unpack x of (# z #) -> z
+unpack' x = unsafeCoerce (js_unpack x)
 {-# INLINE unpack' #-}
 
 -- | /O(n)/ Convert a literal string into a JSString.  Subject to fusion.
@@ -1181,7 +1181,7 @@ group x = group' x -- fixme, implement lazier version
 {-# INLINE group #-}
 
 group' :: JSString -> [JSString]
-group' x = case js_group x of (# z #) -> z
+group' x = unsafeCoerce (js_group x)
 {-# INLINE group' #-}
 
 -- | /O(n^2)/ Return all initial segments of the given 'JSString', shortest
@@ -1266,7 +1266,7 @@ splitOn' :: JSString
          -> [JSString]
 splitOn' pat src
   | null pat  = emptyError "splitOn'"
-  | otherwise = case js_splitOn pat src of (# z #) -> z
+  | otherwise = unsafeCoerce (js_splitOn pat src)
 {-# NOINLINE splitOn' #-}
 --- {-# INLINE [1] splitOn' #-}
 
@@ -1314,7 +1314,7 @@ chunksOf (I# k) p = go 0#
 -- > chunksOf 3 "foobarbaz"   == ["foo","bar","baz"]
 -- > chunksOf 4 "haskell.org" == ["hask","ell.","org"]
 chunksOf' :: Int -> JSString -> [JSString]
-chunksOf' (I# k) p = case js_chunksOf k p of (# z #) -> z
+chunksOf' (I# k) p = unsafeCoerce (js_chunksOf k p)
 {-# INLINE chunksOf' #-}
 
 -- ----------------------------------------------------------------------------
@@ -1423,7 +1423,7 @@ breakOnAll' :: JSString              -- ^ @needle@ to search for
             -> [(JSString, JSString)]
 breakOnAll' pat src
     | null pat  = emptyError "breakOnAll'"
-    | otherwise = case js_breakOnAll pat src of (# z #) -> z
+    | otherwise = unsafeCoerce (js_breakOnAll pat src)
 {-# INLINE breakOnAll' #-}
 
 -------------------------------------------------------------------------------
@@ -1512,7 +1512,7 @@ words x = loop 0# -- js_words x {- t@(Text arr off len) = loop 0 0
 
 -- fixme: strict words' that allocates the whole list in one go
 words' :: JSString -> [JSString]
-words' x = case js_words x of (# z #) -> z
+words' x = unsafeCoerce (js_words x)
 {-# INLINE words' #-}
                               
 -- | /O(n)/ Breaks a 'JSString' up into a list of 'JSString's at
@@ -1527,7 +1527,7 @@ lines ps = loop 0#
 {-# INLINE lines #-}
 
 lines' :: JSString -> [JSString]
-lines' ps = case js_lines ps of (# z #) -> z
+lines' ps = unsafeCoerce (js_lines ps)
 {-# INLINE lines' #-}
 
 {-
@@ -1619,7 +1619,7 @@ isInfixOf needle haystack = js_isInfixOf needle haystack
 -- > fnordLength (stripPrefix "fnord" -> Just suf) = T.length suf
 -- > fnordLength _                                 = -1
 stripPrefix :: JSString -> JSString -> Maybe JSString
-stripPrefix x y = case js_stripPrefix x y of (# z #) -> z
+stripPrefix x y = unsafeCoerce (js_stripPrefix x y)
 {-# INLINE stripPrefix #-}
 
 -- | /O(n)/ Find the longest non-empty common prefix of two strings
@@ -1635,7 +1635,7 @@ stripPrefix x y = case js_stripPrefix x y of (# z #) -> z
 -- > commonPrefixes "veeble" "fetzer"  == Nothing
 -- > commonPrefixes "" "baz"           == Nothing
 commonPrefixes :: JSString -> JSString -> Maybe (JSString,JSString,JSString)
-commonPrefixes x y = case js_commonPrefixes x y of (# z #) -> z
+commonPrefixes x y = unsafeCoerce (js_commonPrefixes x y)
 {-# INLINE commonPrefixes #-}
 
 -- | /O(n)/ Return the prefix of the second string if its suffix
@@ -1657,7 +1657,7 @@ commonPrefixes x y = case js_commonPrefixes x y of (# z #) -> z
 -- > quuxLength (stripSuffix "quux" -> Just pre) = T.length pre
 -- > quuxLength _                                = -1
 stripSuffix :: JSString -> JSString -> Maybe JSString
-stripSuffix x y = case js_stripSuffix x y of (# z #) -> z
+stripSuffix x y = unsafeCoerce (js_stripSuffix x y)
 {-# INLINE stripSuffix #-}
 
 -- | Add a list of non-negative numbers.  Errors out on overflow.
@@ -1699,7 +1699,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringSingleton" js_singleton :: Char -> JSString
 foreign import javascript unsafe
-  "h$jsstringUnpack" js_unpack :: JSString -> (# String #)
+  "h$jsstringUnpack" js_unpack :: JSString -> Exts.Any -- String
 foreign import javascript unsafe
   "h$jsstringCons" js_cons :: Char -> JSString -> JSString
 foreign import javascript unsafe
@@ -1737,7 +1737,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringReverse" js_reverse :: JSString -> JSString
 foreign import javascript unsafe
-  "h$jsstringGroup"  js_group :: JSString -> (# [JSString] #) -- Exts.Any {- [JSString] -}
+  "h$jsstringGroup"  js_group :: JSString -> Exts.Any {- [JSString] -}
 --foreign import javascript unsafe
 --  "h$jsstringGroup1" js_group1
 --  :: Int# -> Bool -> JSString -> (# Int#, JSString #)
@@ -1751,11 +1751,11 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringWords1" js_words1 :: Int# -> JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
-  "h$jsstringWords" js_words :: JSString -> (# [JSString] #) -- Exts.Any {- [JSString] -}
+  "h$jsstringWords" js_words :: JSString -> Exts.Any -- [JSString]
 foreign import javascript unsafe
   "h$jsstringLines1" js_lines1 :: Int# -> JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
-  "h$jsstringLines" js_lines :: JSString -> (# [JSString] #) -- Exts.Any {- [JSString] -}
+  "h$jsstringLines" js_lines :: JSString -> Exts.Any -- [JSString]
 foreign import javascript unsafe
   "h$jsstringUnlines" js_unlines :: Exts.Any {- [JSString] -} -> JSString
 foreign import javascript unsafe
@@ -1768,16 +1768,16 @@ foreign import javascript unsafe
   "h$jsstringIsInfixOf" js_isInfixOf :: JSString -> JSString -> Bool
 foreign import javascript unsafe
   "h$jsstringStripPrefix" js_stripPrefix
-  :: JSString -> JSString -> (# Maybe JSString #)
+  :: JSString -> JSString -> Exts.Any -- Maybe JSString
 foreign import javascript unsafe
   "h$jsstringStripSuffix" js_stripSuffix
-  :: JSString -> JSString -> (# Maybe JSString #)
+  :: JSString -> JSString -> Exts.Any -- Maybe JSString
 foreign import javascript unsafe
   "h$jsstringCommonPrefixes" js_commonPrefixes
-  :: JSString -> JSString -> (# Maybe (JSString, JSString, JSString) #)
+  :: JSString -> JSString -> Exts.Any -- Maybe (JSString, JSString, JSString)
 foreign import javascript unsafe
   "h$jsstringChunksOf" js_chunksOf
-  :: Int# -> JSString -> (# [JSString] #)
+  :: Int# -> JSString -> Exts.Any -- [JSString]
 foreign import javascript unsafe
   "h$jsstringChunksOf1" js_chunksOf1
   :: Int# -> Int# -> JSString -> (# Int#, JSString #)
@@ -1786,7 +1786,7 @@ foreign import javascript unsafe
   :: Int# -> JSString -> (# JSString, JSString #)
 foreign import javascript unsafe
   "h$jsstringSplitOn" js_splitOn
-  :: JSString -> JSString -> (# [JSString] #)
+  :: JSString -> JSString -> Exts.Any -- [JSString]
 foreign import javascript unsafe
   "h$jsstringSplitOn1" js_splitOn1
   :: Int# -> JSString -> JSString -> (# Int#, JSString #)
@@ -1798,7 +1798,7 @@ foreign import javascript unsafe
   :: JSString -> JSString -> (# JSString, JSString #)
 foreign import javascript unsafe
   "h$jsstringBreakOnAll" js_breakOnAll
-  :: JSString -> JSString -> (# [(JSString, JSString)] #)
+  :: JSString -> JSString -> Exts.Any -- [(JSString, JSString)]
 foreign import javascript unsafe
   "h$jsstringBreakOnAll1" js_breakOnAll1
   :: Int# -> JSString -> JSString -> (# Int#, JSString, JSString #)

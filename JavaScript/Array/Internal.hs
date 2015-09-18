@@ -57,11 +57,12 @@ fromListIO xs = IO (\s -> rnf xs `seq` js_toJSArray (unsafeCoerce xs) s)
 {-# INLINE fromListIO #-}
 
 toList :: JSArray -> [JSRef]
-toList x = case js_fromJSArrayPure x of (# xs #) -> xs
+toList x = unsafeCoerce (js_fromJSArrayPure x)
 {-# INLINE toList #-}
 
 toListIO :: SomeJSArray m -> IO [JSRef]
-toListIO x = IO (js_fromJSArray x)
+toListIO x = IO $ \s -> case js_fromJSArray x s of
+                          (# s', xs #) -> (# s', unsafeCoerce xs #)
 {-# INLINE toListIO #-}
 
 index :: Int -> JSArray -> JSRef
@@ -180,11 +181,10 @@ foreign import javascript unsafe "$1.shift()"
 foreign import javascript unsafe "$1.reverse()"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
-
 foreign import javascript unsafe "h$toHsListJSRef($1)"
-  js_fromJSArray :: SomeJSArray m -> State# s -> (# State# s, [JSRef] #)
+  js_fromJSArray :: SomeJSArray m -> State# s -> (# State# s, Exts.Any #)
 foreign import javascript unsafe "h$toHsListJSRef($1)"
-  js_fromJSArrayPure :: JSArray -> (# [JSRef] #)
+  js_fromJSArrayPure :: JSArray -> Exts.Any -- [JSRef]
 
 foreign import javascript unsafe "h$fromHsListJSRef($1)"
   js_toJSArray :: Exts.Any -> State# s -> (# State# s, SomeJSArray m #)

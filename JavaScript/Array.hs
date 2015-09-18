@@ -10,7 +10,6 @@ module JavaScript.Array
     , fromListIO
     , toList
     , toListIO
-    , length
     , index, (!)
     , read
     , write

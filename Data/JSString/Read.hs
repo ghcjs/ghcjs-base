@@ -11,9 +11,10 @@ module Data.JSString.Read ( isInteger
                           , readInteger
                           , readIntegerMaybe
                           ) where
-import GHC.Exts (ByteArray#, Int#, Int64#, Word64#, Int(..))
+import GHC.Exts (Any, ByteArray#, Int#, Int64#, Word64#, Int(..))
 import GHC.Int (Int64(..))
 import GHC.Word (Word64(..))
+import Unsafe.Coerce
 import Data.Maybe
 import Data.JSString
 
@@ -130,7 +131,7 @@ readIntegerMaybe j = convertNullMaybe js_readInteger j
 convertNullMaybe :: (JSString -> ByteArray#) -> JSString -> Maybe a
 convertNullMaybe f j
   | js_isNull r = Nothing
-  | otherwise   = case js_toHeapObject r of (# h #) -> Just h
+  | otherwise   = unsafeCoerce (js_toHeapObject r)
   where
     r = f j
 {-# INLINE convertNullMaybe #-}
@@ -143,7 +144,7 @@ readError xs = error ("Data.JSString.Read." ++ xs)
 foreign import javascript unsafe
   "$1===null" js_isNull :: ByteArray# -> Bool
 foreign import javascript unsafe
-  "$r=$1;" js_toHeapObject :: ByteArray# -> (# a #)
+  "$r=$1;" js_toHeapObject :: ByteArray# -> Any
 foreign import javascript unsafe
   "h$jsstringReadInteger" js_readInteger :: JSString -> ByteArray#
 foreign import javascript unsafe

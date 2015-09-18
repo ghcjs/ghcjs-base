@@ -18,7 +18,9 @@ module Data.JSString.RegExp ( RegExp
                             ) where
 
 import GHCJS.Prim
-import GHC.Exts (Int#, Int(..))
+import GHC.Exts (Any, Int#, Int(..))
+
+import Unsafe.Coerce (unsafeCoerce)
 
 import Data.JSString
 import Data.Typeable
@@ -67,7 +69,7 @@ execNext m re = case matchRawIndex m of
 exec' :: Int# -> JSString -> RegExp -> Maybe Match
 exec' i x re = case js_exec i x re of
                  (# -1#, _, _ #) -> Nothing
-                 (# i',  y, z #) -> Just (Match y z (I# i) x)
+                 (# i',  y, z #) -> Just (Match y (unsafeCoerce z) (I# i) x)
 {-# INLINE exec' #-}
 
 matches :: JSString -> RegExp -> [Match]
@@ -77,15 +79,15 @@ matches x r = maybe [] go (exec x r)
 {-# INLINE matches #-}
 
 replace :: RegExp -> JSString -> JSString -> JSString
-replace x r = undefined
+replace x r = error "Data.JSString.RegExp.replace not implemented"
 {-# INLINE replace #-}
 
 split :: JSString -> RegExp -> [JSString]
-split x r = case js_split -1# x r of (# y #) -> y
+split x r = unsafeCoerce (js_split -1# x r)
 {-# INLINE split #-}
 
 splitN :: Int -> JSString -> RegExp -> [JSString]
-splitN (I# k) x r = case js_split k x r of (# y #) -> y
+splitN (I# k) x r = unsafeCoerce (js_split k x r)
 {-# INLINE splitN #-}
 
 -- ----------------------------------------------------------------------------
@@ -96,11 +98,11 @@ foreign import javascript unsafe
   "$2.test($1)" js_test :: JSString -> RegExp -> Bool
 foreign import javascript unsafe
   "h$jsstringExecRE" js_exec
-  :: Int# -> JSString -> RegExp -> (# Int#, JSString, [JSString] #)
+  :: Int# -> JSString -> RegExp -> (# Int#, JSString, Any {- [JSString] -} #)
 foreign import javascript unsafe
   "h$jsstringReplaceRE" js_replace :: RegExp -> JSString -> JSString -> JSString
 foreign import javascript unsafe
-  "h$jsstringSplitRE" js_split :: Int# -> JSString -> RegExp -> (# [JSString] #)
+  "h$jsstringSplitRE" js_split :: Int# -> JSString -> RegExp -> Any -- [JSString]
 foreign import javascript unsafe
   "$1.multiline" js_isMultiline :: RegExp -> Bool
 foreign import javascript unsafe

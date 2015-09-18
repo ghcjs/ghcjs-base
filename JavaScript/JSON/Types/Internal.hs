@@ -77,6 +77,8 @@ import qualified GHCJS.Prim.Internal.Build as IB
 import qualified JavaScript.Array          as A
 import qualified JavaScript.Array.Internal as AI
 
+import           Unsafe.Coerce
+
 data JSONException = UnknownKey
   deriving (Show, Typeable)
 
@@ -113,11 +115,12 @@ objectPropertiesIO o = js_objectProperties o
 {-# INLINE objectPropertiesIO #-}
 
 objectAssocs :: Object -> [(JSString, Value)]
-objectAssocs o = case js_listAssocsPure o of (# x #) -> x
+objectAssocs o = unsafeCoerce (js_listAssocsPure o)
 {-# INLINE objectAssocs #-}
 
 objectAssocsIO :: SomeObject m -> IO [(JSString, Value)]
-objectAssocsIO o = IO (js_listAssocs o)
+objectAssocsIO o = IO $ \s -> case js_listAssocs o s of
+                                (# s', r #) -> (# s', unsafeCoerce r #)
 {-# INLINE objectAssocsIO #-}
 
 type Pair        = (JSString, Value)
@@ -315,10 +318,10 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "h$listAssocs"
-  js_listAssocsPure :: Object -> (# [(JSString, Value)] #)
+  js_listAssocsPure :: Object -> Exts.Any -- [(JSString, Value)]
 foreign import javascript unsafe
   "h$listAssocs"
-  js_listAssocs :: SomeObject m -> Exts.State# s -> (# Exts.State# s, [(JSString, Value)] #)
+  js_listAssocs :: SomeObject m -> Exts.State# s -> (# Exts.State# s, Exts.Any {- [(JSString, Value)] -} #)
 
 foreign import javascript unsafe
   "JSON.stringify($1)"

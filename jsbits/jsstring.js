@@ -26,7 +26,6 @@
 #define HI_SURR(cp)      ((((cp)-0x10000)>>>10)+0xDC00)
 #define LO_SURR(cp)      (((cp)&0x3FF)+0xD800)
 
-
 var h$jsstringEmpty = MK_JSREF('');
 
 var h$jsstringHead, h$jsstringTail, h$jsstringCons,
@@ -66,9 +65,10 @@ if(String.prototype.codePointAt) {
 	var l = str.length;
 	if(l===0) return null;
 	var ch = str.codePointAt(0);
-	if(ch === undefined) return null;
-	h$ret1 = MK_JSREF(str.substr(IS_ASTRAL(ch)?2:1));
-	return ch;
+        if(ch === undefined) {
+  	  RETURN_UBX_TUP2(null, null);
+        }
+        RETURN_UBX_TUP2(ch, str.substr(IS_ASTRAL(ch)?2:1));
     }
     // index is the first part of the character
     h$jsstringIndex = function(i, str) {
@@ -124,13 +124,13 @@ if(String.prototype.codePointAt) {
 	if(l===0) return -1;
 	var ch = str.charCodeAt(0);
 	if(IS_HI_SURR(ch)) {
-	    if(l > 1) {
-		h$ret1 = MK_JSREF(str.substr(2));
-		return FROM_SURR(ch, str.charCodeAt(1))
-	    } else return -1;
+	  if(l > 1) {
+ 	      RETURN_UBX_TUP2(FROM_SURR(ch, str.charCodeAt(1)), str.substr(2));
+	  } else {
+  	    RETURN_UBX_TUP2(-1, null);
+	  }
 	} else {
-	    h$ret1 = MK_JSREF(str.substr(1));
-	    return ch;
+ 	    RETURN_UBX_TUP2(ch, str.substr(1));
 	}
     }
     // index is the first part of the character
@@ -260,25 +260,21 @@ function h$jsstringDrop(n, str) {
 }
 
 function h$jsstringSplitAt(n, str) {
-    TRACE_JSSTRING("splitAt: " + n + " '" + str + "'");
-    if(n <= 0) {
-	h$ret1 = MK_JSREF(str);
-	return h$jsstringEmpty;
-    } else if(n >= str.length) {
-	h$ret1 = h$jsstringEmpty;
-	return MK_JSREF(str);
+  TRACE_JSSTRING("splitAt: " + n + " '" + str + "'");
+  if(n <= 0) {
+    RETURN_UBX_TUP2("", str);
+  } else if(n >= str.length) {
+    RETURN_UBX_TUP2(str, "");
+  }
+  var i = 0, l = str.length, ch;
+  while(n--) {
+    ch = str.charCodeAt(i++);
+    if(IS_HI_SURR(ch)) i++;
+    if(i >= l) {
+      RETURN_UBX_TUP2(str, "");
     }
-    var i = 0, l = str.length, ch;
-    while(n--) {
-	ch = str.charCodeAt(i++);
-	if(IS_HI_SURR(ch)) i++;
-	if(i >= l) {
-	    h$ret1 = h$jsstringEmpty;
-	    return MK_JSREF(str);
-	}
-    }
-    h$ret1 = MK_JSREF(str.substr(i));
-    return MK_JSREF(str.substr(0,i));
+  }
+  RETURN_UBX_TUP2(str.substr(0,i),str.substr(i));
 }
 
 function h$jsstringTakeEnd(n, str) {
@@ -360,16 +356,7 @@ if(String.prototype.startsWith) {
 	if(x.startsWith(p)) {
 	    return MK_JUST(MK_JSREF(x.substr(p.length)));
 	} else {
-	    return h$nothing;
-	}
-    }
-
-    h$jsstringStripSuffix = function(s, x) {
-	TRACE_JSSTRING("(startsWith) stripSuffix: '" + s + "' '" + x + "'");
-	if(x.endsWith(s)) {
-	    return MK_JUST(MK_JSREF(x.substr(0,x.length-s.length)));
-	} else {
-	    return h$nothing;
+	    return HS_NOTHING;
 	}
     }
 
@@ -378,28 +365,13 @@ if(String.prototype.startsWith) {
 	return x.startsWith(p);
     }
 
-    h$jsstringIsSuffixOf = function(s, x) {
-	TRACE_JSSTRING("(startsWith) isSuffixOf: '" + s + "' '" + x + "'");
-	return x.endWith(s);
-    }
 } else {
     h$jsstringStripPrefix = function(p, x) {
 	TRACE_JSSTRING("(no startsWith) stripPrefix: '" + p + "' '" + x + "'");
 	if(x.indexOf(p) === 0) { // this has worse complexity than it should
 	    return MK_JUST(MK_JSREF(x.substr(p.length)));
 	} else {
-	    return h$nothing;
-	}
-    }
-
-    h$jsstringStripSuffix = function(s, x) {
-	TRACE_JSSTRING("(no startsWith) stripSuffix: '" + s + "' '" + x + "'");
-	var i = x.lastIndexOf(s); // this has worse complexity than it should
-	var l = x.length - s.length;
-	if(i !== -1 && i === l) {
-	    return MK_JUST(MK_JSREF(x.substr(0,l)));
-	} else {
-	    return h$nothing;
+	  return HS_NOTHING;
 	}
     }
 
@@ -407,9 +379,36 @@ if(String.prototype.startsWith) {
 	TRACE_JSSTRING("(no startsWith) isPrefixOf: '" + p + "' '" + x + "'");
 	return x.indexOf(p) === 0; // this has worse complexity than it should
     }
+}
+
+if(String.prototype.endsWith) {
+    h$jsstringStripSuffix = function(s, x) {
+	TRACE_JSSTRING("(endsWith) stripSuffix: '" + s + "' '" + x + "'");
+	if(x.endsWith(s)) {
+	    return MK_JUST(MK_JSREF(x.substr(0,x.length-s.length)));
+	} else {
+	  return HS_NOTHING;
+	}
+    }
 
     h$jsstringIsSuffixOf = function(s, x) {
-	TRACE_JSSTRING("(no startsWith) isSuffixOf: '" + s + "' '" + x + "'");
+	TRACE_JSSTRING("(endsWith) isSuffixOf: '" + s + "' '" + x + "'");
+	return x.endsWith(s);
+    }
+} else {
+    h$jsstringStripSuffix = function(s, x) {
+	TRACE_JSSTRING("(no endsWith) stripSuffix: '" + s + "' '" + x + "'");
+	var i = x.lastIndexOf(s); // this has worse complexity than it should
+	var l = x.length - s.length;
+	if(i !== -1 && i === l) {
+	    return MK_JUST(MK_JSREF(x.substr(0,l)));
+	} else {
+	  return HS_NOTHING;
+	}
+    }
+
+      h$jsstringIsSuffixOf = function(s, x) {
+	TRACE_JSSTRING("(no endsWith) isSuffixOf: '" + s + "' '" + x + "'");
         var i = x.lastIndexOf(s); // this has worse complexity than it should
 	return i !== -1 && i === x.length - s.length;
     }
@@ -432,7 +431,7 @@ function h$jsstringCommonPrefixes(x, y) {
     var lx = x.length, ly = y.length, i = 0, cx;
     var l  = lx <= ly ? lx : ly;
     if(lx === 0 || ly === 0 || x.charCodeAt(0) !== y.charCodeAt(0)) {
-	return h$nothing;
+      return HS_NOTHING;
     }
     while(++i<l) {
 	cx = x.charCodeAt(i);
@@ -441,8 +440,8 @@ function h$jsstringCommonPrefixes(x, y) {
 	    break;
 	}
     }
-    if(i===0) return h$nothing;
-    return MK_JUST(h$tup3( MK_JSREF((i===lx)?x:((i===ly)?y:x.substr(0,i)))
+  if(i===0) return HS_NOTHING;
+    return MK_JUST(MK_TUP3( MK_JSREF((i===lx)?x:((i===ly)?y:x.substr(0,i)))
 			, (i===lx) ? h$jsstringEmpty : MK_JSREF(x.substr(i))
 			, (i===ly) ? h$jsstringEmpty : MK_JSREF(y.substr(i))
 		        ));
@@ -452,44 +451,40 @@ function h$jsstringBreakOn(b, x) {
     TRACE_JSSTRING("breakOn: '" + b + "' '" + x + "'");
     var i = x.indexOf(b);
     if(i===-1) {
-	h$ret1 = h$jsstringEmpty;
-	return MK_JSREF(x);
+        RETURN_UBX_TUP2(x, "");
     }
     if(i===0) {
-	h$ret1 = MK_JSREF(x);
-	return h$jsstringEmpty;
+        RETURN_UBX_TUP2("", x);
     }
-    h$ret1 = MK_JSREF(x.substr(i));
-    return MK_JSREF(x.substr(0,i));
+    RETURN_UBX_TUP2(x.substr(0,i), x.substr(i));
 }
 
 function h$jsstringBreakOnEnd(b, x) {
     TRACE_JSSTRING("breakOnEnd: '" + b + "' '" + x + "'");
     var i = x.lastIndexOf(b);
-    if(i===-1) {
-	h$ret1 = MK_JSREF(x);
-	return h$jsstringEmpty;
+  if(i===-1) {
+    RETURN_UBX_TUP2("", x);
+
     }
-    i += b.length;
-    h$ret1 = MK_JSREF(x.substr(i));
-    return MK_JSREF(x.substr(0,i));
+  i += b.length;
+    RETURN_UBX_TUP2(x.substr(0,i), x.substr(i));
 }
 
 function h$jsstringBreakOnAll1(n, b, x) {
     TRACE_JSSTRING("breakOnAll1: " + n + " '" + b + "' '" + x + "'");
     var i = x.indexOf(b, n);
     if(i===0) { 
-        RETURN_UBX_TUP3(b.length, h$jsstringEmpty, MK_JSREF(x));
+       RETURN_UBX_TUP3(b.length, "", x);
     }
-    if(i===-1) return -1;
-    h$ret1 = MK_JSREF(x.substr(0,i));
-    h$ret2 = MK_JSREF(x.substr(i));
-    return i + b.length;
+    if(i===-1) {
+       RETURN_UBX_TUP3(-1, null, null);
+    }
+    RETURN_UBX_TUP3(i+b.length, x.substr(0,i), x.substr(i));
 }
 
 function h$jsstringBreakOnAll(pat, src) {
     TRACE_JSSTRING("breakOnAll");
-    var a = [], i = 0, n = 0, r = h$nil, pl = pat.length;
+    var a = [], i = 0, n = 0, r = HS_NIL, pl = pat.length;
     while(true) {
 	var x = src.indexOf(pat, n);
 	if(x === -1) break;
@@ -503,16 +498,17 @@ function h$jsstringBreakOnAll(pat, src) {
 function h$jsstringSplitOn1(n, p, x) {
     TRACE_JSSTRING("splitOn1: " + n + " '" + p + "' '" + x + "'");
     var i = x.indexOf(p, n);
-    if(i === -1) return -1;
-    h$ret1 = (i==n) ? h$jsstringEmpty
-	            : MK_JSREF(x.substr(n, i-n));
-    return i + p.length;
+    if(i === -1) {
+        RETURN_UBX_TUP2(-1, null);
+    }
+    var r1 = (i==n) ? "" : x.substr(n, i-n);
+    RETURN_UBX_TUP2(i + p.length, r1);
 }
 
 function h$jsstringSplitOn(p, x) {
     TRACE_JSSTRING("splitOn: '" + p + "' '" + x + "'");
     var a = x.split(p);
-    var r = h$nil, i = a.length;
+    var r = HS_NIL, i = a.length;
     while(--i>=0) r = MK_CONS(MK_JSREF(a[i]), r);
     return r;
 }
@@ -533,22 +529,21 @@ function h$jsstringWords1(n, x) {
     while(m < l) {
 	if(h$isSpace(x.charCodeAt(m++))) {
 	    // found end of word
-	    h$ret1 = (m-s<=1) ? h$jsstringEmpty
-                              : MK_JSREF(x.substr(s,m-s-1));
-	    return m;
+            var r1 = (m-s<=1) ? "" : x.substr(s,m-s-1);
+            RETURN_UBX_TUP2(m, r1);
 	}
     } 
     // end of string
     if(s < l) {
-	h$ret1 = MK_JSREF(s === 0 ? x : x.substr(s));
-	return m;
+        var r1 = s === 0 ? x : x.substr(s);
+        RETURN_UBX_TUP2(m, r1);
     }
-    return -1;
+    RETURN_UBX_TUP2(-1, null);
 }
 
 function h$jsstringWords(x) {
     TRACE_JSSTRING("words: '" + x + "'");
-    var a = null, i = 0, n, s = -1, m = 0, w, l = x.length, r = h$nil;
+    var a = null, i = 0, n, s = -1, m = 0, w, l = x.length, r = HS_NIL;
     outer:
     while(m < l) {
 	// skip leading spaces
@@ -588,20 +583,18 @@ function h$jsstringLines1(n, x) {
 	if(x.charCodeAt(m++) === 10) {
 	    // found newline
 	    if(n > 0 && n === l-1) return -1; // it was the last character
-	    h$ret1 = (m-n<=1) ? h$jsstringEmpty
-                              : MK_JSREF(x.substr(n,m-n-1));
-	    return m;
+            var r1 = (m-n<=1) ? "" : x.substr(n,m-n-1);
+            RETURN_UBX_TUP2(m, r1);
 	}
     }
     // end of string
-    h$ret1 = MK_JSREF(x.substr(n));
-    return m;
+    RETURN_UBX_TUP2(m, x.substr(n));
 }
 
 function h$jsstringLines(x) {
     TRACE_JSSTRING("lines: '" + x + "'");
-    var a = null, m = 0, i = 0, l = x.length, s = 0, r = h$nil, w;
-    if(l === 0) return h$nil;
+    var a = null, m = 0, i = 0, l = x.length, s = 0, r = HS_NIL, w;
+    if(l === 0) return HS_NIL;
     outer:
     while(true) {
 	s = m;
@@ -622,8 +615,8 @@ function h$jsstringLines(x) {
 function h$jsstringGroup(x) {
     TRACE_JSSTRING("group: '" + x + "'");
     var xl = x.length;
-    if(xl === 0) return h$nil;
-    var i = xl-1, si, ch, s=xl, r=h$nil;
+    if(xl === 0) return HS_NIL;
+    var i = xl-1, si, ch, s=xl, r=HS_NIL;
     var tch = x.charCodeAt(i--);
     if(IS_LO_SURR(tch)) tch = FROM_SURR(x.charCodeAt(i--), tch);
     while(i >= 0) {
@@ -649,16 +642,16 @@ function h$jsstringChunksOf1(n, s, x) {
 	ch = x.charCodeAt(m);
 	if(IS_HI_SURR(ch)) ++m;
     }
-    h$ret1 = MK_JSREF((m >= l && s === c) ? x : x.substr(s,m-s));
-    return m;
+    var r1 = (m >= l && s === c) ? x : x.substr(s,m-s);
+    RETURN_UBX_TUP2(m, r1);
 }
 
 function h$jsstringChunksOf(n, x) {
     TRACE_JSSTRING("chunksOf: " + n + " '" + x + "'");
     var l = x.length;
-    if(l===0 || n <= 0)  return h$nil;
-    if(l <= n) return MK_CONS(MK_JSREF(x), h$nil);
-    var a = [], i = 0, s = 0, ch, m = 0, c, r = h$nil;
+    if(l===0 || n <= 0)  return HS_NIL;
+    if(l <= n) return MK_CONS(MK_JSREF(x), HS_NIL);
+    var a = [], i = 0, s = 0, ch, m = 0, c, r = HS_NIL;
     while(m < l) {
 	s = m;
 	c = 0;
@@ -727,7 +720,7 @@ if(Array.from) {
 
 function h$jsstringUnpack(str) {
     TRACE_JSSTRING("unpack: '" + str + "'");
-    var r = h$nil, i = str.length-1, c;
+    var r = HS_NIL, i = str.length-1, c;
     while(i >= 0) {
 	c = str.charCodeAt(i--);
 	if(IS_LO_SURR(c)) c = FROM_SURR(str.charCodeAt(i--), c)
@@ -981,11 +974,11 @@ function h$jsstringLenientReadDouble(str) {
 }
 
 function h$jsstringReadInteger(str) {
-
+     throw "h$jsstringReadInteger not implemented";
 }
 
 function h$jsstringReadInt64(str) {
-//    if(!/^\d
+    throw "h4JsstringReadInt64 not implemented";
 }
 
 function h$jsstringReadWord64(str) {
@@ -1014,7 +1007,7 @@ function h$jsstringExecRE(i, str, re) {
     re.lastIndex = i;
     var m = re.exec(str);
     if(m === null) return -1;
-    var a = [], x, j = 1, r = h$nil;
+    var a = [], x, j = 1, r = HS_NIL;
     while(true) {
 	x = m[j];
 	if(typeof x === 'undefined') break;
@@ -1023,7 +1016,7 @@ function h$jsstringExecRE(i, str, re) {
     }
     j-=1;
     while(--j>=0) r = MK_CONS(MK_JSREF(a[j]), r);
-    RETURN_UBX_TUP(m.index, m[0], r);
+    RETURN_UBX_TUP3(m.index, m[0], r);
 }
 
 function h$jsstringReplaceRE(pat, replacement, str) {

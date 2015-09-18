@@ -60,7 +60,7 @@ fromList xs = ST (\s -> rnf xs `seq` I.js_toJSArray (unsafeCoerce xs) s)
 {-# INLINE fromList #-}
 
 toList :: STJSArray s -> ST s [JSRef]
-toList x = ST (I.js_fromJSArray x)
+toList x = ST (unsafeCoerce (I.js_fromJSArray x))
 {-# INLINE toList #-}
 
 read :: Int -> STJSArray s -> ST s (JSRef)
