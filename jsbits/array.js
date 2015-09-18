@@ -35,3 +35,6 @@ function h$listToArray(xs) {
     return a;
 }
 
+function h$listToArrayWrap(xs) {
+    return MK_JSREF(h$listToArray(xs));
+}

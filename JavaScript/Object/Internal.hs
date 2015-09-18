@@ -27,6 +27,9 @@ import           GHCJS.Types
 import qualified JavaScript.Array          as JA
 import           JavaScript.Array.Internal (JSArray, SomeJSArray(..))
 
+import           Unsafe.Coerce
+import qualified GHC.Exts as Exts
+
 newtype Object = Object JSRef deriving (Typeable)
 instance IsJSRef Object
 
@@ -40,7 +43,7 @@ allProps o = js_allProps o
 {-# INLINE allProps #-}
 
 listProps :: Object -> IO [JSString]
-listProps o = case js_listProps o of (# ps #) -> return ps
+listProps o = unsafeCoerce (js_listProps o)
 {-# INLINE listProps #-}
 
 {- | get a property from an object. If accessing the property results in
@@ -85,4 +88,4 @@ foreign import javascript unsafe "$1 instanceof $2"
 foreign import javascript unsafe  "h$allProps"
   js_allProps      :: Object -> IO JSArray
 foreign import javascript unsafe  "h$listProps"
-  js_listProps     :: Object -> (# [JSString] #)
+  js_listProps     :: Object -> Exts.Any -- [JSString]

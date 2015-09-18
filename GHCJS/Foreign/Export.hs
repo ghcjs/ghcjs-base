@@ -27,6 +27,7 @@ import Data.Typeable
 import Data.Typeable.Internal (TypeRep(..))
 import Data.Word
 import Unsafe.Coerce
+import qualified GHC.Exts as Exts
 
 import GHCJS.Prim
 
@@ -65,8 +66,7 @@ derefExport e = do
   r <- js_derefExport w1 w2 e
   if isNull r
     then return Nothing
-    else case js_toHeapObject r of
-                (# x #) -> return (Just x)
+    else unsafeCoerce (js_toHeapObject r)
 
 {- |
      Release all memory associated with the export. Subsequent calls to
@@ -84,7 +84,7 @@ foreign import javascript unsafe
   "h$derefExport"
   js_derefExport :: Word64 -> Word64 -> JSRef -> IO JSRef
 foreign import javascript unsafe
-  "$r = $1;" js_toHeapObject :: JSRef -> (# b #)
+  "$r = $1;" js_toHeapObject :: JSRef -> Exts.Any
 
 foreign import javascript unsafe
   "h$releaseExport"

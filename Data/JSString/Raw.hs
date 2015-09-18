@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI,
-             MagicHash, UnboxedTuples, UnliftedFFITypes
+             MagicHash, UnboxedTuples, UnliftedFFITypes, GHCForeignImportPrim
   #-}
 
 {-
@@ -110,7 +110,7 @@ rawChunksOf (I# k) x =
 {-# INLINE rawChunksOf #-}
 
 rawChunksOf' :: Int -> JSString -> [JSString]
-rawChunksOf' (I# k) x = case js_rawChunksOf k x of (# z #) -> z
+rawChunksOf' (I# k) x = unsafeCoerce (js_rawChunksOf k x)
 {-# INLINE rawChunksOf' #-}
 
 rawSplitAt :: Int -> JSString -> (JSString, JSString)
@@ -144,5 +144,5 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$2.charCodeAt($1)" js_charCodeAt :: Int# -> JSString -> Int#
 foreign import javascript unsafe
-  "$hsRawChunksOf" js_rawChunksOf :: Int# -> JSString -> (# [JSString] #)
+  "$hsRawChunksOf" js_rawChunksOf :: Int# -> JSString -> Exts.Any -- [JSString]
 
