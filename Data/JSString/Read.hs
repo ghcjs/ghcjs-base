@@ -6,12 +6,20 @@ module Data.JSString.Read ( isInteger
                           , isNatural
                           , readInt
                           , readIntMaybe
+                          , lenientReadInt
+                          , readInt64
+                          , readInt64Maybe
+                          , readWord64
+                          , readWord64Maybe
                           , readDouble
                           , readDoubleMaybe
                           , readInteger
                           , readIntegerMaybe
                           ) where
-import GHC.Exts (Any, ByteArray#, Int#, Int64#, Word64#, Int(..))
+
+import GHCJS.Types
+
+import GHC.Exts (Any, Int#, Int64#, Word64#, Int(..))
 import GHC.Int (Int64(..))
 import GHC.Word (Word64(..))
 import Unsafe.Coerce
@@ -128,10 +136,10 @@ readIntegerMaybe j = convertNullMaybe js_readInteger j
 
 -- ----------------------------------------------------------------------------
 
-convertNullMaybe :: (JSString -> ByteArray#) -> JSString -> Maybe a
+convertNullMaybe :: (JSString -> JSRef) -> JSString -> Maybe a
 convertNullMaybe f j
   | js_isNull r = Nothing
-  | otherwise   = unsafeCoerce (js_toHeapObject r)
+  | otherwise   = Just (unsafeCoerce (js_toHeapObject r))
   where
     r = f j
 {-# INLINE convertNullMaybe #-}
@@ -142,21 +150,21 @@ readError xs = error ("Data.JSString.Read." ++ xs)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1===null" js_isNull :: ByteArray# -> Bool
+  "$r = $1===null;" js_isNull :: JSRef -> Bool
 foreign import javascript unsafe
-  "$r=$1;" js_toHeapObject :: ByteArray# -> Any
+  "$r=$1;" js_toHeapObject :: JSRef -> Any
 foreign import javascript unsafe
-  "h$jsstringReadInteger" js_readInteger :: JSString -> ByteArray#
+  "h$jsstringReadInteger" js_readInteger :: JSString -> JSRef
 foreign import javascript unsafe
-  "h$jsstringReadInt" js_readInt :: JSString -> ByteArray#
+  "h$jsstringReadInt" js_readInt :: JSString -> JSRef
 foreign import javascript unsafe
-  "h$jsstringLenientReadInt" js_lenientReadInt :: JSString -> ByteArray#
+  "h$jsstringLenientReadInt" js_lenientReadInt :: JSString -> JSRef
 foreign import javascript unsafe
   "h$jsstringReadInt64" js_readInt64 :: JSString -> (# Int#, Int64# #)
 foreign import javascript unsafe
   "h$jsstringReadWord64" js_readWord64 :: JSString -> (# Int#, Word64# #)
 foreign import javascript unsafe
-  "h$jsstringReadDouble" js_readDouble :: JSString -> ByteArray#
+  "h$jsstringReadDouble" js_readDouble :: JSString -> JSRef
 foreign import javascript unsafe
   "h$jsstringIsInteger" js_isInteger :: JSString -> Bool
 foreign import javascript unsafe
