@@ -958,15 +958,15 @@ function h$jsstringLenientReadInt(str) {
 }
 
 function h$jsstringReadWord(str) {
-    if(!/^\d+/.test(str)) return null;
-    var x = parseInt(str, 10);
-    var x0 = x|0;
-    if(x0<0) return (x===x0+2147483648) ? x0 : null;
-    else     return (x===x0) ? x0 : null;
+  if(!/^\d+/.test(str)) return null;
+  var x = parseInt(str, 10);
+  var x0 = x|0;
+  if(x0<0) return (x===x0+2147483648) ? x0 : null;
+  else     return (x===x0) ? x0 : null;
 }
 
 function h$jsstringReadDouble(str) {
-
+    return parseFloat(str, 10);
 }
 
 function h$jsstringLenientReadDouble(str) {
@@ -974,33 +974,64 @@ function h$jsstringLenientReadDouble(str) {
 }
 
 function h$jsstringReadInteger(str) {
-     throw "h$jsstringReadInteger not implemented";
+  TRACE_JSSTRING("readInteger: " + str);
+  if(!/^(-)?\d+$/.test(str)) {
+    return null;
+  } else if(str.length <= 9) {
+    return MK_INTEGER_S(parseInt(str, 10));
+  } else {
+    return MK_INTEGER_J(new BigInteger(str, 10));
+  }
 }
 
 function h$jsstringReadInt64(str) {
-    throw "h4JsstringReadInt64 not implemented";
+  if(!/^(-)?\d+$/.test(str)) {
+      RETURN_UBX_TUP3(0, 0, 0);
+  }
+  if(str.charCodeAt(0) === 45) { // '-'
+    return h$jsstringReadValue64(str, 1, true);
+  } else {
+    return h$jsstringReadValue64(str, 0, false);
+  }
 }
 
 function h$jsstringReadWord64(str) {
-    if(!/^\d+$/.test(str)) return 0;
-    var l = str.length, i = 0;
-    while(i < l) {
-	if(str.charCodeAt(i) !== 48) break;
-	i++;
+  if(!/^\d+$/.test(str)) {
+    RETURN_UBX_TUP3(0, 0, 0);
+  }
+  return h$jsstringReadValue64(str, 0, false);
+}
+
+var h$jsstringLongs = null;
+
+function h$jsstringReadValue64(str, start, negate) {
+  var l = str.length, i = start;
+  while(i < l) {
+    if(str.charCodeAt(i) !== 48) break;
+    i++;
+  }
+  if(i >= l) RETURN_UBX_TUP3(1, 0, 0); // only zeroes
+  if(h$jsstringLongs === null) {
+    h$jsstringLongs = [];
+    for(var t=10; t<=1000000000; t*=10) {
+      h$jsstringLongs.push(goog.math.Long.fromInt(t));
     }
-    if(i >= l) RETURN_UBX_TUP3(1, 0, 0); // only zeroes
-    var li = l-i;
-    if(li > 20) return 0; // too big
-    if(li < 10) RETURN_UBX_TUP3(1, 0, parseInt(str.substr(i), 10));
-    if(li < 18) {
-	var x1 = parseInt(str.substr(i+9), 10);
-	var x2 = parseInt(str.substr(i,9), 10);
-	var x3 = ((x2 % 10) * 1000000000 + x1)|0;
-	// var x4 = throw "jsstringReadWord64";
-        throw "jsstringReadWord64"; // fixme
-	RETURN_UBX_TUP3(1, x4, x3);
-    }
-    
+  }
+  var li = l-i;
+  if(li < 10 && !negate) {
+    RETURN_UBX_TUP3(1, 0, parseInt(str.substr(i), 10));
+  }
+  var r = goog.math.Long.fromInt(parseInt(str.substr(li,9),10));
+  li += 9;
+  while(li < l) {
+    r = r.multiply(h$jsstringLongs[Math.min(l-li-1,8)])
+         .add(goog.math.Long.fromInt(parseInt(str.substr(li,9), 10)));
+    li += 9;
+  }
+  if(negate) {
+    r = r.negate();
+  }
+  RETURN_UBX_TUP3(1, r.getHighBits(), r.getLowBits());
 }
 
 function h$jsstringExecRE(i, str, re) {
