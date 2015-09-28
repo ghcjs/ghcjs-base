@@ -35,6 +35,10 @@ function h$isSymbol(o) {
     return typeof(o) === 'symbol';
 }
 
+function h$isBoolean(o) {
+    return typeof(o) === 'boolean';
+}
+
 function h$isFunction(o) {
     return typeof(o) === 'function';
 }
