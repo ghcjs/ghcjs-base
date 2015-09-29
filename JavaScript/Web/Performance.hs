@@ -1,6 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, InterruptibleFFI,
-             DeriveDataTypeable
-  #-}
+{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI #-}
 
 {- | The Performance interface represents timing-related performance information for the given page.
   -}
@@ -15,9 +13,6 @@ import GHCJS.Types
 
 import Control.Exception (onException)
 import Data.Typeable
-
-newtype AnimationFrameHandle = AnimationFrameHandle (JSRef ())
-  deriving (Typeable)
 
 {- | The 'now' computation returns a high resolution time stamp, measured in
      milliseconds, accurate to one thousandth of a millisecond.
