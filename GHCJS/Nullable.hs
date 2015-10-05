@@ -15,5 +15,3 @@ nullableToMaybe (Nullable r) = pFromJSVal r
 maybeToNullable :: PToJSVal a => Maybe a -> Nullable a
 maybeToNullable = Nullable . pToJSVal
 {-# INLINE maybeToNullable #-}
-
-

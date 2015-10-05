@@ -7,7 +7,7 @@ module Data.JSString.Internal.Type ( JSString(..)
                                    , safe
                                    , firstf
                                    ) where
-                                     
+
                                      {-
     -- * Construction
     , text

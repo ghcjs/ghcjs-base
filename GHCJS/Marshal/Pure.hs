@@ -151,4 +151,3 @@ foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
 foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
 foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
 foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
-

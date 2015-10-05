@@ -55,7 +55,7 @@ module GHCJS.Foreign ( jsTrue
                      , isBoolean
                      , isSymbol
                      , isNumber
-{-                     
+{-
                      , toArray
                      , newArray
                      , fromArray

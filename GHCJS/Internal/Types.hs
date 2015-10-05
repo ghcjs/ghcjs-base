@@ -40,5 +40,3 @@ type family Mutability (a :: MutabilityType s) :: IsItMutable where
   Mutability Immutable     = IsImmutable
   Mutability Mutable       = IsMutable
   Mutability (STMutable s) = IsMutable
-
-

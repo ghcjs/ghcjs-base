@@ -70,7 +70,7 @@ class FromJSVal a where
 
   fromJSValUncheckedListOf :: JSVal -> IO [a]
   fromJSValUncheckedListOf = mapM fromJSValUnchecked <=< Prim.fromJSArray
-  
+
   -- default fromJSVal :: PFromJSVal a => JSVal a -> IO (Maybe a)
   -- fromJSVal x = return (Just (pFromJSVal x))
 

@@ -301,5 +301,3 @@ toJSVal_aeson x = cv (AE.toJSON x)
       obj@(OI.Object obj') <- OI.create
       mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj) (H.toList o)
       return obj'
-
-
