@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, UnboxedTuples, MagicHash,
-             BangPatterns, ForeignFunctionInterface, JavaScriptFFI #-}
+             BangPatterns, ForeignFunctionInterface, JavaScriptFFI,
+             GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_HADDOCK not-home #-}
 module Data.JSString.Internal.Type ( JSString(..)
                                    , empty
@@ -42,9 +43,7 @@ import GHCJS.Internal.Types
 
 -- | A wrapper around a JavaScript string
 newtype JSString = JSString JSVal
-instance IsJSVal JSString
-
-instance NFData JSString where rnf !x = ()
+    deriving (IsJSVal, Typeable, NFData)
 
 foreign import javascript unsafe
   "$r = '';" js_empty :: JSString

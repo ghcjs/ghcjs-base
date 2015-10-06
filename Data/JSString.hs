@@ -166,10 +166,6 @@ import           Data.JSString.Internal.Fusion        (stream, unstream)
 import qualified Data.JSString.Internal.Fusion        as S
 import qualified Data.JSString.Internal.Fusion.Common as S
 
-getJSVal :: JSString -> JSVal
-getJSVal (JSString x) = x
-{-# INLINE getJSVal #-}
-
 instance Exts.IsString JSString where
   fromString = pack
 

@@ -3,11 +3,10 @@
 {-# LANGUAGE DefaultSignatures #-}
 {- | Basic interop between Haskell and JavaScript.
 
-     The principal type here is 'JSVal', which is a lifted type that contains
-     a JavaScript reference. The 'JSVal' type is parameterized with one phantom
-     type, and GHCJS.Types defines several type synonyms for specific variants.
+     The principle type here is 'JSVal', which contains a JavaScript
+     value.
 
-     The code in this module makes no assumptions about 'JSVal a' types.
+     The code in this module makes no assumptions about 'JSVal' types.
      Operations that can result in a JS exception that can kill a Haskell thread
      are marked unsafe (for example if the 'JSVal' contains a null or undefined
      value). There are safe variants where the JS exception is propagated as
@@ -67,8 +66,8 @@ module GHCJS.Foreign ( jsTrue
                      , getPropMaybe, unsafeGetPropMaybe
                      , setProp, unsafeSetProp
                      , listProps -}
-                     , jsTypeOf, JSType(..)
-                     , jsonTypeOf, JSONType(..)
+                     , jsTypeOf, JSTypeOf(..)
+                     , jsonTypeOf, JSONTypeOf(..)
 {-                     , wrapBuffer, wrapMutableBuffer
                      , byteArrayJSVal, mutableByteArrayJSVal
                      , bufferByteString, byteArrayByteString
