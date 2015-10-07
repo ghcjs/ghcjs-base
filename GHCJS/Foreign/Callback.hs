@@ -60,28 +60,28 @@ syncCallback onBlocked x = js_syncCallback (onBlocked == ContinueAsync) (unsafeC
 
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
-     thread when called. The callback takes one argument that it passes as a JSRef value to
+     thread when called. The callback takes one argument that it passes as a JSVal value to
      the Haskell function.
 
      Call 'releaseCallback' when done with the callback, freeing data referenced
      by the function.
  -}
 syncCallback1 :: OnBlocked                             -- ^ what to do when the thread blocks
-              -> (JSRef -> IO ())                      -- ^ the Haskell function
-              -> IO (Callback (JSRef -> IO ()))        -- ^ the callback
+              -> (JSVal -> IO ())                      -- ^ the Haskell function
+              -> IO (Callback (JSVal -> IO ()))        -- ^ the callback
 syncCallback1 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 1 (unsafeCoerce x)
 
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
-     thread when called. The callback takes two arguments that it passes as JSRef values to
+     thread when called. The callback takes two arguments that it passes as JSVal values to
      the Haskell function.
 
      Call 'releaseCallback' when done with the callback, freeing data referenced
      by the function.
  -}
 syncCallback2 :: OnBlocked                               -- ^ what to do when the thread blocks
-              -> (JSRef -> JSRef -> IO ())               -- ^ the Haskell function
-              -> IO (Callback (JSRef -> JSRef -> IO ())) -- ^ the callback
+              -> (JSVal -> JSVal -> IO ())               -- ^ the Haskell function
+              -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 syncCallback2 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 2 (unsafeCoerce x)
 
 
@@ -95,12 +95,12 @@ asyncCallback :: IO ()              -- ^ the action that the callback runs
               -> IO (Callback (IO ())) -- ^ the callback
 asyncCallback x = js_asyncCallback (unsafeCoerce x)
 
-asyncCallback1 :: (JSRef -> IO ())            -- ^ the function that the callback calls
-               -> IO (Callback (JSRef -> IO ())) -- ^ the calback
+asyncCallback1 :: (JSVal -> IO ())            -- ^ the function that the callback calls
+               -> IO (Callback (JSVal -> IO ())) -- ^ the calback
 asyncCallback1 x = js_asyncCallbackApply 1 (unsafeCoerce x)
 
-asyncCallback2 :: (JSRef -> JSRef -> IO ())            -- ^ the Haskell function that the callback calls
-               -> IO (Callback (JSRef -> JSRef -> IO ())) -- ^ the callback
+asyncCallback2 :: (JSVal -> JSVal -> IO ())            -- ^ the Haskell function that the callback calls
+               -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 asyncCallback2 x = js_asyncCallbackApply 2 (unsafeCoerce x)
 
 -- ----------------------------------------------------------------------------

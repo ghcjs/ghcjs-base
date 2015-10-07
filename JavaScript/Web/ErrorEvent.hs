@@ -33,7 +33,7 @@ colno :: ErrorEvent -> Int
 colno ee = js_getColno ee
 {-# INLINE colno #-}
 
-error :: ErrorEvent -> JSRef
+error :: ErrorEvent -> JSVal
 error ee = js_getError ee
 {-# INLINE error #-}
 
@@ -48,4 +48,4 @@ foreign import javascript unsafe "$1.lineno"
 foreign import javascript unsafe "$1.colno"
   js_getColno    :: ErrorEvent -> Int
 foreign import javascript unsafe "$1.error"
-  js_getError    :: ErrorEvent -> JSRef
+  js_getError    :: ErrorEvent -> JSVal

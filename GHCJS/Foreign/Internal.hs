@@ -4,18 +4,18 @@
 
 {- | Basic interop between Haskell and JavaScript.
 
-     The principal type here is 'JSRef', which is a lifted type that contains
-     a JavaScript reference. The 'JSRef' type is parameterized with one phantom
+     The principal type here is 'JSVal', which is a lifted type that contains
+     a JavaScript reference. The 'JSVal' type is parameterized with one phantom
      type, and GHCJS.Types defines several type synonyms for specific variants.
 
-     The code in this module makes no assumptions about 'JSRef a' types.
+     The code in this module makes no assumptions about 'JSVal a' types.
      Operations that can result in a JS exception that can kill a Haskell thread
-     are marked unsafe (for example if the 'JSRef' contains a null or undefined
+     are marked unsafe (for example if the 'JSVal' contains a null or undefined
      value). There are safe variants where the JS exception is propagated as
      a Haskell exception, so that it can be handled on the Haskell side.
 
      For more specific types, like 'JSArray' or 'JSBool', the code assumes that
-     the contents of the 'JSRef' actually is a JavaScript array or bool value.
+     the contents of the 'JSVal' actually is a JavaScript array or bool value.
      If it contains an unexpected value, the code can result in exceptions that
      kill the Haskell thread, even for functions not marked unsafe.
 
@@ -74,7 +74,7 @@ module GHCJS.Foreign.Internal ( JSType(..)
 --                              , js_setProp, js_unsafeSetProp
 --                              , listProps
 {-                              , wrapBuffer, wrapMutableBuffer
-                              , byteArrayJSRef, mutableByteArrayJSRef
+                              , byteArrayJSVal, mutableByteArrayJSVal
                               , bufferByteString, byteArrayByteString
                               , unsafeMutableByteArrayByteString -}
                               ) where
@@ -128,65 +128,65 @@ data JSONType = JSONNull
               | JSONObject
               deriving (Show, Eq, Ord, Enum, Typeable)
 
-fromJSBool :: JSRef -> Bool
+fromJSBool :: JSVal -> Bool
 fromJSBool b = js_fromBool b
 {-# INLINE fromJSBool #-}
 
-toJSBool :: Bool -> JSRef
+toJSBool :: Bool -> JSVal
 toJSBool True = jsTrue
 toJSBool _    = jsFalse
 {-# INLINE toJSBool #-}
 
-jsTrue :: JSRef
+jsTrue :: JSVal
 jsTrue = mkRef (js_true 0#)
 {-# INLINE jsTrue #-}
 
-jsFalse :: JSRef
+jsFalse :: JSVal
 jsFalse = mkRef (js_false 0#)
 {-# INLINE jsFalse #-}
 
-jsNull :: JSRef
+jsNull :: JSVal
 jsNull = mkRef (js_null 0#)
 {-# INLINE jsNull #-}
 
-jsUndefined :: JSRef
+jsUndefined :: JSVal
 jsUndefined = mkRef (js_undefined 0#)
 {-# INLINE jsUndefined #-}
 
 -- check whether a reference is `truthy' in the JavaScript sense
-isTruthy :: JSRef -> Bool
+isTruthy :: JSVal -> Bool
 isTruthy b = js_isTruthy b
 {-# INLINE isTruthy #-}
 
--- isUndefined :: JSRef -> Bool
+-- isUndefined :: JSVal -> Bool
 -- isUndefined o = js_isUndefined o
 -- {-# INLINE isUndefined #-}
 
--- isNull :: JSRef -> Bool
+-- isNull :: JSVal -> Bool
 -- isNull o = js_isNull o
 -- {-# INLINE isNull #-}
 
-isObject :: JSRef -> Bool
+isObject :: JSVal -> Bool
 isObject o = js_isObject o
 {-# INLINE isObject #-}
 
-isNumber :: JSRef -> Bool
+isNumber :: JSVal -> Bool
 isNumber o = js_isNumber o
 {-# INLINE isNumber #-}
 
-isString :: JSRef -> Bool
+isString :: JSVal -> Bool
 isString o = js_isString o
 {-# INLINE isString #-}
 
-isBoolean :: JSRef -> Bool
+isBoolean :: JSVal -> Bool
 isBoolean o = js_isBoolean o
 {-# INLINE isBoolean #-}
 
-isFunction :: JSRef -> Bool
+isFunction :: JSVal -> Bool
 isFunction o = js_isFunction o
 {-# INLINE isFunction #-}
 
-isSymbol :: JSRef -> Bool
+isSymbol :: JSVal -> Bool
 isSymbol o = js_isSymbol o
 {-# INLINE isSymbol #-}
 
@@ -221,15 +221,15 @@ ptr'ToPtr :: Ptr' a -> Ptr b
 ptr'ToPtr = unsafeCoerce
 -}
 {-
-toArray :: [JSRef a] -> IO (JSArray a)
+toArray :: [JSVal a] -> IO (JSArray a)
 toArray xs = Prim.toJSArray xs
 {-# INLINE toArray #-}
 
-pushArray :: JSRef a -> JSArray a -> IO ()
+pushArray :: JSVal a -> JSArray a -> IO ()
 pushArray r arr = js_push r arr
 {-# INLINE pushArray #-}
 
-fromArray :: JSArray (JSRef a) -> IO [JSRef a]
+fromArray :: JSArray (JSVal a) -> IO [JSVal a]
 fromArray a = Prim.fromJSArray a
 {-# INLINE fromArray #-}
 
@@ -237,11 +237,11 @@ lengthArray :: JSArray a -> IO Int
 lengthArray a = js_length a
 {-# INLINE lengthArray #-}
 
-indexArray :: Int -> JSArray a -> IO (JSRef a)
+indexArray :: Int -> JSArray a -> IO (JSVal a)
 indexArray = js_index
 {-# INLINE indexArray #-}
 
-unsafeIndexArray :: Int -> JSArray a -> IO (JSRef a)
+unsafeIndexArray :: Int -> JSArray a -> IO (JSVal a)
 unsafeIndexArray = js_unsafeIndex
 {-# INLINE unsafeIndexArray #-}
 
@@ -249,41 +249,41 @@ newArray :: IO (JSArray a)
 newArray = js_emptyArray
 {-# INLINE newArray #-}
 
-newObj :: IO (JSRef a)
+newObj :: IO (JSVal a)
 newObj = js_emptyObj
 {-# INLINE newObj #-}
 
-listProps :: JSRef a -> IO [JSString]
+listProps :: JSVal a -> IO [JSString]
 listProps o = fmap unsafeCoerce . Prim.fromJSArray =<< js_listProps o
 {-# INLINE listProps #-}
 -}
-jsTypeOf :: JSRef -> JSType
+jsTypeOf :: JSVal -> JSType
 jsTypeOf r = tagToEnum# (js_jsTypeOf r)
 {-# INLINE jsTypeOf #-}
 
-jsonTypeOf :: JSRef -> JSONType
+jsonTypeOf :: JSVal -> JSONType
 jsonTypeOf r = tagToEnum# (js_jsonTypeOf r)
 {-# INLINE jsonTypeOf #-}
 
 {-
 {- | Convert a JavaScript ArrayBuffer to a 'ByteArray' without copying. Throws
-     a 'JSException' if the 'JSRef' is not an ArrayBuffer.
+     a 'JSException' if the 'JSVal' is not an ArrayBuffer.
  -}
 wrapBuffer :: Int          -- ^ offset from the start in bytes, if this is not a multiple of 8,
                            --   not all types can be read from the ByteArray#
            -> Int          -- ^ length in bytes (use zero or a negative number to use the whole ArrayBuffer)
-           -> JSRef a      -- ^ JavaScript ArrayBuffer object
+           -> JSVal a      -- ^ JavaScript ArrayBuffer object
            -> IO ByteArray -- ^ result
 wrapBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
 {-# INLINE wrapBuffer #-}
 
 {- | Convert a JavaScript ArrayBuffer to a 'MutableByteArray' without copying. Throws
-     a 'JSException' if the 'JSRef' is not an ArrayBuffer.
+     a 'JSException' if the 'JSVal' is not an ArrayBuffer.
  -}
 wrapMutableBuffer :: Int          -- ^ offset from the start in bytes, if this is not a multiple of 8,
                                   --   not all types can be read from / written to the ByteArray#
                   -> Int          -- ^ the length in bytes (use zero or a negative number to use the whole ArrayBuffer)
-                  -> JSRef a      -- ^ JavaScript ArrayBuffer object
+                  -> JSVal a      -- ^ JavaScript ArrayBuffer object
                   -> IO (MutableByteArray s)
 wrapMutableBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size buf
 {-# INLINE wrapMutableBuffer #-}
@@ -299,9 +299,9 @@ wrapMutableBuffer offset size buf = unsafeCoerce <$> js_wrapBuffer offset size b
       * o.dv : a DataView
     Some of the views will be null if the offset is not a multiple of 8.
  -}
-byteArrayJSRef :: ByteArray# -> JSRef a
-byteArrayJSRef a = unsafeCoerce (ByteArray a)
-{-# INLINE byteArrayJSRef #-}
+byteArrayJSVal :: ByteArray# -> JSVal a
+byteArrayJSVal a = unsafeCoerce (ByteArray a)
+{-# INLINE byteArrayJSVal #-}
 
 {- | Get the underlying JS object from a 'MutableByteArray#'. The object o
      contains an ArrayBuffer (o.buf) and several typed array views on it (which
@@ -314,12 +314,12 @@ byteArrayJSRef a = unsafeCoerce (ByteArray a)
       * o.dv : a DataView
     Some of the views will be null if the offset is not a multiple of 8.
  -}
-mutableByteArrayJSRef :: MutableByteArray# s -> JSRef a
-mutableByteArrayJSRef a = unsafeCoerce (MutableByteArray a)
-{-# INLINE mutableByteArrayJSRef #-}
+mutableByteArrayJSVal :: MutableByteArray# s -> JSVal a
+mutableByteArrayJSVal a = unsafeCoerce (MutableByteArray a)
+{-# INLINE mutableByteArrayJSVal #-}
 
 foreign import javascript safe "h$wrapBuffer($3, true, $1, $2)"
-  js_wrapBuffer :: Int -> Int -> JSRef a -> IO (JSRef ())
+  js_wrapBuffer :: Int -> Int -> JSVal a -> IO (JSVal ())
 
 {- | Convert an ArrayBuffer to a strict 'ByteString'
      this wraps the original buffer, without copying.
@@ -327,7 +327,7 @@ foreign import javascript safe "h$wrapBuffer($3, true, $1, $2)"
  -}
 bufferByteString :: Int        -- ^ offset from the start in bytes
                  -> Int        -- ^ length in bytes (use zero or a negative number to get the whole ArrayBuffer)
-                 -> JSRef a
+                 -> JSVal a
                  -> IO ByteString
 bufferByteString offset length buf = do
   (ByteArray ba) <- wrapBuffer offset length buf
@@ -370,48 +370,48 @@ unsafeMutableByteArrayByteString arr =
 
 foreign import javascript unsafe
   "$r = $1===true;"
-  js_fromBool :: JSRef -> Bool
+  js_fromBool :: JSVal -> Bool
 foreign import javascript unsafe
   "$1 ? true : false"
-  js_isTruthy :: JSRef -> Bool
+  js_isTruthy :: JSVal -> Bool
 foreign import javascript unsafe "$r = true;"  js_true :: Int# -> Ref#
 foreign import javascript unsafe "$r = false;" js_false :: Int# -> Ref#
 foreign import javascript unsafe "$r = null;"  js_null :: Int# -> Ref#
 foreign import javascript unsafe "$r = undefined;"  js_undefined :: Int# -> Ref#
 -- foreign import javascript unsafe "$r = [];" js_emptyArray :: IO (JSArray a)
--- foreign import javascript unsafe "$r = {};" js_emptyObj :: IO (JSRef a)
+-- foreign import javascript unsafe "$r = {};" js_emptyObj :: IO (JSVal a)
 --foreign import javascript unsafe "$3[$1] = $2;"
---  js_unsafeWriteArray :: Int# -> JSRef a -> JSArray b -> IO ()
+--  js_unsafeWriteArray :: Int# -> JSVal a -> JSArray b -> IO ()
 -- foreign import javascript unsafe "h$fromArray"
 --  js_fromArray :: JSArray a -> IO Ref# -- [a]
 --foreign import javascript safe "$2.push($1)"
---  js_push :: JSRef a -> JSArray a -> IO ()
+--  js_push :: JSVal a -> JSArray a -> IO ()
 --foreign import javascript safe "$1.length" js_length :: JSArray a -> IO Int
 --foreign import javascript safe "$2[$1]"
---  js_index :: Int -> JSArray a -> IO (JSRef a)
+--  js_index :: Int -> JSArray a -> IO (JSVal a)
 --foreign import javascript unsafe "$2[$1]"
---  js_unsafeIndex :: Int -> JSArray a -> IO (JSRef a)
+--  js_unsafeIndex :: Int -> JSArray a -> IO (JSVal a)
 foreign import javascript unsafe "$2[$1]"
-  js_unsafeGetProp :: JSString -> JSRef -> IO JSRef
+  js_unsafeGetProp :: JSString -> JSVal -> IO JSVal
 foreign import javascript unsafe "$3[$1] = $2"
-  js_unsafeSetProp :: JSString -> JSRef -> JSRef -> IO ()
+  js_unsafeSetProp :: JSString -> JSVal -> JSVal -> IO ()
 {-
 foreign import javascript safe "h$listProps($1)"
-  js_listProps :: JSRef a -> IO (JSArray JSString)
+  js_listProps :: JSVal a -> IO (JSArray JSString)
 -}
 foreign import javascript unsafe "h$jsTypeOf($1)"
-  js_jsTypeOf :: JSRef -> Int#
+  js_jsTypeOf :: JSVal -> Int#
 foreign import javascript unsafe "h$jsonTypeOf($1)"
-  js_jsonTypeOf :: JSRef -> Int#
+  js_jsonTypeOf :: JSVal -> Int#
 -- foreign import javascript unsafe "h$listToArray"
 --  js_toArray :: Any -> IO (JSArray a)
 -- foreign import javascript unsafe "$1 === null"
---  js_isNull      :: JSRef a -> Bool
+--  js_isNull      :: JSVal a -> Bool
 
--- foreign import javascript unsafe "h$isUndefined" js_isUndefined :: JSRef a -> Bool
-foreign import javascript unsafe "h$isObject"    js_isObject    :: JSRef -> Bool
-foreign import javascript unsafe "h$isBoolean"   js_isBoolean   :: JSRef -> Bool
-foreign import javascript unsafe "h$isNumber"    js_isNumber    :: JSRef -> Bool
-foreign import javascript unsafe "h$isString"    js_isString    :: JSRef -> Bool
-foreign import javascript unsafe "h$isSymbol"    js_isSymbol    :: JSRef -> Bool
-foreign import javascript unsafe "h$isFunction"  js_isFunction  :: JSRef -> Bool
+-- foreign import javascript unsafe "h$isUndefined" js_isUndefined :: JSVal a -> Bool
+foreign import javascript unsafe "h$isObject"    js_isObject    :: JSVal -> Bool
+foreign import javascript unsafe "h$isBoolean"   js_isBoolean   :: JSVal -> Bool
+foreign import javascript unsafe "h$isNumber"    js_isNumber    :: JSVal -> Bool
+foreign import javascript unsafe "h$isString"    js_isString    :: JSVal -> Bool
+foreign import javascript unsafe "h$isSymbol"    js_isSymbol    :: JSVal -> Bool
+foreign import javascript unsafe "h$isFunction"  js_isFunction  :: JSVal -> Bool

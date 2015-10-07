@@ -11,8 +11,8 @@ module Data.JSString.Text
     , textFromJSString
     , lazyTextToJSString
     , lazyTextFromJSString
-    , textFromJSRef
-    , lazyTextFromJSRef
+    , textFromJSVal
+    , lazyTextFromJSVal
     ) where
 
 import GHCJS.Prim
@@ -51,16 +51,16 @@ lazyTextFromJSString = TL.fromStrict . textFromJSString
 {-# INLINE lazyTextFromJSString #-}
 
 -- | returns the empty Text if not a string
-textFromJSRef :: JSRef -> T.Text
-textFromJSRef j = case js_fromString' j of
+textFromJSVal :: JSVal -> T.Text
+textFromJSVal j = case js_fromString' j of
     (# _,  0#     #) -> T.empty
     (# ba, length #) -> T.Text (A.Array ba) 0 (I# length)
-{-# INLINE textFromJSRef #-}
+{-# INLINE textFromJSVal #-}
 
 -- | returns the empty Text if not a string
-lazyTextFromJSRef :: JSRef -> TL.Text
-lazyTextFromJSRef = TL.fromStrict . textFromJSRef
-{-# INLINE lazyTextFromJSRef #-}
+lazyTextFromJSVal :: JSVal -> TL.Text
+lazyTextFromJSVal = TL.fromStrict . textFromJSVal
+{-# INLINE lazyTextFromJSVal #-}
 
 -- ----------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ foreign import javascript unsafe
   js_fromString :: JSString -> (# ByteArray#, Int# #)
 foreign import javascript unsafe
   "h$textFromString"
-  js_fromString' :: JSRef -> (# ByteArray#, Int# #)
+  js_fromString' :: JSVal -> (# ByteArray#, Int# #)
 foreign import javascript unsafe
   "h$lazyTextToString"
   js_lazyTextToString :: Any -> JSString

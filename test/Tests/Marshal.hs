@@ -5,8 +5,8 @@ module Tests.Marshal (
 
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import GHCJS.Marshal.Pure (PFromJSRef(..), PToJSRef(..))
-import GHCJS.Marshal (FromJSRef(..), ToJSRef(..))
+import GHCJS.Marshal.Pure (PFromJSVal(..), PToJSVal(..))
+import GHCJS.Marshal (FromJSVal(..), ToJSVal(..))
 import Tests.QuickCheckUtils (eq)
 import Test.QuickCheck.Monadic (run, monadicIO)
 import Test.QuickCheck (once, Arbitrary(..), Property)
@@ -18,54 +18,54 @@ import Data.JSString (JSString)
 
 newtype TypeName a = TypeName String
 
-pure_to_from_jsref' :: (PToJSRef a, PFromJSRef a, Eq a) => a -> Bool
-pure_to_from_jsref' a = pFromJSRef (pToJSRef a) == a
+pure_to_from_jsval' :: (PToJSVal a, PFromJSVal a, Eq a) => a -> Bool
+pure_to_from_jsval' a = pFromJSVal (pToJSVal a) == a
 
-pure_to_from_jsref :: (PToJSRef a, PFromJSRef a, Eq a) => TypeName a -> a -> Bool
-pure_to_from_jsref _ = pure_to_from_jsref'
+pure_to_from_jsval :: (PToJSVal a, PFromJSVal a, Eq a) => TypeName a -> a -> Bool
+pure_to_from_jsval _ = pure_to_from_jsval'
 
-pure_to_from_jsref_maybe :: (PToJSRef a, PFromJSRef a, Eq a) => TypeName a -> Maybe a -> Bool
-pure_to_from_jsref_maybe _ = pure_to_from_jsref'
+pure_to_from_jsval_maybe :: (PToJSVal a, PFromJSVal a, Eq a) => TypeName a -> Maybe a -> Bool
+pure_to_from_jsval_maybe _ = pure_to_from_jsval'
 
-to_from_jsref' :: (ToJSRef a, FromJSRef a, Eq a) => a -> Property
-to_from_jsref' a = monadicIO $ do
-    b <- run $ toJSRef a >>= fromJSRefUnchecked
+to_from_jsval' :: (ToJSVal a, FromJSVal a, Eq a) => a -> Property
+to_from_jsval' a = monadicIO $ do
+    b <- run $ toJSVal a >>= fromJSValUnchecked
     return $ b == a
 
-to_from_jsref :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> a -> Property
-to_from_jsref _ = to_from_jsref'
+to_from_jsval :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> a -> Property
+to_from_jsval _ = to_from_jsval'
 
-to_from_jsref_maybe :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> Maybe a -> Property
-to_from_jsref_maybe _ = to_from_jsref'
+to_from_jsval_maybe :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> Maybe a -> Property
+to_from_jsval_maybe _ = to_from_jsval'
 
-to_from_jsref_list :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> [a] -> Property
-to_from_jsref_list _ = to_from_jsref'
+to_from_jsval_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [a] -> Property
+to_from_jsval_list _ = to_from_jsval'
 
-to_from_jsref_list_maybe :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> [Maybe a] -> Property
-to_from_jsref_list_maybe _ = to_from_jsref'
+to_from_jsval_list_maybe :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [Maybe a] -> Property
+to_from_jsval_list_maybe _ = to_from_jsval'
 
-to_from_jsref_list_list :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> [[a]] -> Property
-to_from_jsref_list_list _ = to_from_jsref'
+to_from_jsval_list_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [[a]] -> Property
+to_from_jsval_list_list _ = to_from_jsval'
 
-to_from_jsref_maybe_list :: (ToJSRef a, FromJSRef a, Eq a) => TypeName a -> Maybe [a] -> Property
-to_from_jsref_maybe_list _ = to_from_jsref'
+to_from_jsval_maybe_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> Maybe [a] -> Property
+to_from_jsval_maybe_list _ = to_from_jsval'
 
-pureMarshalTestGroup :: (PToJSRef a, PFromJSRef a, ToJSRef a, FromJSRef a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
+pureMarshalTestGroup :: (PToJSVal a, PFromJSVal a, ToJSVal a, FromJSVal a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
 pureMarshalTestGroup t@(TypeName n) =
     testGroup n [
-        testProperty "pure_to_from_jsref"       (pure_to_from_jsref t),
-        testProperty "pure_to_from_jsref_maybe" (pure_to_from_jsref_maybe t),
-        testProperty "to_from_jsref"            (to_from_jsref t),
-        testProperty "to_from_jsref_maybe"      (to_from_jsref_maybe t),
-        testProperty "to_from_jsref_list"       (to_from_jsref_list t),
-        testProperty "to_from_jsref_list_maybe" (to_from_jsref_list_maybe t),
-        testProperty "to_from_jsref_list_list"  (once $ to_from_jsref_list_list t),
-        testProperty "to_from_jsref_maybe_list" (to_from_jsref_maybe_list t)
+        testProperty "pure_to_from_jsval"       (pure_to_from_jsval t),
+        testProperty "pure_to_from_jsval_maybe" (pure_to_from_jsval_maybe t),
+        testProperty "to_from_jsval"            (to_from_jsval t),
+        testProperty "to_from_jsval_maybe"      (to_from_jsval_maybe t),
+        testProperty "to_from_jsval_list"       (to_from_jsval_list t),
+        testProperty "to_from_jsval_list_maybe" (to_from_jsval_list_maybe t),
+        testProperty "to_from_jsval_list_list"  (once $ to_from_jsval_list_list t),
+        testProperty "to_from_jsval_maybe_list" (to_from_jsval_maybe_list t)
     ]
 
-marshalTestGroup :: (ToJSRef a, FromJSRef a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
+marshalTestGroup :: (ToJSVal a, FromJSVal a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
 marshalTestGroup t@(TypeName n) =
-  testGroup n [testProperty "to_from_jsref" (to_from_jsref t)]
+  testGroup n [testProperty "to_from_jsval" (to_from_jsval t)]
 
 instance Arbitrary Text where
     arbitrary = T.pack <$> arbitrary

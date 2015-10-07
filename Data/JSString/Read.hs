@@ -136,7 +136,7 @@ readIntegerMaybe j = convertNullMaybe js_readInteger j
 
 -- ----------------------------------------------------------------------------
 
-convertNullMaybe :: (JSString -> JSRef) -> JSString -> Maybe a
+convertNullMaybe :: (JSString -> JSVal) -> JSString -> Maybe a
 convertNullMaybe f j
   | js_isNull r = Nothing
   | otherwise   = Just (unsafeCoerce (js_toHeapObject r))
@@ -150,21 +150,21 @@ readError xs = error ("Data.JSString.Read." ++ xs)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$r = $1===null;" js_isNull :: JSRef -> Bool
+  "$r = $1===null;" js_isNull :: JSVal -> Bool
 foreign import javascript unsafe
-  "$r=$1;" js_toHeapObject :: JSRef -> Any
+  "$r=$1;" js_toHeapObject :: JSVal -> Any
 foreign import javascript unsafe
-  "h$jsstringReadInteger" js_readInteger :: JSString -> JSRef
+  "h$jsstringReadInteger" js_readInteger :: JSString -> JSVal
 foreign import javascript unsafe
-  "h$jsstringReadInt" js_readInt :: JSString -> JSRef
+  "h$jsstringReadInt" js_readInt :: JSString -> JSVal
 foreign import javascript unsafe
-  "h$jsstringLenientReadInt" js_lenientReadInt :: JSString -> JSRef
+  "h$jsstringLenientReadInt" js_lenientReadInt :: JSString -> JSVal
 foreign import javascript unsafe
   "h$jsstringReadInt64" js_readInt64 :: JSString -> (# Int#, Int64# #)
 foreign import javascript unsafe
   "h$jsstringReadWord64" js_readWord64 :: JSString -> (# Int#, Word64# #)
 foreign import javascript unsafe
-  "h$jsstringReadDouble" js_readDouble :: JSString -> JSRef
+  "h$jsstringReadDouble" js_readDouble :: JSString -> JSVal
 foreign import javascript unsafe
   "h$jsstringIsInteger" js_isInteger :: JSString -> Bool
 foreign import javascript unsafe

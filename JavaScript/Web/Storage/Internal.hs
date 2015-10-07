@@ -6,5 +6,5 @@ import GHCJS.Types
 
 import Data.Typeable
 
-newtype Storage      = Storage JSRef deriving Typeable
-newtype StorageEvent = StorageEvent JSRef deriving Typeable
+newtype Storage      = Storage JSVal deriving Typeable
+newtype StorageEvent = StorageEvent JSVal deriving Typeable

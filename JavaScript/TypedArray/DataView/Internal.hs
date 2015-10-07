@@ -23,7 +23,7 @@ import GHCJS.Internal.Types
 
 import JavaScript.TypedArray.ArrayBuffer.Internal
 
-newtype SomeDataView (a :: MutabilityType s) = SomeDataView JSRef
+newtype SomeDataView (a :: MutabilityType s) = SomeDataView JSVal
   deriving Typeable
 
 type DataView        = SomeDataView Immutable
@@ -34,15 +34,15 @@ type STDataView s    = SomeDataView (STMutable s)
 #define JSS foreign import javascript safe
 
 JSU "new DataView($1)"
-    js_dataView1 :: JSRef -> JSRef
+    js_dataView1 :: JSVal -> JSVal
 JSS "new DataView($2,$1)"
-    js_dataView2 :: Int -> JSRef -> SomeDataView m
+    js_dataView2 :: Int -> JSVal -> SomeDataView m
 JSU "new DataView($2,$1)"
-    js_unsafeDataView2 :: Int -> JSRef-> SomeDataView m
+    js_unsafeDataView2 :: Int -> JSVal-> SomeDataView m
 JSS "new DataView($3,$1,$2)"
-    js_dataView :: Int -> Int -> JSRef -> SomeDataView m
+    js_dataView :: Int -> Int -> JSVal -> SomeDataView m
 JSU "new DataView($3,$1,$2)" 
-    js_unsafeDataView :: Int -> Int -> JSRef -> JSRef
+    js_unsafeDataView :: Int -> Int -> JSVal -> JSVal
 JSU "new DataView($1.buffer.slice($1.byteOffset, $1.byteLength))"
     js_cloneDataView :: SomeDataView m -> IO (SomeDataView m1)
 

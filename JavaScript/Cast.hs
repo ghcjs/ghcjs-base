@@ -7,20 +7,20 @@ module JavaScript.Cast ( Cast(..)
 
 import GHCJS.Prim
 
-cast :: forall a. Cast a => JSRef -> Maybe a
+cast :: forall a. Cast a => JSVal -> Maybe a
 cast x | js_checkCast x (instanceRef (undefined :: a)) = Just (unsafeWrap x)
        | otherwise                                     = Nothing
 {-# INLINE cast #-}
 
-unsafeCast :: Cast a => JSRef -> a
+unsafeCast :: Cast a => JSVal -> a
 unsafeCast x = unsafeWrap x
 {-# INLINE unsafeCast #-}
 
 class Cast a where
-  unsafeWrap  :: JSRef -> a
-  instanceRef :: a -> JSRef
+  unsafeWrap  :: JSVal -> a
+  instanceRef :: a -> JSVal
 
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe 
-  "$1 instanceof $2" js_checkCast :: JSRef -> JSRef -> Bool
+  "$1 instanceof $2" js_checkCast :: JSVal -> JSVal -> Bool

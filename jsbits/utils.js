@@ -8,13 +8,13 @@ function h$allProps(o) {
 
 function h$listProps(o) {
     var r = HS_NIL;
-    for(var p in o) { r = MK_CONS(MK_JSREF(p), r); }
+    for(var p in o) { r = MK_CONS(MK_JSVAL(p), r); }
     return r;
 }
 
 function h$listAssocs(o) {
     var r = HS_NIL;
-    for(var p in o) { r = MK_CONS(MK_TUP2(MK_JSREF(p), MK_JSREF(o[p])), r); }
+    for(var p in o) { r = MK_CONS(MK_TUP2(MK_JSVAL(p), MK_JSVAL(o[p])), r); }
     return r;
 }
 
