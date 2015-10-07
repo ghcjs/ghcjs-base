@@ -16,6 +16,7 @@ module GHCJS.Types ( JSVal
                    , Ref#
                    , toPtr
                    , fromPtr
+                   , JSRef
                    ) where
 
 import Data.JSString.Internal.Type (JSString)
@@ -58,3 +59,9 @@ foreign import javascript unsafe "$r = $1_1;"
 
 foreign import javascript unsafe "$r1 = $1; $r2 = 0;"
   js_mkPtr :: JSVal -> Ptr a
+
+-- | This is a deprecated copmatibility wrapper for the old JSRef type.
+--
+-- See https://github.com/ghcjs/ghcjs/issues/421
+type JSRef a = JSVal
+{-# DEPRECATED JSRef "Use JSVal instead, or a more specific newtype wrapper of JSVal " #-}
