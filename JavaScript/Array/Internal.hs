@@ -19,9 +19,9 @@ import           GHCJS.Internal.Types
 import qualified GHCJS.Prim as Prim
 import           GHCJS.Types
 
-newtype SomeJSArray (m :: MutabilityType s) = SomeJSArray JSRef
+newtype SomeJSArray (m :: MutabilityType s) = SomeJSArray JSVal
   deriving (Typeable)
-instance IsJSRef (SomeJSArray m)
+instance IsJSVal (SomeJSArray m)
 
 type JSArray        = SomeJSArray Immutable
 type MutableJSArray = SomeJSArray Mutable
@@ -48,48 +48,48 @@ append :: SomeJSArray m -> SomeJSArray m -> IO (SomeJSArray m1)
 append x y = IO (js_append x y)
 {-# INLINE append #-}
 
-fromList :: [JSRef] -> JSArray
+fromList :: [JSVal] -> JSArray
 fromList xs = rnf xs `seq` js_toJSArrayPure (unsafeCoerce xs)
 {-# INLINE fromList #-}
 
-fromListIO :: [JSRef] -> IO (SomeJSArray m)
+fromListIO :: [JSVal] -> IO (SomeJSArray m)
 fromListIO xs = IO (\s -> rnf xs `seq` js_toJSArray (unsafeCoerce xs) s)
 {-# INLINE fromListIO #-}
 
-toList :: JSArray -> [JSRef]
+toList :: JSArray -> [JSVal]
 toList x = unsafeCoerce (js_fromJSArrayPure x)
 {-# INLINE toList #-}
 
-toListIO :: SomeJSArray m -> IO [JSRef]
+toListIO :: SomeJSArray m -> IO [JSVal]
 toListIO x = IO $ \s -> case js_fromJSArray x s of
                           (# s', xs #) -> (# s', unsafeCoerce xs #)
 {-# INLINE toListIO #-}
 
-index :: Int -> JSArray -> JSRef
+index :: Int -> JSArray -> JSVal
 index n x = js_indexPure n x
 {-# INLINE index #-}
 
-read :: Int -> SomeJSArray m -> IO JSRef
+read :: Int -> SomeJSArray m -> IO JSVal
 read n x = IO (js_index n x)
 {-# INLINE read #-}
 
-write :: Int -> JSRef -> MutableJSArray -> IO ()
+write :: Int -> JSVal -> MutableJSArray -> IO ()
 write n e x = IO (js_setIndex n e x)
 {-# INLINE write #-}
 
-push :: JSRef -> MutableJSArray -> IO ()
+push :: JSVal -> MutableJSArray -> IO ()
 push e x = IO (js_push e x)
 {-# INLINE push #-}
 
-pop :: MutableJSArray -> IO JSRef
+pop :: MutableJSArray -> IO JSVal
 pop x = IO (js_pop x)
 {-# INLINE pop #-}
 
-unshift :: JSRef -> MutableJSArray -> IO ()
+unshift :: JSVal -> MutableJSArray -> IO ()
 unshift e x = IO (js_unshift e x)
 {-# INLINE unshift #-}
 
-shift :: MutableJSArray -> IO JSRef
+shift :: MutableJSArray -> IO JSVal
 shift x = IO (js_shift x)
 {-# INLINE shift #-}
 
@@ -146,15 +146,15 @@ foreign import javascript unsafe "$r = [];"
 foreign import javascript unsafe "$1.length"
   js_length     :: SomeJSArray m -> State# s -> (# State# s, Int #)
 foreign import javascript unsafe "$2[$1]"
-  js_index     :: Int -> SomeJSArray m -> State# s -> (# State# s, JSRef #)
+  js_index     :: Int -> SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
 foreign import javascript unsafe "$2[$1]"
-  js_indexPure :: Int -> JSArray -> JSRef
+  js_indexPure :: Int -> JSArray -> JSVal
 foreign import javascript unsafe "$1.length"
   js_lengthPure :: JSArray -> Int
 
 foreign import javascript unsafe "$3[$1] = $2"
-  js_setIndex :: Int -> JSRef -> SomeJSArray m -> State# s -> (# State# s, () #)
+  js_setIndex :: Int -> JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
 
 foreign import javascript unsafe "$3.slice($1,$2)"
   js_slice     :: Int -> Int -> SomeJSArray m -> State# s -> (# State# s, SomeJSArray m1 #)
@@ -170,24 +170,24 @@ foreign import javascript unsafe "$1.concat($2)"
   js_append   :: SomeJSArray m0 -> SomeJSArray m1 -> State# s ->  (# State# s, SomeJSArray m2 #)
 
 foreign import javascript unsafe "$2.push($1)"
-  js_push     :: JSRef -> SomeJSArray m -> State# s -> (# State# s, () #)
+  js_push     :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
 foreign import javascript unsafe "$1.pop()"
-  js_pop      :: SomeJSArray m -> State# s -> (# State# s, JSRef #)
+  js_pop      :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 foreign import javascript unsafe "$2.unshift($1)"
-  js_unshift  :: JSRef -> SomeJSArray m -> State# s -> (# State# s, () #)
+  js_unshift  :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
 foreign import javascript unsafe "$1.shift()"
-  js_shift    :: SomeJSArray m -> State# s -> (# State# s, JSRef #)
+  js_shift    :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
 foreign import javascript unsafe "$1.reverse()"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
-foreign import javascript unsafe "h$toHsListJSRef($1)"
+foreign import javascript unsafe "h$toHsListJSVal($1)"
   js_fromJSArray :: SomeJSArray m -> State# s -> (# State# s, Exts.Any #)
-foreign import javascript unsafe "h$toHsListJSRef($1)"
-  js_fromJSArrayPure :: JSArray -> Exts.Any -- [JSRef]
+foreign import javascript unsafe "h$toHsListJSVal($1)"
+  js_fromJSArrayPure :: JSArray -> Exts.Any -- [JSVal]
 
-foreign import javascript unsafe "h$fromHsListJSRef($1)"
+foreign import javascript unsafe "h$fromHsListJSVal($1)"
   js_toJSArray :: Exts.Any -> State# s -> (# State# s, SomeJSArray m #)
-foreign import javascript unsafe "h$fromHsListJSRef($1)"
+foreign import javascript unsafe "h$fromHsListJSVal($1)"
   js_toJSArrayPure :: Exts.Any -> JSArray
 

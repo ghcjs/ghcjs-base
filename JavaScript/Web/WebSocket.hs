@@ -60,8 +60,8 @@ data WebSocketRequest = WebSocketRequest
   , onMessage :: Maybe (MessageEvent -> IO ()) -- ^ called for each message
   }
 
-newtype WebSocket = WebSocket JSRef
--- instance IsJSRef WebSocket
+newtype WebSocket = WebSocket JSVal
+-- instance IsJSVal WebSocket
 
 data ReadyState = Closed | Connecting | Connected
   deriving (Data, Typeable, Enum, Eq, Ord, Show)
@@ -81,14 +81,14 @@ connect req = do
            xs  -> js_createArr (url req) (JSA.fromList $ unsafeCoerce xs) -- fixme
     (js_open ws mcb ccb >>= handleOpenErr >> return ws) `onException` js_close 1000 "Haskell Exception" ws
 
-maybeCallback :: (JSRef -> a) -> Maybe (a -> IO ()) -> IO JSRef
+maybeCallback :: (JSVal -> a) -> Maybe (a -> IO ()) -> IO JSVal
 maybeCallback _ Nothing = return jsNull
 maybeCallback f (Just g) = do
   cb@(Callback cb') <- CB.syncCallback1 CB.ContinueAsync (g . f)
   CB.releaseCallback cb
   return cb'
 
-handleOpenErr :: JSRef -> IO ()
+handleOpenErr :: JSVal -> IO ()
 handleOpenErr r
   | isNull r  = return ()
   | otherwise = throwIO (userError "WebSocket failed to connect") -- fixme
@@ -147,7 +147,7 @@ foreign import javascript safe
                                           
 foreign import javascript interruptible
   "h$openWebSocket($1, $2, $3, $c);"
-  js_open :: WebSocket -> JSRef -> JSRef -> IO JSRef
+  js_open :: WebSocket -> JSVal -> JSVal -> IO JSVal
 foreign import javascript safe
   "h$closeWebSocket($1, $2);"    js_close      :: Int -> JSString -> WebSocket -> IO ()
 foreign import javascript unsafe
@@ -175,6 +175,6 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$2.onmessage = $1;"    js_setOnmessage      :: Callback a -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$1.onmessage"          js_getOnmessage      :: WebSocket -> IO JSRef
+  "$1.onmessage"          js_getOnmessage      :: WebSocket -> IO JSVal
 foreign import javascript unsafe
-  "$1.lastError"          js_getLastError      :: WebSocket -> IO JSRef
+  "$1.lastError"          js_getLastError      :: WebSocket -> IO JSVal

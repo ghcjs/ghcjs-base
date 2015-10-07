@@ -63,9 +63,9 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.length"             js_getLength      :: Storage -> IO Int
 foreign import javascript unsafe
-  "$2.key($1)"            js_getIndex       :: Int -> Storage -> IO JSRef
+  "$2.key($1)"            js_getIndex       :: Int -> Storage -> IO JSVal
 foreign import javascript unsafe
-  "$2.getItem($1)"        js_getItem        :: JSString -> Storage -> IO JSRef
+  "$2.getItem($1)"        js_getItem        :: JSString -> Storage -> IO JSVal
 foreign import javascript safe
   "$3.setItem($1,$2)"     js_setItem        :: JSString -> JSString -> Storage -> IO ()
 foreign import javascript unsafe

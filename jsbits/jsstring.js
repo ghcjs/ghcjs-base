@@ -26,7 +26,7 @@
 #define HI_SURR(cp)      ((((cp)-0x10000)>>>10)+0xDC00)
 #define LO_SURR(cp)      (((cp)&0x3FF)+0xD800)
 
-var h$jsstringEmpty = MK_JSREF('');
+var h$jsstringEmpty = MK_JSVAL('');
 
 var h$jsstringHead, h$jsstringTail, h$jsstringCons,
     h$jsstringSingleton, h$jsstringSnoc, h$jsstringUncons,
@@ -306,7 +306,7 @@ function h$jsstringIntercalate(x, ys) {
     var a = [], i = 0;
     while(IS_CONS(ys)) {
 	if(i) a[i++] = x;
-	a[i++] = JSREF_VAL(CONS_HEAD(ys));
+	a[i++] = JSVAL_VAL(CONS_HEAD(ys));
 	ys = CONS_TAIL(ys);
     }
     return a.join('');
@@ -341,7 +341,7 @@ function h$jsstringConcat(xs) {
     TRACE_JSSTRING("concat");
     var a = [], i = 0;
     while(IS_CONS(xs)) {
-	a[i++] = JSREF_VAL(CONS_HEAD(xs));
+	a[i++] = JSVAL_VAL(CONS_HEAD(xs));
 	xs     = CONS_TAIL(xs);
     }
     return a.join('');
@@ -354,7 +354,7 @@ if(String.prototype.startsWith) {
     h$jsstringStripPrefix = function(p, x) {
 	TRACE_JSSTRING("(startsWith) stripPrefix: '" + p + "' '" + x + "'");
 	if(x.startsWith(p)) {
-	    return MK_JUST(MK_JSREF(x.substr(p.length)));
+	    return MK_JUST(MK_JSVAL(x.substr(p.length)));
 	} else {
 	    return HS_NOTHING;
 	}
@@ -369,7 +369,7 @@ if(String.prototype.startsWith) {
     h$jsstringStripPrefix = function(p, x) {
 	TRACE_JSSTRING("(no startsWith) stripPrefix: '" + p + "' '" + x + "'");
 	if(x.indexOf(p) === 0) { // this has worse complexity than it should
-	    return MK_JUST(MK_JSREF(x.substr(p.length)));
+	    return MK_JUST(MK_JSVAL(x.substr(p.length)));
 	} else {
 	  return HS_NOTHING;
 	}
@@ -385,7 +385,7 @@ if(String.prototype.endsWith) {
     h$jsstringStripSuffix = function(s, x) {
 	TRACE_JSSTRING("(endsWith) stripSuffix: '" + s + "' '" + x + "'");
 	if(x.endsWith(s)) {
-	    return MK_JUST(MK_JSREF(x.substr(0,x.length-s.length)));
+	    return MK_JUST(MK_JSVAL(x.substr(0,x.length-s.length)));
 	} else {
 	  return HS_NOTHING;
 	}
@@ -401,7 +401,7 @@ if(String.prototype.endsWith) {
 	var i = x.lastIndexOf(s); // this has worse complexity than it should
 	var l = x.length - s.length;
 	if(i !== -1 && i === l) {
-	    return MK_JUST(MK_JSREF(x.substr(0,l)));
+	    return MK_JUST(MK_JSVAL(x.substr(0,l)));
 	} else {
 	  return HS_NOTHING;
 	}
@@ -441,9 +441,9 @@ function h$jsstringCommonPrefixes(x, y) {
 	}
     }
   if(i===0) return HS_NOTHING;
-    return MK_JUST(MK_TUP3( MK_JSREF((i===lx)?x:((i===ly)?y:x.substr(0,i)))
-			, (i===lx) ? h$jsstringEmpty : MK_JSREF(x.substr(i))
-			, (i===ly) ? h$jsstringEmpty : MK_JSREF(y.substr(i))
+    return MK_JUST(MK_TUP3( MK_JSVAL((i===lx)?x:((i===ly)?y:x.substr(0,i)))
+			, (i===lx) ? h$jsstringEmpty : MK_JSVAL(x.substr(i))
+			, (i===ly) ? h$jsstringEmpty : MK_JSVAL(y.substr(i))
 		        ));
 }
 
@@ -488,7 +488,7 @@ function h$jsstringBreakOnAll(pat, src) {
     while(true) {
 	var x = src.indexOf(pat, n);
 	if(x === -1) break;
-	a[i++] = MK_TUP2(MK_JSREF(src.substr(0,x)), MK_JSREF(src.substr(x)));
+	a[i++] = MK_TUP2(MK_JSVAL(src.substr(0,x)), MK_JSVAL(src.substr(x)));
 	n = x + pl;
     }
     while(--i >= 0) r = MK_CONS(a[i], r);
@@ -509,7 +509,7 @@ function h$jsstringSplitOn(p, x) {
     TRACE_JSSTRING("splitOn: '" + p + "' '" + x + "'");
     var a = x.split(p);
     var r = HS_NIL, i = a.length;
-    while(--i>=0) r = MK_CONS(MK_JSREF(a[i]), r);
+    while(--i>=0) r = MK_CONS(MK_JSVAL(a[i]), r);
     return r;
 }
 
@@ -556,7 +556,7 @@ function h$jsstringWords(x) {
 	    if(h$isSpace(x.charCodeAt(m++))) {
 		// found end of word
 		w = (m-s<=1) ? h$jsstringEmpty
-                             : MK_JSREF(x.substr(s,m-s-1));
+                             : MK_JSVAL(x.substr(s,m-s-1));
 		if(i) a[i++] = w; else { a = [w]; i = 1; }
 		s = m;
 		break;
@@ -565,7 +565,7 @@ function h$jsstringWords(x) {
     }
     // end of string
     if(s !== -1 && s < l) {
-	w = MK_JSREF(s === 0 ? x : x.substr(s));
+	w = MK_JSVAL(s === 0 ? x : x.substr(s));
 	if(i) a[i++] = w; else { a = [w]; i = 1; }
     }
     // build resulting list
@@ -601,11 +601,11 @@ function h$jsstringLines(x) {
 	do {
 	    if(m >= l) break outer;
 	} while(x.charCodeAt(m++) !== 10);
-	w = (m-s<=1) ? h$jsstringEmpty : MK_JSREF(x.substr(s,m-s-1));
+	w = (m-s<=1) ? h$jsstringEmpty : MK_JSVAL(x.substr(s,m-s-1));
 	if(i) a[i++] = w; else { a = [w]; i = 1; }
     }
     if(s < l) {
-	w = MK_JSREF(x.substr(s));
+	w = MK_JSVAL(x.substr(s));
 	if(i) a[i++] = w; else { a = [w]; i = 1; }
     }
     while(--i>=0) r = MK_CONS(a[i], r);
@@ -627,11 +627,11 @@ function h$jsstringGroup(x) {
 	}
 	if(ch != tch) {
 	    tch = ch;
-	    r   = MK_CONS(MK_JSREF(x.substr(si+1,s-si)), r);
+	    r   = MK_CONS(MK_JSVAL(x.substr(si+1,s-si)), r);
 	    s   = si;
 	}
     }
-    return MK_CONS(MK_JSREF(x.substr(0,s+1)), r);
+    return MK_CONS(MK_JSVAL(x.substr(0,s+1)), r);
 }
 
 function h$jsstringChunksOf1(n, s, x) {
@@ -650,7 +650,7 @@ function h$jsstringChunksOf(n, x) {
     TRACE_JSSTRING("chunksOf: " + n + " '" + x + "'");
     var l = x.length;
     if(l===0 || n <= 0)  return HS_NIL;
-    if(l <= n) return MK_CONS(MK_JSREF(x), HS_NIL);
+    if(l <= n) return MK_CONS(MK_JSVAL(x), HS_NIL);
     var a = [], i = 0, s = 0, ch, m = 0, c, r = HS_NIL;
     while(m < l) {
 	s = m;
@@ -661,7 +661,7 @@ function h$jsstringChunksOf(n, x) {
 	}
 	if(c) a[i++] = x.substr(s, m-s);
     }
-    while(--i>=0) r = MK_CONS(MK_JSREF(a[i]), r);
+    while(--i>=0) r = MK_CONS(MK_JSVAL(a[i]), r);
     return r;
 }
 
@@ -904,7 +904,7 @@ function h$jsstringCompare(x, y) {
 function h$jsstringUnlines(xs) {
     var r = '';
     while(IS_CONS(xs)) {
-	r = r + JSREF_VAL(CONS_HEAD(xs)) + '\n';
+	r = r + JSVAL_VAL(CONS_HEAD(xs)) + '\n';
 	xs = CONS_TAIL(xs);
     }
     return r;
@@ -912,10 +912,10 @@ function h$jsstringUnlines(xs) {
 
 function h$jsstringUnwords(xs) {
     if(IS_NIL(xs)) return '';
-    var r = JSREF_VAL(CONS_HEAD(xs));
+    var r = JSVAL_VAL(CONS_HEAD(xs));
     xs = CONS_TAIL(xs);
     while(IS_CONS(xs)) {
-	r = r + ' ' + JSREF_VAL(CONS_HEAD(xs));
+	r = r + ' ' + JSVAL_VAL(CONS_HEAD(xs));
 	xs = CONS_TAIL(xs);
     }
     return r;
@@ -1046,7 +1046,7 @@ function h$jsstringExecRE(i, str, re) {
 	j++;
     }
     j-=1;
-    while(--j>=0) r = MK_CONS(MK_JSREF(a[j]), r);
+    while(--j>=0) r = MK_CONS(MK_JSVAL(a[j]), r);
     RETURN_UBX_TUP3(m.index, m[0], r);
 }
 
@@ -1058,6 +1058,6 @@ function h$jsstringSplitRE(limit, re, str) {
     re.lastIndex = i;
     var s = (limit < 0) ? str.split(re) : str.split(re, limit);
     var i = s.length, r = HS_NIL;
-    while(--i>=0) r = MK_CONS(MK_JSREF(a[i]), r);
+    while(--i>=0) r = MK_CONS(MK_JSVAL(a[i]), r);
     return r;
 }

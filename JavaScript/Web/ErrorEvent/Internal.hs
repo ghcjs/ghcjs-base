@@ -6,4 +6,4 @@ import GHCJS.Types
 
 import Data.Typeable
 
-newtype ErrorEvent = ErrorEvent JSRef deriving Typeable
+newtype ErrorEvent = ErrorEvent JSVal deriving Typeable

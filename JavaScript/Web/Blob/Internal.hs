@@ -14,7 +14,7 @@ import GHCJS.Types
 data BlobType = BlobTypeBlob
               | BlobTypeFile
 
-newtype SomeBlob (a :: BlobType) = SomeBlob JSRef deriving Typeable
+newtype SomeBlob (a :: BlobType) = SomeBlob JSVal deriving Typeable
 
 type File = SomeBlob BlobTypeFile
 type Blob = SomeBlob BlobTypeBlob

@@ -41,11 +41,11 @@ import           JavaScript.Array.Internal
 
 -- import qualified JavaScript.Array.Internal as I
 {-
-fromList :: [JSRef] -> IO (JSArray a)
+fromList :: [JSVal] -> IO (JSArray a)
 fromList xs = fmap JSArray (I.fromList xs)
 {-# INLINE fromList #-}
 
-toList :: JSArray a -> IO [JSRef]
+toList :: JSArray a -> IO [JSVal]
 toList (JSArray x) = I.toList x
 {-# INLINE toList #-}
 
@@ -62,17 +62,17 @@ append (JSArray x) (JSArray y) = fmap JSArray (I.append x y)
 {-# INLINE append #-}
 -}
 
-(!) :: JSArray -> Int -> JSRef
+(!) :: JSArray -> Int -> JSVal
 x ! n = index n x
 {-# INLINE (!) #-}
 
 {-
 
-index :: Int -> JSArray a -> IO JSRef
+index :: Int -> JSArray a -> IO JSVal
 index n (JSArray x) = I.index n x
 {-# INLINE index #-}
 
-write :: Int -> JSRef -> JSArray a -> IO ()
+write :: Int -> JSVal -> JSArray a -> IO ()
 write n e (JSArray x) = I.write n e x
 {-# INLINE write #-}
 
@@ -88,19 +88,19 @@ slice :: Int -> Int -> JSArray a -> IO (JSArray a)
 slice s n (JSArray x) = fmap JSArray (I.slice s n x)
 {-# INLINE slice #-}
 
-push :: JSRef -> JSArray a -> IO ()
+push :: JSVal -> JSArray a -> IO ()
 push e (JSArray x) = I.push e x
 {-# INLINE push #-}
 
-pop :: JSArray a -> IO JSRef
+pop :: JSArray a -> IO JSVal
 pop (JSArray x) = I.pop x
 {-# INLINE pop #-}
 
-unshift :: JSRef -> JSArray a -> IO ()
+unshift :: JSVal -> JSArray a -> IO ()
 unshift e (JSArray x) = I.unshift e x
 {-# INLINE unshift #-}
 
-shift :: JSArray a -> IO JSRef
+shift :: JSArray a -> IO JSVal
 shift (JSArray x) = I.shift x
 {-# INLINE shift #-}
 

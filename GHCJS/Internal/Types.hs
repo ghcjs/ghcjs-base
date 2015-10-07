@@ -13,21 +13,21 @@ import Unsafe.Coerce
 
 import Control.DeepSeq
 
-import GHCJS.Prim (JSRef)
+import GHCJS.Prim (JSVal)
 
-instance NFData JSRef where
+instance NFData JSVal where
   rnf x = x `seq` ()
 
-class IsJSRef a where
-  jsref_ :: a -> JSRef
+class IsJSVal a where
+  jsval_ :: a -> JSVal
 
-  default jsref_ :: Coercible a JSRef => a -> JSRef
-  jsref_ = coerce
-  {-# INLINE jsref_ #-}
+  default jsval_ :: Coercible a JSVal => a -> JSVal
+  jsval_ = coerce
+  {-# INLINE jsval_ #-}
 
-jsref :: IsJSRef a => a -> JSRef
-jsref = jsref_
-{-# INLINE jsref #-}
+jsval :: IsJSVal a => a -> JSVal
+jsval = jsval_
+{-# INLINE jsval #-}
 
 data MutabilityType s = Mutable
                       | Immutable
