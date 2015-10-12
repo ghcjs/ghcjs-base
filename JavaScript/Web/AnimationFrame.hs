@@ -28,7 +28,7 @@ import GHCJS.Types
 import Control.Exception (onException)
 import Data.Typeable
 
-newtype AnimationFrameHandle = AnimationFrameHandle JSRef
+newtype AnimationFrameHandle = AnimationFrameHandle JSVal
   deriving (Typeable)
 
 {- |
@@ -51,8 +51,8 @@ inAnimationFrame :: OnBlocked       -- ^ what to do when encountering a blocking
                  -> (Double -> IO ())  -- ^ the action to run
                  -> IO AnimationFrameHandle
 inAnimationFrame onBlocked x = do
-  cb <- syncCallback1 onBlocked (x . pFromJSRef)
-  h  <- js_makeAnimationFrameHandleCallback (jsref cb)
+  cb <- syncCallback1 onBlocked (x . pFromJSVal)
+  h  <- js_makeAnimationFrameHandleCallback (jsval cb)
   js_requestAnimationFrame h
   return h
 
@@ -65,7 +65,7 @@ cancelAnimationFrame h = js_cancelAnimationFrame h
 foreign import javascript unsafe "{ handle: null, callback: null }"
   js_makeAnimationFrameHandle :: IO AnimationFrameHandle
 foreign import javascript unsafe "{ handle: null, callback: $1 }"
-  js_makeAnimationFrameHandleCallback :: JSRef -> IO AnimationFrameHandle
+  js_makeAnimationFrameHandleCallback :: JSVal -> IO AnimationFrameHandle
 foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
 foreign import javascript interruptible

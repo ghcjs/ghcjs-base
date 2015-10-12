@@ -2,16 +2,16 @@
              TypeOperators, TupleSections, FlexibleContexts, FlexibleInstances
   #-}
 
-module GHCJS.Marshal.Internal ( FromJSRef(..)
-                              , ToJSRef(..)
-                              , PToJSRef(..)
-                              , PFromJSRef(..)
+module GHCJS.Marshal.Internal ( FromJSVal(..)
+                              , ToJSVal(..)
+                              , PToJSVal(..)
+                              , PFromJSVal(..)
                               , Purity(..)
-                              , toJSRef_generic
-                              , fromJSRef_generic
-                              , toJSRef_pure
-                              , fromJSRef_pure
-                              , fromJSRefUnchecked_pure
+                              , toJSVal_generic
+                              , fromJSVal_generic
+                              , toJSVal_pure
+                              , fromJSVal_pure
+                              , fromJSValUnchecked_pure
                               ) where
 
 import           Control.Applicative
@@ -38,166 +38,166 @@ data Purity = PureShared    -- ^ conversion is pure even if the original value i
             | PureExclusive -- ^ conversion is pure if the we only convert once
   deriving (Eq, Ord, Typeable, Data)
 
-class PToJSRef a where
+class PToJSVal a where
 --  type PureOut a :: Purity
-  pToJSRef :: a -> JSRef
+  pToJSVal :: a -> JSVal
 
-class PFromJSRef a where
+class PFromJSVal a where
 --  type PureIn a :: Purity
-  pFromJSRef :: JSRef -> a
+  pFromJSVal :: JSVal -> a
 
-class ToJSRef a where
-  toJSRef :: a -> IO JSRef
+class ToJSVal a where
+  toJSVal :: a -> IO JSVal
 
-  toJSRefListOf :: [a] -> IO JSRef
-  toJSRefListOf = Prim.toJSArray <=< mapM toJSRef
+  toJSValListOf :: [a] -> IO JSVal
+  toJSValListOf = Prim.toJSArray <=< mapM toJSVal
 
-  -- default toJSRef :: PToJSRef a => a -> IO (JSRef a)
-  -- toJSRef x = return (pToJSRef x)
+  -- default toJSVal :: PToJSVal a => a -> IO (JSVal a)
+  -- toJSVal x = return (pToJSVal x)
 
-  default toJSRef :: (Generic a, GToJSRef (Rep a ())) => a -> IO JSRef
-  toJSRef = toJSRef_generic id
+  default toJSVal :: (Generic a, GToJSVal (Rep a ())) => a -> IO JSVal
+  toJSVal = toJSVal_generic id
 
-class FromJSRef a where
-  fromJSRef :: JSRef -> IO (Maybe a)
+class FromJSVal a where
+  fromJSVal :: JSVal -> IO (Maybe a)
 
-  fromJSRefUnchecked :: JSRef -> IO a
-  fromJSRefUnchecked = fmap fromJust . fromJSRef
-  {-# INLINE fromJSRefUnchecked #-}
+  fromJSValUnchecked :: JSVal -> IO a
+  fromJSValUnchecked = fmap fromJust . fromJSVal
+  {-# INLINE fromJSValUnchecked #-}
 
-  fromJSRefListOf :: JSRef -> IO (Maybe [a])
-  fromJSRefListOf = fmap sequence . (mapM fromJSRef <=< Prim.fromJSArray) -- fixme should check that it's an array
+  fromJSValListOf :: JSVal -> IO (Maybe [a])
+  fromJSValListOf = fmap sequence . (mapM fromJSVal <=< Prim.fromJSArray) -- fixme should check that it's an array
 
-  fromJSRefUncheckedListOf :: JSRef -> IO [a]
-  fromJSRefUncheckedListOf = mapM fromJSRefUnchecked <=< Prim.fromJSArray
+  fromJSValUncheckedListOf :: JSVal -> IO [a]
+  fromJSValUncheckedListOf = mapM fromJSValUnchecked <=< Prim.fromJSArray
   
-  -- default fromJSRef :: PFromJSRef a => JSRef a -> IO (Maybe a)
-  -- fromJSRef x = return (Just (pFromJSRef x))
+  -- default fromJSVal :: PFromJSVal a => JSVal a -> IO (Maybe a)
+  -- fromJSVal x = return (Just (pFromJSVal x))
 
-  default fromJSRef :: (Generic a, GFromJSRef (Rep a ())) => JSRef -> IO (Maybe a)
-  fromJSRef = fromJSRef_generic id
+  default fromJSVal :: (Generic a, GFromJSVal (Rep a ())) => JSVal -> IO (Maybe a)
+  fromJSVal = fromJSVal_generic id
 
-  -- default fromJSRefUnchecked :: PFromJSRef a => a -> IO a
-  -- fromJSRefUnchecked x = return (pFromJSRef x)
+  -- default fromJSValUnchecked :: PFromJSVal a => a -> IO a
+  -- fromJSValUnchecked x = return (pFromJSVal x)
 
 -- -----------------------------------------------------------------------------
 
-class GToJSRef a where
-  gToJSRef :: (String -> String) -> Bool -> a -> IO JSRef
+class GToJSVal a where
+  gToJSVal :: (String -> String) -> Bool -> a -> IO JSVal
 
 class GToJSProp a where
-  gToJSProp :: (String -> String) -> JSRef -> a -> IO ()
+  gToJSProp :: (String -> String) -> JSVal -> a -> IO ()
 
 class GToJSArr a where
   gToJSArr :: (String -> String) -> MutableJSArray -> a -> IO ()
 
-instance (ToJSRef b) => GToJSRef (K1 a b c) where
-  gToJSRef _ _ (K1 x) = toJSRef x
+instance (ToJSVal b) => GToJSVal (K1 a b c) where
+  gToJSVal _ _ (K1 x) = toJSVal x
 
-instance GToJSRef p => GToJSRef (Par1 p) where
-  gToJSRef f b (Par1 p) = gToJSRef f b p
+instance GToJSVal p => GToJSVal (Par1 p) where
+  gToJSVal f b (Par1 p) = gToJSVal f b p
 
-instance GToJSRef (f p) => GToJSRef (Rec1 f p) where
-  gToJSRef f b (Rec1 x) = gToJSRef f b x
+instance GToJSVal (f p) => GToJSVal (Rec1 f p) where
+  gToJSVal f b (Rec1 x) = gToJSVal f b x
 
-instance (GToJSRef (a p), GToJSRef (b p)) => GToJSRef ((a :+: b) p) where
-  gToJSRef f _ (L1 x) = gToJSRef f True x
-  gToJSRef f _ (R1 x) = gToJSRef f True x
+instance (GToJSVal (a p), GToJSVal (b p)) => GToJSVal ((a :+: b) p) where
+  gToJSVal f _ (L1 x) = gToJSVal f True x
+  gToJSVal f _ (R1 x) = gToJSVal f True x
 
-instance (Datatype c, GToJSRef (a p)) => GToJSRef (M1 D c a p) where
-  gToJSRef f b m@(M1 x) = gToJSRef f b x
+instance (Datatype c, GToJSVal (a p)) => GToJSVal (M1 D c a p) where
+  gToJSVal f b m@(M1 x) = gToJSVal f b x
 
-instance (Constructor c, GToJSRef (a p)) => GToJSRef (M1 C c a p) where
-  gToJSRef f True m@(M1 x) = do
+instance (Constructor c, GToJSVal (a p)) => GToJSVal (M1 C c a p) where
+  gToJSVal f True m@(M1 x) = do
     obj@(OI.Object obj') <- OI.create
-    v   <- gToJSRef f (conIsRecord m) x
+    v   <- gToJSVal f (conIsRecord m) x
     OI.setProp (packJSS . f $ conName m) v obj
     return obj'
-  gToJSRef f _ m@(M1 x) = gToJSRef f (conIsRecord m) x
+  gToJSVal f _ m@(M1 x) = gToJSVal f (conIsRecord m) x
 
-instance (GToJSArr (a p), GToJSArr (b p), GToJSProp (a p), GToJSProp (b p)) => GToJSRef ((a :*: b) p) where
-  gToJSRef f True xy = do
+instance (GToJSArr (a p), GToJSArr (b p), GToJSProp (a p), GToJSProp (b p)) => GToJSVal ((a :*: b) p) where
+  gToJSVal f True xy = do
     (OI.Object obj') <- OI.create
     gToJSProp f obj' xy
     return obj'
-  gToJSRef f False xy = do
+  gToJSVal f False xy = do
     arr@(AI.SomeJSArray arr') <- AI.create
     gToJSArr f arr xy
     return arr'
 
-instance GToJSRef (a p) => GToJSRef (M1 S c a p) where
-  gToJSRef f b (M1 x) = gToJSRef f b x
+instance GToJSVal (a p) => GToJSVal (M1 S c a p) where
+  gToJSVal f b (M1 x) = gToJSVal f b x
 
 instance (GToJSProp (a p), GToJSProp (b p)) => GToJSProp ((a :*: b) p) where
   gToJSProp f o (x :*: y) = gToJSProp f o x >> gToJSProp f o y
 
-instance (Selector c, GToJSRef (a p)) => GToJSProp (M1 S c a p) where
+instance (Selector c, GToJSVal (a p)) => GToJSProp (M1 S c a p) where
   gToJSProp f o m@(M1 x) = do
-    r <- gToJSRef f False x
+    r <- gToJSVal f False x
     OI.setProp (packJSS . f $ selName m) r (OI.Object o)
 
 instance (GToJSArr (a p), GToJSArr (b p)) => GToJSArr ((a :*: b) p) where
   gToJSArr f a (x :*: y) = gToJSArr f a x >> gToJSArr f a y
 
-instance GToJSRef (a p) => GToJSArr (M1 S c a p) where
+instance GToJSVal (a p) => GToJSArr (M1 S c a p) where
   gToJSArr f a (M1 x) = do
-    r <- gToJSRef f False x
+    r <- gToJSVal f False x
     AI.push r a
 
-instance GToJSRef (V1 p) where
-  gToJSRef _ _ _ = return Prim.jsNull
+instance GToJSVal (V1 p) where
+  gToJSVal _ _ _ = return Prim.jsNull
 
-instance GToJSRef (U1 p) where
-  gToJSRef _ _ _ = return F.jsTrue
+instance GToJSVal (U1 p) where
+  gToJSVal _ _ _ = return F.jsTrue
 
-toJSRef_generic :: forall a . (Generic a, GToJSRef (Rep a ()))
-                => (String -> String) -> a -> IO JSRef
-toJSRef_generic f x = gToJSRef f False (from x :: Rep a ())
+toJSVal_generic :: forall a . (Generic a, GToJSVal (Rep a ()))
+                => (String -> String) -> a -> IO JSVal
+toJSVal_generic f x = gToJSVal f False (from x :: Rep a ())
 
 -- -----------------------------------------------------------------------------
 
-class GFromJSRef a where
-  gFromJSRef :: (String -> String) -> Bool -> JSRef -> IO (Maybe a)
+class GFromJSVal a where
+  gFromJSVal :: (String -> String) -> Bool -> JSVal -> IO (Maybe a)
 
 class GFromJSProp a where
-  gFromJSProp :: (String -> String) -> JSRef -> IO (Maybe a)
+  gFromJSProp :: (String -> String) -> JSVal -> IO (Maybe a)
 
 class GFromJSArr a where
   gFromJSArr :: (String -> String) -> MutableJSArray -> Int -> IO (Maybe (a,Int))
 
-instance FromJSRef b => GFromJSRef (K1 a b c) where
-  gFromJSRef _ _ r = fmap K1 <$> fromJSRef r
+instance FromJSVal b => GFromJSVal (K1 a b c) where
+  gFromJSVal _ _ r = fmap K1 <$> fromJSVal r
 
-instance GFromJSRef p => GFromJSRef (Par1 p) where
-  gFromJSRef f b r = gFromJSRef f b r
+instance GFromJSVal p => GFromJSVal (Par1 p) where
+  gFromJSVal f b r = gFromJSVal f b r
 
-instance GFromJSRef (f p) => GFromJSRef (Rec1 f p) where
-  gFromJSRef f b r = gFromJSRef f b r
+instance GFromJSVal (f p) => GFromJSVal (Rec1 f p) where
+  gFromJSVal f b r = gFromJSVal f b r
 
-instance (GFromJSRef (a p), GFromJSRef (b p)) => GFromJSRef ((a :+: b) p) where
-  gFromJSRef f b r = do
-    l <- gFromJSRef f True r
+instance (GFromJSVal (a p), GFromJSVal (b p)) => GFromJSVal ((a :+: b) p) where
+  gFromJSVal f b r = do
+    l <- gFromJSVal f True r
     case l of
       Just x  -> return (L1 <$> Just x)
-      Nothing -> fmap R1 <$> gFromJSRef f True r
+      Nothing -> fmap R1 <$> gFromJSVal f True r
 
-instance (Datatype c, GFromJSRef (a p)) => GFromJSRef (M1 D c a p) where
-  gFromJSRef f b r = fmap M1 <$> gFromJSRef f b r
+instance (Datatype c, GFromJSVal (a p)) => GFromJSVal (M1 D c a p) where
+  gFromJSVal f b r = fmap M1 <$> gFromJSVal f b r
 
-instance forall c a p . (Constructor c, GFromJSRef (a p)) => GFromJSRef (M1 C c a p) where
-  gFromJSRef f True r = do
+instance forall c a p . (Constructor c, GFromJSVal (a p)) => GFromJSVal (M1 C c a p) where
+  gFromJSVal f True r = do
     r' <- OI.getProp (packJSS . f $ conName (undefined :: M1 C c a p)) (OI.Object r)
     if isUndefined r'
       then return Nothing
-      else fmap M1 <$> gFromJSRef f (conIsRecord (undefined :: M1 C c a p)) r'
-  gFromJSRef f _ r = fmap M1 <$> gFromJSRef f (conIsRecord (undefined :: M1 C c a p)) r
+      else fmap M1 <$> gFromJSVal f (conIsRecord (undefined :: M1 C c a p)) r'
+  gFromJSVal f _ r = fmap M1 <$> gFromJSVal f (conIsRecord (undefined :: M1 C c a p)) r
 
-instance (GFromJSArr (a p), GFromJSArr (b p), GFromJSProp (a p), GFromJSProp (b p)) => GFromJSRef ((a :*: b) p) where
-  gFromJSRef f True  r = gFromJSProp f r
-  gFromJSRef f False r = fmap fst <$> gFromJSArr f (AI.SomeJSArray r) 0
+instance (GFromJSArr (a p), GFromJSArr (b p), GFromJSProp (a p), GFromJSProp (b p)) => GFromJSVal ((a :*: b) p) where
+  gFromJSVal f True  r = gFromJSProp f r
+  gFromJSVal f False r = fmap fst <$> gFromJSArr f (AI.SomeJSArray r) 0
 
-instance GFromJSRef (a p) => GFromJSRef (M1 S c a p) where
-  gFromJSRef f b r = fmap M1 <$> gFromJSRef f b r
+instance GFromJSVal (a p) => GFromJSVal (M1 S c a p) where
+  gFromJSVal f b r = fmap M1 <$> gFromJSVal f b r
 
 instance (GFromJSProp (a p), GFromJSProp (b p)) => GFromJSProp ((a :*: b) p) where
   gFromJSProp f r = do
@@ -206,12 +206,12 @@ instance (GFromJSProp (a p), GFromJSProp (b p)) => GFromJSProp ((a :*: b) p) whe
       Nothing -> return Nothing
       Just a' -> fmap (a':*:) <$> gFromJSProp f r
 
-instance forall c a p . (Selector c, GFromJSRef (a p)) => GFromJSProp (M1 S c a p) where
+instance forall c a p . (Selector c, GFromJSVal (a p)) => GFromJSProp (M1 S c a p) where
   gFromJSProp f o = do
     p <- OI.getProp (packJSS . f $ selName (undefined :: M1 S c a p)) (OI.Object o)
     if isUndefined p
       then return Nothing
-      else fmap M1 <$> gFromJSRef f False p
+      else fmap M1 <$> gFromJSVal f False p
 
 instance (GFromJSArr (a p), GFromJSArr (b p)) => GFromJSArr ((a :*: b) p) where
   gFromJSArr f r n = do
@@ -223,36 +223,36 @@ instance (GFromJSArr (a p), GFromJSArr (b p)) => GFromJSArr ((a :*: b) p) where
           Just (b',bn) -> return (Just (a' :*: b',bn))
           _            -> return Nothing
 
-instance (GFromJSRef (a p)) => GFromJSArr (M1 S c a p) where
+instance (GFromJSVal (a p)) => GFromJSArr (M1 S c a p) where
   gFromJSArr f o n = do
     r <- AI.read n o
     if isUndefined r
       then return Nothing
-      else fmap ((,n+1) . M1) <$> gFromJSRef f False r
+      else fmap ((,n+1) . M1) <$> gFromJSVal f False r
 
-instance GFromJSRef (V1 p) where
-  gFromJSRef _ _ _ = return Nothing
+instance GFromJSVal (V1 p) where
+  gFromJSVal _ _ _ = return Nothing
 
-instance GFromJSRef (U1 p) where
-  gFromJSRef _ _ _ = return (Just U1)
+instance GFromJSVal (U1 p) where
+  gFromJSVal _ _ _ = return (Just U1)
 
-fromJSRef_generic :: forall a . (Generic a, GFromJSRef (Rep a ()))
-                => (String -> String) -> JSRef -> IO (Maybe a)
-fromJSRef_generic f x = fmap to <$> (gFromJSRef f False x :: IO (Maybe (Rep a ())))
+fromJSVal_generic :: forall a . (Generic a, GFromJSVal (Rep a ()))
+                => (String -> String) -> JSVal -> IO (Maybe a)
+fromJSVal_generic f x = fmap to <$> (gFromJSVal f False x :: IO (Maybe (Rep a ())))
 
 -- -----------------------------------------------------------------------------
 
-fromJSRef_pure :: PFromJSRef a => JSRef -> IO (Maybe a)
-fromJSRef_pure x = return (Just (pFromJSRef x))
-{-# INLINE fromJSRef_pure #-}
+fromJSVal_pure :: PFromJSVal a => JSVal -> IO (Maybe a)
+fromJSVal_pure x = return (Just (pFromJSVal x))
+{-# INLINE fromJSVal_pure #-}
 
-fromJSRefUnchecked_pure :: PFromJSRef a => JSRef -> IO a
-fromJSRefUnchecked_pure x = return (pFromJSRef x)
-{-# INLINE fromJSRefUnchecked_pure #-}
+fromJSValUnchecked_pure :: PFromJSVal a => JSVal -> IO a
+fromJSValUnchecked_pure x = return (pFromJSVal x)
+{-# INLINE fromJSValUnchecked_pure #-}
 
-toJSRef_pure :: PToJSRef a => a -> IO JSRef
-toJSRef_pure x = return (pToJSRef x)
-{-# INLINE toJSRef_pure #-}
+toJSVal_pure :: PToJSVal a => a -> IO JSVal
+toJSVal_pure x = return (pToJSVal x)
+{-# INLINE toJSVal_pure #-}
 
 -- -----------------------------------------------------------------------------
 

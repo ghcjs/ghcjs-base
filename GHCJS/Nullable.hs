@@ -3,17 +3,17 @@ module GHCJS.Nullable ( Nullable(..)
                       , maybeToNullable
                       ) where
 
-import GHCJS.Prim (JSRef(..))
-import GHCJS.Marshal.Pure (PToJSRef(..), PFromJSRef(..))
+import GHCJS.Prim (JSVal(..))
+import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))
 
-newtype Nullable a = Nullable JSRef
+newtype Nullable a = Nullable JSVal
 
-nullableToMaybe :: PFromJSRef a => Nullable a -> Maybe a
-nullableToMaybe (Nullable r) = pFromJSRef r
+nullableToMaybe :: PFromJSVal a => Nullable a -> Maybe a
+nullableToMaybe (Nullable r) = pFromJSVal r
 {-# INLINE nullableToMaybe #-}
 
-maybeToNullable :: PToJSRef a => Maybe a -> Nullable a
-maybeToNullable = Nullable . pToJSRef
+maybeToNullable :: PToJSVal a => Maybe a -> Nullable a
+maybeToNullable = Nullable . pToJSVal
 {-# INLINE maybeToNullable #-}
 
 

@@ -508,29 +508,29 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
   "new Int8Array($1)"
-  js_int8ArrayFromJSRef         :: JSRef -> SomeInt8Array m
+  js_int8ArrayFromJSVal         :: JSVal -> SomeInt8Array m
 foreign import javascript unsafe
   "new Int16Array($1)"
-  js_int16ArrayFromJSRef        :: JSRef -> SomeInt16Array m
+  js_int16ArrayFromJSVal        :: JSVal -> SomeInt16Array m
 foreign import javascript unsafe
   "new Int32Array($1)"
-  js_int32ArrayFromJSRef        :: JSRef -> SomeInt32Array m
+  js_int32ArrayFromJSVal        :: JSVal -> SomeInt32Array m
 foreign import javascript unsafe
   "new Uint8ClampedArray($1)"
-  js_uint8ClampedArrayFromJSRef :: JSRef -> SomeUint8ClampedArray m
+  js_uint8ClampedArrayFromJSVal :: JSVal -> SomeUint8ClampedArray m
 foreign import javascript unsafe
   "new Uint8Array($1)"
-  js_uint8ArrayFromJSRef        :: JSRef -> SomeUint8Array m
+  js_uint8ArrayFromJSVal        :: JSVal -> SomeUint8Array m
 foreign import javascript unsafe
   "new Uint16Array($1)"
-  js_uint16ArrayFromJSRef       :: JSRef -> SomeUint16Array m
+  js_uint16ArrayFromJSVal       :: JSVal -> SomeUint16Array m
 foreign import javascript unsafe
   "new Uint32Array($1)"
-  js_uint32ArrayFromJSRef       :: JSRef -> SomeUint32Array m
+  js_uint32ArrayFromJSVal       :: JSVal -> SomeUint32Array m
 foreign import javascript unsafe
   "new Float32Array($1)"
-  js_float32ArrayFromJSRef      :: JSRef -> SomeFloat32Array m
+  js_float32ArrayFromJSVal      :: JSVal -> SomeFloat32Array m
 foreign import javascript unsafe
   "new Float64Array($1)"
-  js_float64ArrayFromJSRef      :: JSRef -> SomeFloat64Array m
+  js_float64ArrayFromJSVal      :: JSVal -> SomeFloat64Array m
 

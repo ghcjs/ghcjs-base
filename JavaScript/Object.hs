@@ -40,23 +40,23 @@ listProps (Object o) = I.listProps o
      handling code prevents some optimizations in some JS engines, you may want
      to use unsafeGetProp instead
  -}
-getProp :: JSString -> Object -> IO (JSRef a)
+getProp :: JSString -> Object -> IO (JSVal a)
 getProp p (Object o) = I.getProp p o
 {-# INLINE getProp #-}
 
-unsafeGetProp :: JSString -> Object -> IO (JSRef a)
+unsafeGetProp :: JSString -> Object -> IO (JSVal a)
 unsafeGetProp p (Object o) = I.unsafeGetProp p o
 {-# INLINE unsafeGetProp #-}
 
-setProp :: JSString -> JSRef a -> Object -> IO ()
+setProp :: JSString -> JSVal a -> Object -> IO ()
 setProp p v (Object o) = I.setProp p v o
 {-# INLINE setProp #-}
 
-unsafeSetProp :: JSString -> JSRef a -> Object -> IO ()
+unsafeSetProp :: JSString -> JSVal a -> Object -> IO ()
 unsafeSetProp p v (Object o) = I.unsafeSetProp p v o
 {-# INLINE unsafeSetProp #-}
 
-isInstanceOf :: Object -> JSRef a -> Bool
+isInstanceOf :: Object -> JSVal a -> Bool
 isInstanceOf (Object o) s = I.isInstanceOf o s
 {-# INLINE isInstanceOf #-}
 -}
@@ -64,15 +64,15 @@ isInstanceOf (Object o) s = I.isInstanceOf o s
 -- -----------------------------------------------------------------------------
 {-
 foreign import javascript safe   "$2[$1]"
-  js_getProp       :: JSString -> JSRef a -> IO (JSRef b)
+  js_getProp       :: JSString -> JSVal a -> IO (JSVal b)
 foreign import javascript unsafe "$2[$1]"
-  js_unsafeGetProp :: JSString -> JSRef a -> IO (JSRef b)
+  js_unsafeGetProp :: JSString -> JSVal a -> IO (JSVal b)
 foreign import javascript safe   "$3[$1] = $2"
-  js_setProp       :: JSString -> JSRef a -> JSRef b -> IO ()
+  js_setProp       :: JSString -> JSVal a -> JSVal b -> IO ()
 foreign import javascript unsafe "$3[$1] = $2"
-  js_unsafeSetProp :: JSString -> JSRef a -> JSRef b -> IO ()
+  js_unsafeSetProp :: JSString -> JSVal a -> JSVal b -> IO ()
 foreign import javascript unsafe "$1 instanceof $2"
-  js_isInstanceOf  :: Object -> JSRef a -> Bool
+  js_isInstanceOf  :: Object -> JSVal a -> Bool
 foreign import javascript unsafe  "h$allProps"
   js_allProps      :: Object -> IO (JSArray JSString)
 foreign import javascript unsafe  "h$listProps"

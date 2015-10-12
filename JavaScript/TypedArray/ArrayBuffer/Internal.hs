@@ -23,26 +23,26 @@ import GHC.Exts (State#)
 import Data.Typeable
 
 newtype SomeArrayBuffer (a :: MutabilityType s) =
-  SomeArrayBuffer JSRef deriving Typeable
-instance IsJSRef (SomeArrayBuffer m)
+  SomeArrayBuffer JSVal deriving Typeable
+instance IsJSVal (SomeArrayBuffer m)
 
 type ArrayBuffer           = SomeArrayBuffer Immutable
 type MutableArrayBuffer    = SomeArrayBuffer Mutable
 type STArrayBuffer s       = SomeArrayBuffer (STMutable s)
 
-instance PToJSRef MutableArrayBuffer where
-  pToJSRef (SomeArrayBuffer b) = b
-instance PFromJSRef MutableArrayBuffer where
-  pFromJSRef = SomeArrayBuffer
+instance PToJSVal MutableArrayBuffer where
+  pToJSVal (SomeArrayBuffer b) = b
+instance PFromJSVal MutableArrayBuffer where
+  pFromJSVal = SomeArrayBuffer
 
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
   "$1.byteLength" js_byteLength :: SomeArrayBuffer any -> Int
 foreign import javascript unsafe
-  "new ArrayBuffer($1)" js_create :: Int -> State# s -> (# State# s, JSRef #)
+  "new ArrayBuffer($1)" js_create :: Int -> State# s -> (# State# s, JSVal #)
 foreign import javascript unsafe
-  "$2.slice($1)" js_slice1 :: Int -> JSRef -> State# s -> (# State# s, JSRef #)
+  "$2.slice($1)" js_slice1 :: Int -> JSVal -> State# s -> (# State# s, JSVal #)
 
 -- ----------------------------------------------------------------------------
 -- immutable non-IO slice

@@ -5,9 +5,9 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI #-}
 
-module GHCJS.Types ( JSRef
-                   , IsJSRef
-                   , jsref
+module GHCJS.Types ( JSVal
+                   , IsJSVal
+                   , jsval
                    , isNull
                    , isUndefined
                    , nullRef
@@ -16,6 +16,7 @@ module GHCJS.Types ( JSRef
                    , Ref#
                    , toPtr
                    , fromPtr
+                   , JSRef
                    ) where
 
 import Data.JSString.Internal.Type (JSString)
@@ -33,28 +34,34 @@ import Unsafe.Coerce
 
 type Ref# = ByteArray#
 
-mkRef :: ByteArray# -> JSRef
-mkRef x = JSRef x
+mkRef :: ByteArray# -> JSVal
+mkRef x = JSVal x
 
-nullRef :: JSRef
+nullRef :: JSVal
 nullRef = js_nullRef
 {-# INLINE nullRef #-}
 
-toPtr :: JSRef -> Ptr a
-toPtr (JSRef x) = unsafeCoerce (Ptr' x 0#)
+toPtr :: JSVal -> Ptr a
+toPtr (JSVal x) = unsafeCoerce (Ptr' x 0#)
 {-# INLINE toPtr #-}
 
-fromPtr :: Ptr a -> JSRef
+fromPtr :: Ptr a -> JSVal
 fromPtr p = js_ptrVal p
 {-# INLINE fromPtr #-}
 
 data Ptr' a = Ptr' ByteArray# Int#
 
 foreign import javascript unsafe "$r = null;"
-  js_nullRef :: JSRef
+  js_nullRef :: JSVal
 
 foreign import javascript unsafe "$r = $1_1;"
-  js_ptrVal  :: Ptr a -> JSRef
+  js_ptrVal  :: Ptr a -> JSVal
 
 foreign import javascript unsafe "$r1 = $1; $r2 = 0;"
-  js_mkPtr :: JSRef -> Ptr a
+  js_mkPtr :: JSVal -> Ptr a
+
+-- | This is a deprecated copmatibility wrapper for the old JSRef type.
+--
+-- See https://github.com/ghcjs/ghcjs/issues/421
+type JSRef a = JSVal
+{-# DEPRECATED JSRef "Use JSVal instead, or a more specific newtype wrapper of JSVal " #-}

@@ -86,7 +86,7 @@ instance Exception JSONException
 
 -- any JSON value
 newtype SomeValue (m :: MutabilityType s) =
-  SomeValue JSRef deriving (Typeable)
+  SomeValue JSVal deriving (Typeable)
 type Value        = SomeValue Immutable
 type MutableValue = SomeValue Mutable
 instance NFData (SomeValue (m :: MutabilityType s)) where
@@ -94,7 +94,7 @@ instance NFData (SomeValue (m :: MutabilityType s)) where
 
 -- a dictionary (object)
 newtype SomeObject (m :: MutabilityType s) =
-  SomeObject JSRef deriving (Typeable)
+  SomeObject JSVal deriving (Typeable)
 type Object        = SomeObject Immutable
 type MutableObject = SomeObject Mutable
 instance NFData (SomeObject (m :: MutabilityType s)) where
@@ -181,9 +181,9 @@ match :: SomeValue m -> SomeValue' m
 match (SomeValue v) =
   case F.jsonTypeOf v of
     F.JSONNull    -> Null
-    F.JSONBool    -> Bool   (js_jsrefToBool v)
-    F.JSONInteger -> Number (js_jsrefToDouble v)
-    F.JSONFloat   -> Number (js_jsrefToDouble v)
+    F.JSONBool    -> Bool   (js_jsvalToBool v)
+    F.JSONInteger -> Number (js_jsvalToDouble v)
+    F.JSONFloat   -> Number (js_jsvalToDouble v)
     F.JSONString  -> String (JSString v)
     F.JSONArray   -> Array  (AI.SomeJSArray v)
     F.JSONObject  -> Object (SomeObject v)
@@ -234,7 +234,7 @@ stringValue (JSString x) = SomeValue x
 {-# INLINE stringValue #-}
 
 doubleValue :: Double -> Value
-doubleValue d = SomeValue (js_doubleToJSRef d)
+doubleValue d = SomeValue (js_doubleToJSVal d)
 {-# INLINE doubleValue #-}
 
 boolValue :: Bool -> Value
@@ -279,29 +279,29 @@ foreign import javascript unsafe
 -- types must be checked before using these conversions
 
 foreign import javascript unsafe
-  "$r = $1;" js_jsrefToDouble :: JSRef -> Double
+  "$r = $1;" js_jsvalToDouble :: JSVal -> Double
 foreign import javascript unsafe
-  "$r = $1;" js_jsrefToBool   :: JSRef -> Bool
+  "$r = $1;" js_jsvalToBool   :: JSVal -> Bool
 
 -- -----------------------------------------------------------------------------
 -- various lookups
 
 foreign import javascript unsafe
   "$2[$1]"
-  js_lookupDictPure :: JSString -> Object -> JSRef
+  js_lookupDictPure :: JSString -> Object -> JSVal
 
 foreign import javascript unsafe
   "typeof($2)==='object'?$2[$1]:undefined"
-  js_lookupDictPureSafe :: JSString -> Value -> JSRef
+  js_lookupDictPureSafe :: JSString -> Value -> JSVal
 
 foreign import javascript unsafe
-  "$2[$1]" js_lookupArrayPure :: Int -> A.JSArray -> JSRef
+  "$2[$1]" js_lookupArrayPure :: Int -> A.JSArray -> JSVal
 foreign import javascript unsafe
   "h$isArray($2) ? $2[$1] : undefined"
-  js_lookupArrayPureSafe :: Int -> Value -> JSRef
+  js_lookupArrayPureSafe :: Int -> Value -> JSVal
 foreign import javascript unsafe
   "$r = $1;"
-  js_doubleToJSRef :: Double -> JSRef
+  js_doubleToJSVal :: Double -> JSVal
 
 foreign import javascript unsafe
   "JSON.decode(JSON.encode($1))"

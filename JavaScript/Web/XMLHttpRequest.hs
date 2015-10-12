@@ -99,7 +99,7 @@ instance Functor Response where fmap f r = r { contents = fmap f (contents r) }
 
 class ResponseType a where
     getResponseTypeString :: Proxy a  -> JSString
-    wrapResponseType      :: JSRef -> a
+    wrapResponseType      :: JSVal -> a
 
 instance ResponseType ArrayBuffer where
   getResponseTypeString _ = "arraybuffer"
@@ -117,9 +117,9 @@ instance m ~ Immutable => ResponseType (SomeValue m) where
   getResponseTypeString _ = "json"
   wrapResponseType        = SomeValue
 
-newtype JSFormData = JSFormData JSRef deriving (Typeable)
+newtype JSFormData = JSFormData JSVal deriving (Typeable)
 
-newtype XHR = XHR JSRef deriving (Typeable)
+newtype XHR = XHR JSVal deriving (Typeable)
 
 -- -----------------------------------------------------------------------------
 -- main entry point
@@ -139,14 +139,14 @@ xhr req = js_createXHR >>= \x ->
           NoData                            ->
             js_send0 x
           StringData str                    ->
-            js_send1 (pToJSRef str) x
+            js_send1 (pToJSVal str) x
           TypedArrayData (SomeTypedArray t) ->
             js_send1 t x
           FormData xs                       -> do
             fd@(JSFormData fd') <- js_createFormData
             forM_ xs $ \(name, val) -> case val of
               StringVal str               ->
-                js_appendFormData2 name (pToJSRef str) fd
+                js_appendFormData2 name (pToJSVal str) fd
               BlobVal (SomeBlob b) mbFile ->
                 appendFormData name b mbFile fd
               FileVal (SomeBlob b) mbFile ->
@@ -167,7 +167,7 @@ xhr req = js_createXHR >>= \x ->
           2 -> throwIO (XHRError "some error")
   in doRequest `onException` js_abort x
 
-appendFormData :: JSString -> JSRef
+appendFormData :: JSString -> JSVal
                -> Maybe JSString -> JSFormData -> IO ()
 appendFormData name val Nothing         fd =
   js_appendFormData2 name val fd
@@ -217,16 +217,16 @@ foreign import javascript unsafe
   js_createFormData :: IO JSFormData
 foreign import javascript unsafe
   "$3.append($1,$2)"
-  js_appendFormData2 :: JSString -> JSRef -> JSFormData -> IO ()
+  js_appendFormData2 :: JSString -> JSVal -> JSFormData -> IO ()
 foreign import javascript unsafe
   "$4.append($1,$2,$3)"
-  js_appendFormData3 :: JSString -> JSRef -> JSString -> JSFormData -> IO ()
+  js_appendFormData3 :: JSString -> JSVal -> JSString -> JSFormData -> IO ()
 foreign import javascript unsafe
   "$1.status"
   js_getStatus :: XHR -> IO Int
 foreign import javascript unsafe
   "$1.response"
-  js_getResponse :: XHR -> IO JSRef
+  js_getResponse :: XHR -> IO JSVal
 foreign import javascript unsafe
   "$1.response ? true : false"
   js_hasResponse :: XHR -> IO Bool
@@ -235,7 +235,7 @@ foreign import javascript unsafe
   js_getAllResponseHeaders :: XHR -> IO JSString
 foreign import javascript unsafe
   "$2.getResponseHeader($1)"
-  js_getResponseHeader :: JSString -> XHR -> IO JSRef
+  js_getResponseHeader :: JSString -> XHR -> IO JSVal
 
 -- -----------------------------------------------------------------------------
 
@@ -244,4 +244,4 @@ foreign import javascript interruptible
   js_send0 :: XHR -> IO Int
 foreign import javascript interruptible
   "h$sendXHR($2, $1, $c);"
-  js_send1 :: JSRef -> XHR -> IO Int
+  js_send1 :: JSVal -> XHR -> IO Int
