@@ -2,7 +2,7 @@ module JavaScript.TypedArray
     ( TypedArray(..)
     , Int8Array, Int16Array, Int32Array
     , Uint8Array, Uint16Array, Uint32Array
-    , Uint8ClampedArray
+    , Uint8ClampedArray, Float32Array, Float64Array
     , length
     , byteLength
     , byteOffset
