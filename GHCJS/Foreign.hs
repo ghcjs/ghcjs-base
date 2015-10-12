@@ -3,18 +3,18 @@
 {-# LANGUAGE DefaultSignatures #-}
 {- | Basic interop between Haskell and JavaScript.
 
-     The principal type here is 'JSRef', which is a lifted type that contains
-     a JavaScript reference. The 'JSRef' type is parameterized with one phantom
+     The principal type here is 'JSVal', which is a lifted type that contains
+     a JavaScript reference. The 'JSVal' type is parameterized with one phantom
      type, and GHCJS.Types defines several type synonyms for specific variants.
 
-     The code in this module makes no assumptions about 'JSRef a' types.
+     The code in this module makes no assumptions about 'JSVal a' types.
      Operations that can result in a JS exception that can kill a Haskell thread
-     are marked unsafe (for example if the 'JSRef' contains a null or undefined
+     are marked unsafe (for example if the 'JSVal' contains a null or undefined
      value). There are safe variants where the JS exception is propagated as
      a Haskell exception, so that it can be handled on the Haskell side.
 
      For more specific types, like 'JSArray' or 'JSBool', the code assumes that
-     the contents of the 'JSRef' actually is a JavaScript array or bool value.
+     the contents of the 'JSVal' actually is a JavaScript array or bool value.
      If it contains an unexpected value, the code can result in exceptions that
      kill the Haskell thread, even for functions not marked unsafe.
 
@@ -70,7 +70,7 @@ module GHCJS.Foreign ( jsTrue
                      , jsTypeOf, JSType(..)
                      , jsonTypeOf, JSONType(..)
 {-                     , wrapBuffer, wrapMutableBuffer
-                     , byteArrayJSRef, mutableByteArrayJSRef
+                     , byteArrayJSVal, mutableByteArrayJSVal
                      , bufferByteString, byteArrayByteString
                      , unsafeMutableByteArrayByteString -}
                      ) where
@@ -88,14 +88,14 @@ import qualified Data.Text as T
 class ToJSString a where
   toJSString :: a -> JSString
 
---  toJSString = ptoJSRef
+--  toJSString = ptoJSVal
 
 
 class FromJSString a where
   fromJSString :: JSString -> a
 
---  default PFromJSRef
---  fromJSString = pfromJSRef
+--  default PFromJSVal
+--  fromJSString = pfromJSVal
 --  {-# INLINE fromJSString #-}
 {-
 instance ToJSString   [Char]
@@ -114,8 +114,8 @@ instance FromJSString JSString
      o is not a JS object or the property cannot be accessed
  -}
 getProp :: ToJSString a => a            -- ^ the property name
-                        -> JSRef b      -- ^ the object
-                        -> IO (JSRef c) -- ^ the property value
+                        -> JSVal b      -- ^ the object
+                        -> IO (JSVal c) -- ^ the property value
 getProp p o = js_getProp (toJSString p) o
 {-# INLINE getProp #-}
 
@@ -123,8 +123,8 @@ getProp p o = js_getProp (toJSString p) o
      if o is not a JS object or the property cannot be accessed
  -}
 unsafeGetProp :: ToJSString a => a             -- ^ the property name
-                              -> JSRef b       -- ^ the object
-                              -> IO (JSRef c)  -- ^ the property value, Nothing if the object doesn't have a property with the given name
+                              -> JSVal b       -- ^ the object
+                              -> IO (JSVal c)  -- ^ the property value, Nothing if the object doesn't have a property with the given name
 unsafeGetProp p o = js_unsafeGetProp (toJSString p) o
 {-# INLINE unsafeGetProp #-}
 
@@ -132,8 +132,8 @@ unsafeGetProp p o = js_unsafeGetProp (toJSString p) o
      o is not a JS object or the property cannot be accessed
  -}
 getPropMaybe :: ToJSString a => a                    -- ^ the property name
-                             -> JSRef b              -- ^ the object
-                             -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
+                             -> JSVal b              -- ^ the object
+                             -> IO (Maybe (JSVal c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
 getPropMaybe p o = do
   p' <- js_getProp (toJSString p) o
   if isUndefined p' then return Nothing else return (Just p')
@@ -143,8 +143,8 @@ getPropMaybe p o = do
      if o is not a JS object or the property cannot be accessed
  -}
 unsafeGetPropMaybe :: ToJSString a => a                    -- ^ the property name
-                                   -> JSRef b              -- ^ the object
-                                   -> IO (Maybe (JSRef c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
+                                   -> JSVal b              -- ^ the object
+                                   -> IO (Maybe (JSVal c)) -- ^ the property value, Nothing if the object doesn't have a property with the given name
 unsafeGetPropMaybe p o = do
   p' <- js_unsafeGetProp (toJSString p) o
   if isUndefined p' then return Nothing else return (Just p')
@@ -155,8 +155,8 @@ unsafeGetPropMaybe p o = do
      be set
  -}
 setProp :: ToJSString a => a       -- ^ the property name
-                        -> JSRef b -- ^ the value
-                        -> JSRef c -- ^ the object
+                        -> JSVal b -- ^ the value
+                        -> JSVal c -- ^ the object
                         -> IO ()
 setProp p v o = js_setProp (toJSString p) v o
 {-# INLINE setProp #-}
@@ -165,8 +165,8 @@ setProp p v o = js_setProp (toJSString p) v o
      if the property cannot be set.
 -}
 unsafeSetProp :: ToJSString a => a       -- ^ the property name
-                              -> JSRef b -- ^ the value
-                              -> JSRef c -- ^ the object
+                              -> JSVal b -- ^ the value
+                              -> JSVal c -- ^ the object
                               -> IO ()
 unsafeSetProp p v o = js_unsafeSetProp (toJSString p) v o
 

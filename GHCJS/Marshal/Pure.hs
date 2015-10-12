@@ -19,8 +19,8 @@
 {-
   experimental pure marshalling for lighter weight interaction in the quasiquoter
  -}
-module GHCJS.Marshal.Pure ( PFromJSRef(..)
-                          , PToJSRef(..)
+module GHCJS.Marshal.Pure ( PFromJSVal(..)
+                          , PToJSVal(..)
                           ) where
 
 import           Data.Char (chr, ord)
@@ -56,99 +56,99 @@ type family IsPureExclusive a where
   IsPureExclusive PureShared    = True
   -}
 
-instance PFromJSRef JSRef where pFromJSRef = id
-                                {-# INLINE pFromJSRef #-}
-instance PFromJSRef ()    where pFromJSRef _ = ()
-                                {-# INLINE pFromJSRef #-}
+instance PFromJSVal JSVal where pFromJSVal = id
+                                {-# INLINE pFromJSVal #-}
+instance PFromJSVal ()    where pFromJSVal _ = ()
+                                {-# INLINE pFromJSVal #-}
 
-instance PFromJSRef JSString where pFromJSRef = JSString
-                                   {-# INLINE pFromJSRef #-}
-instance PFromJSRef [Char] where pFromJSRef   = Prim.fromJSString
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Text   where pFromJSRef   = textFromJSRef
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Char   where pFromJSRef x = C# (jsrefToChar x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Bool   where pFromJSRef   = isTruthy
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Int    where pFromJSRef x = I# (jsrefToInt x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Int8   where pFromJSRef x = I8# (jsrefToInt8 x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Int16  where pFromJSRef x = I16# (jsrefToInt16 x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Int32  where pFromJSRef x = I32# (jsrefToInt x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Word   where pFromJSRef x = W# (jsrefToWord x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Word8  where pFromJSRef x = W8# (jsrefToWord8 x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Word16 where pFromJSRef x = W16# (jsrefToWord16 x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Word32 where pFromJSRef x = W32# (jsrefToWord x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Float  where pFromJSRef x = F# (jsrefToFloat x)
-                                 {-# INLINE pFromJSRef #-}
-instance PFromJSRef Double where pFromJSRef x = D# (jsrefToDouble x)
-                                 {-# INLINE pFromJSRef #-}
+instance PFromJSVal JSString where pFromJSVal = JSString
+                                   {-# INLINE pFromJSVal #-}
+instance PFromJSVal [Char] where pFromJSVal   = Prim.fromJSString
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Text   where pFromJSVal   = textFromJSVal
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Char   where pFromJSVal x = C# (jsvalToChar x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Bool   where pFromJSVal   = isTruthy
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Int    where pFromJSVal x = I# (jsvalToInt x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Int8   where pFromJSVal x = I8# (jsvalToInt8 x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Int16  where pFromJSVal x = I16# (jsvalToInt16 x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Int32  where pFromJSVal x = I32# (jsvalToInt x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Word   where pFromJSVal x = W# (jsvalToWord x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Word8  where pFromJSVal x = W8# (jsvalToWord8 x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Word16 where pFromJSVal x = W16# (jsvalToWord16 x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Word32 where pFromJSVal x = W32# (jsvalToWord x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Float  where pFromJSVal x = F# (jsvalToFloat x)
+                                 {-# INLINE pFromJSVal #-}
+instance PFromJSVal Double where pFromJSVal x = D# (jsvalToDouble x)
+                                 {-# INLINE pFromJSVal #-}
 
-instance PFromJSRef a => PFromJSRef (Maybe a) where
-    pFromJSRef x | isUndefined x || isNull x = Nothing
-    pFromJSRef x = Just (pFromJSRef x)
-    {-# INLINE pFromJSRef #-}
+instance PFromJSVal a => PFromJSVal (Maybe a) where
+    pFromJSVal x | isUndefined x || isNull x = Nothing
+    pFromJSVal x = Just (pFromJSVal x)
+    {-# INLINE pFromJSVal #-}
 
-instance PToJSRef JSRef     where pToJSRef = id
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef JSString  where pToJSRef          = jsref
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef [Char]    where pToJSRef          = Prim.toJSString
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Text      where pToJSRef          = jsref . textToJSString
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Char      where pToJSRef (C# c)   = charToJSRef c
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Bool      where pToJSRef True     = jsTrue
-                                  pToJSRef False    = jsFalse
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Int       where pToJSRef (I# x)   = intToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Int8      where pToJSRef (I8# x)  = intToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Int16     where pToJSRef (I16# x) = intToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Int32     where pToJSRef (I32# x) = intToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Word      where pToJSRef (W# x)   = wordToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Word8     where pToJSRef (W8# x)  = wordToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Word16    where pToJSRef (W16# x) = wordToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Word32    where pToJSRef (W32# x) = wordToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Float     where pToJSRef (F# x)   = floatToJSRef x
-                                  {-# INLINE pToJSRef #-}
-instance PToJSRef Double    where pToJSRef (D# x)   = doubleToJSRef x
-                                  {-# INLINE pToJSRef #-}
+instance PToJSVal JSVal     where pToJSVal = id
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal JSString  where pToJSVal          = jsval
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal [Char]    where pToJSVal          = Prim.toJSString
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Text      where pToJSVal          = jsval . textToJSString
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Char      where pToJSVal (C# c)   = charToJSVal c
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Bool      where pToJSVal True     = jsTrue
+                                  pToJSVal False    = jsFalse
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Int       where pToJSVal (I# x)   = intToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Int8      where pToJSVal (I8# x)  = intToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Int16     where pToJSVal (I16# x) = intToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Int32     where pToJSVal (I32# x) = intToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Word      where pToJSVal (W# x)   = wordToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Word8     where pToJSVal (W8# x)  = wordToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Word16    where pToJSVal (W16# x) = wordToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Word32    where pToJSVal (W32# x) = wordToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Float     where pToJSVal (F# x)   = floatToJSVal x
+                                  {-# INLINE pToJSVal #-}
+instance PToJSVal Double    where pToJSVal (D# x)   = doubleToJSVal x
+                                  {-# INLINE pToJSVal #-}
 
-instance PToJSRef a => PToJSRef (Maybe a) where
-    pToJSRef Nothing  = jsNull
-    pToJSRef (Just a) = pToJSRef a
-    {-# INLINE pToJSRef #-}
+instance PToJSVal a => PToJSVal (Maybe a) where
+    pToJSVal Nothing  = jsNull
+    pToJSVal (Just a) = pToJSVal a
+    {-# INLINE pToJSVal #-}
 
-foreign import javascript unsafe "$r = $1|0;"          jsrefToWord   :: JSRef -> Word#
-foreign import javascript unsafe "$r = $1&0xff;"       jsrefToWord8  :: JSRef -> Word#
-foreign import javascript unsafe "$r = $1&0xffff;"     jsrefToWord16 :: JSRef -> Word#
-foreign import javascript unsafe "$r = $1|0;"          jsrefToInt    :: JSRef -> Int#
-foreign import javascript unsafe "$r = $1<<24>>24;"    jsrefToInt8   :: JSRef -> Int#
-foreign import javascript unsafe "$r = $1<<16>>16;"    jsrefToInt16  :: JSRef -> Int#
-foreign import javascript unsafe "$r = +$1;"           jsrefToFloat  :: JSRef -> Float#
-foreign import javascript unsafe "$r = +$1;"           jsrefToDouble :: JSRef -> Double#
-foreign import javascript unsafe "$r = $1&0x7fffffff;" jsrefToChar   :: JSRef -> Char#
+foreign import javascript unsafe "$r = $1|0;"          jsvalToWord   :: JSVal -> Word#
+foreign import javascript unsafe "$r = $1&0xff;"       jsvalToWord8  :: JSVal -> Word#
+foreign import javascript unsafe "$r = $1&0xffff;"     jsvalToWord16 :: JSVal -> Word#
+foreign import javascript unsafe "$r = $1|0;"          jsvalToInt    :: JSVal -> Int#
+foreign import javascript unsafe "$r = $1<<24>>24;"    jsvalToInt8   :: JSVal -> Int#
+foreign import javascript unsafe "$r = $1<<16>>16;"    jsvalToInt16  :: JSVal -> Int#
+foreign import javascript unsafe "$r = +$1;"           jsvalToFloat  :: JSVal -> Float#
+foreign import javascript unsafe "$r = +$1;"           jsvalToDouble :: JSVal -> Double#
+foreign import javascript unsafe "$r = $1&0x7fffffff;" jsvalToChar   :: JSVal -> Char#
 
-foreign import javascript unsafe "$r = $1;" wordToJSRef   :: Word#   -> JSRef
-foreign import javascript unsafe "$r = $1;" intToJSRef    :: Int#    -> JSRef
-foreign import javascript unsafe "$r = $1;" doubleToJSRef :: Double# -> JSRef
-foreign import javascript unsafe "$r = $1;" floatToJSRef  :: Float#  -> JSRef
-foreign import javascript unsafe "$r = $1;" charToJSRef   :: Char#   -> JSRef
+foreign import javascript unsafe "$r = $1;" wordToJSVal   :: Word#   -> JSVal
+foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
+foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
+foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
+foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
 

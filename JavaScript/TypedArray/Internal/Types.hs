@@ -13,11 +13,11 @@ import Data.Typeable
 import Data.Word
 
 newtype SomeTypedArray (e :: TypedArrayElem) (m :: MutabilityType s) =
-  SomeTypedArray JSRef deriving Typeable
-instance IsJSRef (SomeTypedArray e m)
+  SomeTypedArray JSVal deriving Typeable
+instance IsJSVal (SomeTypedArray e m)
 
 {-
-newtype SomeSTTypedArray s e = SomeSTTypedArray JSRef
+newtype SomeSTTypedArray s e = SomeSTTypedArray JSVal
   deriving (Typeable)
 -}
 

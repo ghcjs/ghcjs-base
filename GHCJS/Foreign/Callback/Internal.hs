@@ -7,6 +7,6 @@ import GHCJS.Marshal.Internal
 
 import Data.Typeable
 
-newtype Callback a = Callback JSRef deriving Typeable
-instance IsJSRef (Callback a)
+newtype Callback a = Callback JSVal deriving Typeable
+instance IsJSVal (Callback a)
 

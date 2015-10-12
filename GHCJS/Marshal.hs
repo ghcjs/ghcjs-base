@@ -14,10 +14,10 @@
              BangPatterns
   #-}
 
-module GHCJS.Marshal ( FromJSRef(..)
-                     , ToJSRef(..)
-                     , toJSRef_aeson
-                     , toJSRef_pure
+module GHCJS.Marshal ( FromJSVal(..)
+                     , ToJSVal(..)
+                     , toJSVal_aeson
+                     , toJSVal_pure
                      ) where
 
 import           Control.Applicative
@@ -60,242 +60,242 @@ import qualified JavaScript.Object.Internal as OI
 
 import           GHCJS.Marshal.Internal
 
-instance FromJSRef JSRef where
-  fromJSRefUnchecked x = return x
-  {-# INLINE fromJSRefUnchecked #-}
-  fromJSRef = return . Just
-  {-# INLINE fromJSRef #-}
-instance FromJSRef () where
-  fromJSRefUnchecked = fromJSRefUnchecked_pure
-  {-# INLINE fromJSRefUnchecked #-}
-  fromJSRef = fromJSRef_pure
---    {-# INLINE fromJSRef #-}
-instance FromJSRef a => FromJSRef [a] where
-    fromJSRef = fromJSRefListOf
-    {-# INLINE fromJSRef #-}
-instance FromJSRef a => FromJSRef (Maybe a) where
-    fromJSRefUnchecked x | isUndefined x || isNull x = return Nothing
-                         | otherwise = fromJSRef x
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef x | isUndefined x || isNull x = return (Just Nothing)
-                | otherwise = fmap (fmap Just) fromJSRef x
-    {-# INLINE fromJSRef #-}
-instance FromJSRef JSString where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Text where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Char where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-    fromJSRefUncheckedListOf = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefListOf #-}
-    fromJSRefListOf = fromJSRef_pure
-    {-# INLINE fromJSRefUncheckedListOf #-}
-instance FromJSRef Bool where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Int where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Int8 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Int16 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Int32 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Word where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Word8 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Word16 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Word32 where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Float where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef Double where
-    fromJSRefUnchecked = fromJSRefUnchecked_pure
-    {-# INLINE fromJSRefUnchecked #-}
-    fromJSRef = fromJSRef_pure
-    {-# INLINE fromJSRef #-}
-instance FromJSRef AE.Value where
-    fromJSRef r = case jsonTypeOf r of
+instance FromJSVal JSVal where
+  fromJSValUnchecked x = return x
+  {-# INLINE fromJSValUnchecked #-}
+  fromJSVal = return . Just
+  {-# INLINE fromJSVal #-}
+instance FromJSVal () where
+  fromJSValUnchecked = fromJSValUnchecked_pure
+  {-# INLINE fromJSValUnchecked #-}
+  fromJSVal = fromJSVal_pure
+--    {-# INLINE fromJSVal #-}
+instance FromJSVal a => FromJSVal [a] where
+    fromJSVal = fromJSValListOf
+    {-# INLINE fromJSVal #-}
+instance FromJSVal a => FromJSVal (Maybe a) where
+    fromJSValUnchecked x | isUndefined x || isNull x = return Nothing
+                         | otherwise = fromJSVal x
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal x | isUndefined x || isNull x = return (Just Nothing)
+                | otherwise = fmap (fmap Just) fromJSVal x
+    {-# INLINE fromJSVal #-}
+instance FromJSVal JSString where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Text where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Char where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+    fromJSValUncheckedListOf = fromJSValUnchecked_pure
+    {-# INLINE fromJSValListOf #-}
+    fromJSValListOf = fromJSVal_pure
+    {-# INLINE fromJSValUncheckedListOf #-}
+instance FromJSVal Bool where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Int where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Int8 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Int16 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Int32 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Word where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Word8 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Word16 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Word32 where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Float where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal Double where
+    fromJSValUnchecked = fromJSValUnchecked_pure
+    {-# INLINE fromJSValUnchecked #-}
+    fromJSVal = fromJSVal_pure
+    {-# INLINE fromJSVal #-}
+instance FromJSVal AE.Value where
+    fromJSVal r = case jsonTypeOf r of
             JSONNull    -> return (Just AE.Null)
             JSONInteger -> liftM (AE.Number . flip scientific 0 . (toInteger :: Int -> Integer))
-                 <$> fromJSRef r
+                 <$> fromJSVal r
             JSONFloat   -> liftM (AE.Number . (fromFloatDigits :: Double -> Scientific))
-                 <$> fromJSRef r
-            JSONBool    -> liftM AE.Bool  <$> fromJSRef r
-            JSONString  -> liftM AE.String <$> fromJSRef r
-            JSONArray   -> liftM (AE.Array . V.fromList) <$> fromJSRef r
+                 <$> fromJSVal r
+            JSONBool    -> liftM AE.Bool  <$> fromJSVal r
+            JSONString  -> liftM AE.String <$> fromJSVal r
+            JSONArray   -> liftM (AE.Array . V.fromList) <$> fromJSVal r
             JSONObject  -> do
                 props <- OI.listProps (OI.Object r)
                 runMaybeT $ do
                     propVals <- forM props $ \p -> do
-                        v <- MaybeT (fromJSRef =<< OI.getProp p (OI.Object r))
+                        v <- MaybeT (fromJSVal =<< OI.getProp p (OI.Object r))
                         return (JSS.textFromJSString p, v)
                     return (AE.Object (H.fromList propVals))
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b) => FromJSRef (a,b) where
-    fromJSRef r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c) => FromJSRef (a,b,c) where
-    fromJSRef r = runMaybeT $ (,,) <$> jf r 0 <*> jf r 1 <*> jf r 2
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d) => FromJSRef (a,b,c,d) where
-    fromJSRef r = runMaybeT $ (,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e) => FromJSRef (a,b,c,d,e) where
-    fromJSRef r = runMaybeT $ (,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f) => FromJSRef (a,b,c,d,e,f) where
-    fromJSRef r = runMaybeT $ (,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f, FromJSRef g) => FromJSRef (a,b,c,d,e,f,g) where
-    fromJSRef r = runMaybeT $ (,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6
-    {-# INLINE fromJSRef #-}
-instance (FromJSRef a, FromJSRef b, FromJSRef c, FromJSRef d, FromJSRef e, FromJSRef f, FromJSRef g, FromJSRef h) => FromJSRef (a,b,c,d,e,f,g,h) where
-    fromJSRef r = runMaybeT $ (,,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6 <*> jf r 7
-    {-# INLINE fromJSRef #-}
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b) => FromJSVal (a,b) where
+    fromJSVal r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c) => FromJSVal (a,b,c) where
+    fromJSVal r = runMaybeT $ (,,) <$> jf r 0 <*> jf r 1 <*> jf r 2
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c, FromJSVal d) => FromJSVal (a,b,c,d) where
+    fromJSVal r = runMaybeT $ (,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c, FromJSVal d, FromJSVal e) => FromJSVal (a,b,c,d,e) where
+    fromJSVal r = runMaybeT $ (,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c, FromJSVal d, FromJSVal e, FromJSVal f) => FromJSVal (a,b,c,d,e,f) where
+    fromJSVal r = runMaybeT $ (,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c, FromJSVal d, FromJSVal e, FromJSVal f, FromJSVal g) => FromJSVal (a,b,c,d,e,f,g) where
+    fromJSVal r = runMaybeT $ (,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6
+    {-# INLINE fromJSVal #-}
+instance (FromJSVal a, FromJSVal b, FromJSVal c, FromJSVal d, FromJSVal e, FromJSVal f, FromJSVal g, FromJSVal h) => FromJSVal (a,b,c,d,e,f,g,h) where
+    fromJSVal r = runMaybeT $ (,,,,,,,) <$> jf r 0 <*> jf r 1 <*> jf r 2 <*> jf r 3 <*> jf r 4 <*> jf r 5 <*> jf r 6 <*> jf r 7
+    {-# INLINE fromJSVal #-}
 
-jf :: FromJSRef a => JSRef -> Int -> MaybeT IO a
+jf :: FromJSVal a => JSVal -> Int -> MaybeT IO a
 jf r n = MaybeT $ do
   r' <- AI.read n (AI.SomeJSArray r)
   if isUndefined r
     then return Nothing
-    else fromJSRef r'
+    else fromJSVal r'
 
-instance ToJSRef JSRef where
-  toJSRef = toJSRef_pure
-  {-# INLINE toJSRef #-}
-instance ToJSRef AE.Value where
-    toJSRef = toJSRef_aeson
-    {-# INLINE toJSRef #-}
-instance ToJSRef JSString where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Text where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Char where
-    toJSRef = return . pToJSRef
-    {-# INLINE toJSRef #-}
-    toJSRefListOf = return . pToJSRef
-    {-# INLINE toJSRefListOf #-}
-instance ToJSRef Bool where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Int where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Int8 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Int16 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Int32 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Word where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Word8 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Word16 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Word32 where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Float where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef Double where
-    toJSRef = toJSRef_pure
-    {-# INLINE toJSRef #-}
-instance ToJSRef a => ToJSRef [a] where
-    toJSRef = toJSRefListOf
-    {-# INLINE toJSRef #-}
-instance ToJSRef a => ToJSRef (Maybe a) where
-    toJSRef Nothing  = return jsNull
-    toJSRef (Just a) = toJSRef a
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b) => ToJSRef (a,b) where
-    toJSRef (a,b) = join $ arr2 <$> toJSRef a <*> toJSRef b
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b, ToJSRef c) => ToJSRef (a,b,c) where
-    toJSRef (a,b,c) = join $ arr3 <$> toJSRef a <*> toJSRef b <*> toJSRef c
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d) => ToJSRef (a,b,c,d) where
-    toJSRef (a,b,c,d) = join $ arr4 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e) => ToJSRef (a,b,c,d,e) where
-    toJSRef (a,b,c,d,e) = join $ arr5 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e, ToJSRef f) => ToJSRef (a,b,c,d,e,f) where
-    toJSRef (a,b,c,d,e,f) = join $ arr6 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e <*> toJSRef f
-    {-# INLINE toJSRef #-}
-instance (ToJSRef a, ToJSRef b, ToJSRef c, ToJSRef d, ToJSRef e, ToJSRef f, ToJSRef g) => ToJSRef (a,b,c,d,e,f,g) where
-    toJSRef (a,b,c,d,e,f,g) = join $ arr7 <$> toJSRef a <*> toJSRef b <*> toJSRef c <*> toJSRef d <*> toJSRef e <*> toJSRef f <*> toJSRef g
-    {-# INLINE toJSRef #-}
+instance ToJSVal JSVal where
+  toJSVal = toJSVal_pure
+  {-# INLINE toJSVal #-}
+instance ToJSVal AE.Value where
+    toJSVal = toJSVal_aeson
+    {-# INLINE toJSVal #-}
+instance ToJSVal JSString where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Text where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Char where
+    toJSVal = return . pToJSVal
+    {-# INLINE toJSVal #-}
+    toJSValListOf = return . pToJSVal
+    {-# INLINE toJSValListOf #-}
+instance ToJSVal Bool where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Int where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Int8 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Int16 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Int32 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Word where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Word8 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Word16 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Word32 where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Float where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal Double where
+    toJSVal = toJSVal_pure
+    {-# INLINE toJSVal #-}
+instance ToJSVal a => ToJSVal [a] where
+    toJSVal = toJSValListOf
+    {-# INLINE toJSVal #-}
+instance ToJSVal a => ToJSVal (Maybe a) where
+    toJSVal Nothing  = return jsNull
+    toJSVal (Just a) = toJSVal a
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b) => ToJSVal (a,b) where
+    toJSVal (a,b) = join $ arr2 <$> toJSVal a <*> toJSVal b
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b, ToJSVal c) => ToJSVal (a,b,c) where
+    toJSVal (a,b,c) = join $ arr3 <$> toJSVal a <*> toJSVal b <*> toJSVal c
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d) => ToJSVal (a,b,c,d) where
+    toJSVal (a,b,c,d) = join $ arr4 <$> toJSVal a <*> toJSVal b <*> toJSVal c <*> toJSVal d
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d, ToJSVal e) => ToJSVal (a,b,c,d,e) where
+    toJSVal (a,b,c,d,e) = join $ arr5 <$> toJSVal a <*> toJSVal b <*> toJSVal c <*> toJSVal d <*> toJSVal e
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d, ToJSVal e, ToJSVal f) => ToJSVal (a,b,c,d,e,f) where
+    toJSVal (a,b,c,d,e,f) = join $ arr6 <$> toJSVal a <*> toJSVal b <*> toJSVal c <*> toJSVal d <*> toJSVal e <*> toJSVal f
+    {-# INLINE toJSVal #-}
+instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d, ToJSVal e, ToJSVal f, ToJSVal g) => ToJSVal (a,b,c,d,e,f,g) where
+    toJSVal (a,b,c,d,e,f,g) = join $ arr7 <$> toJSVal a <*> toJSVal b <*> toJSVal c <*> toJSVal d <*> toJSVal e <*> toJSVal f <*> toJSVal g
+    {-# INLINE toJSVal #-}
 
-foreign import javascript unsafe "[$1]"                   arr1     :: JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2]"                arr2     :: JSRef -> JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2,$3]"             arr3     :: JSRef -> JSRef -> JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2,$3,$4]"          arr4     :: JSRef -> JSRef -> JSRef -> JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> IO JSRef
-foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> JSRef -> IO JSRef
+foreign import javascript unsafe "[$1]"                   arr1     :: JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2]"                arr2     :: JSVal -> JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2,$3]"             arr3     :: JSVal -> JSVal -> JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2,$3,$4]"          arr4     :: JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2,$3,$4,$5]"       arr5     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6]"    arr6     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
+foreign import javascript unsafe "[$1,$2,$3,$4,$5,$6,$7]" arr7     :: JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal
 
-toJSRef_aeson :: AE.ToJSON a => a -> IO JSRef
-toJSRef_aeson x = cv (AE.toJSON x)
+toJSVal_aeson :: AE.ToJSON a => a -> IO JSVal
+toJSVal_aeson x = cv (AE.toJSON x)
   where
     cv = convertValue
 
-    convertValue :: AE.Value -> IO JSRef
+    convertValue :: AE.Value -> IO JSVal
     convertValue AE.Null       = return jsNull
-    convertValue (AE.String t) = return (pToJSRef t)
+    convertValue (AE.String t) = return (pToJSVal t)
     convertValue (AE.Array a)  = (\(AI.SomeJSArray x) -> x) <$>
                                  (AI.fromListIO =<< mapM convertValue (V.toList a))
-    convertValue (AE.Number n) = toJSRef (realToFrac n :: Double)
+    convertValue (AE.Number n) = toJSVal (realToFrac n :: Double)
     convertValue (AE.Bool b)   = return (toJSBool b)
     convertValue (AE.Object o) = do
       obj@(OI.Object obj') <- OI.create

@@ -31,7 +31,7 @@ import qualified GHC.Exts as Exts
 
 import GHCJS.Prim
 
-type Export a = JSRef
+type Export a = JSVal
 
 {- |
      Export any Haskell value to a JavaScript reference without evaluating it.
@@ -82,10 +82,10 @@ foreign import javascript unsafe
   js_export :: Word64 -> Word64 -> Any -> IO (Export a)
 foreign import javascript unsafe
   "h$derefExport"
-  js_derefExport :: Word64 -> Word64 -> JSRef -> IO JSRef
+  js_derefExport :: Word64 -> Word64 -> JSVal -> IO JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_toHeapObject :: JSRef -> Exts.Any
+  "$r = $1;" js_toHeapObject :: JSVal -> Exts.Any
 
 foreign import javascript unsafe
   "h$releaseExport"
-  js_releaseExport :: JSRef -> IO ()
+  js_releaseExport :: JSVal -> IO ()

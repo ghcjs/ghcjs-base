@@ -25,7 +25,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.JSString
 import Data.Typeable
 
-newtype RegExp = RegExp JSRef deriving Typeable
+newtype RegExp = RegExp JSVal deriving Typeable
 
 data REFlags = REFlags { multiline  :: !Bool
                        , ignoreCase :: !Bool

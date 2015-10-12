@@ -6,5 +6,5 @@ import GHCJS.Types
 
 import Data.Typeable
 
-newtype CloseEvent = CloseEvent JSRef deriving Typeable
+newtype CloseEvent = CloseEvent JSVal deriving Typeable
 

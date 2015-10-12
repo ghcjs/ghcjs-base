@@ -11,18 +11,18 @@ module JavaScript.Web.Canvas.Internal ( Canvas(..)
 
 import GHCJS.Types
 
-newtype Canvas      = Canvas      JSRef
-newtype Context     = Context     JSRef
-newtype Gradient    = Gradient    JSRef
-newtype Image       = Image       JSRef
-newtype ImageData   = ImageData   JSRef
-newtype Pattern     = Pattern     JSRef
-newtype TextMetrics = TextMetrics JSRef
+newtype Canvas      = Canvas      JSVal
+newtype Context     = Context     JSVal
+newtype Gradient    = Gradient    JSVal
+newtype Image       = Image       JSVal
+newtype ImageData   = ImageData   JSVal
+newtype Pattern     = Pattern     JSVal
+newtype TextMetrics = TextMetrics JSVal
 
-instance IsJSRef Canvas
-instance IsJSRef Context
-instance IsJSRef Gradient
-instance IsJSRef Image
-instance IsJSRef ImageData
-instance IsJSRef Pattern
-instance IsJSRef TextMetrics
+instance IsJSVal Canvas
+instance IsJSVal Context
+instance IsJSVal Gradient
+instance IsJSVal Image
+instance IsJSVal ImageData
+instance IsJSVal Pattern
+instance IsJSVal TextMetrics

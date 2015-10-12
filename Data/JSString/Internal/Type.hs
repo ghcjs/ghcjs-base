@@ -36,13 +36,13 @@ import Data.Int                       (Int32, Int64)
 import Data.Typeable                  (Typeable)
 import GHC.Exts                       (Char(..), ord#, andI#, (/=#), isTrue#)
 
-import GHCJS.Prim (JSRef)
+import GHCJS.Prim (JSVal)
 
 import GHCJS.Internal.Types
 
 -- | A wrapper around a JavaScript string
-newtype JSString = JSString JSRef
-instance IsJSRef JSString
+newtype JSString = JSString JSVal
+instance IsJSVal JSString
 
 instance NFData JSString where rnf !x = ()
 

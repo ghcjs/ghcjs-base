@@ -107,11 +107,11 @@ data Repeat = Repeat
             | NoRepeat
             deriving (Eq, Ord, Show, Enum, Data, Typeable)
 
-unsafeToCanvas :: JSRef -> Canvas
+unsafeToCanvas :: JSVal -> Canvas
 unsafeToCanvas r = Canvas r
 {-# INLINE unsafeToCanvas #-}
 
-toCanvas :: JSRef -> Maybe Canvas
+toCanvas :: JSVal -> Maybe Canvas
 toCanvas x = error "toCanvas" -- fixme
 {-# INLINE toCanvas #-}
 
@@ -282,7 +282,7 @@ font f ctx = js_font f ctx
 measureText :: JSString -> Context -> IO Double
 measureText t ctx = js_measureText t ctx
                     >>= O.getProp "width"
-                    >>= liftM fromJust . fromJSRef
+                    >>= liftM fromJust . fromJSVal
 {-# INLINE measureText #-}
 
 fillRect :: Double -> Double -> Double -> Double -> Context -> IO ()
