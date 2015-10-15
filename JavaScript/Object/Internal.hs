@@ -88,4 +88,4 @@ foreign import javascript unsafe "$1 instanceof $2"
 foreign import javascript unsafe  "h$allProps"
   js_allProps      :: Object -> IO JSArray
 foreign import javascript unsafe  "h$listProps"
-  js_listProps     :: Object -> Exts.Any -- [JSString]
+  js_listProps     :: Object -> IO Exts.Any -- [JSString]
