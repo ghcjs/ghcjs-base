@@ -26,8 +26,8 @@
  -}
 
 module GHCJS.Concurrent ( isThreadSynchronous
-                        , isContinueAsync
-                        , OnBlock (..)
+                        , isThreadContinueAsync
+                        , OnBlocked(..)
                         , WouldBlockException(..)
                         , synchronously
                         ) where
@@ -47,9 +47,17 @@ import           Data.Typeable
 
 import           Unsafe.Coerce
 
-data OnBlock = ContinueAsync
-             | ThrowWouldBlock
-             deriving (Data, Typeable, Enum, Show, Eq, Ord)
+{- |
+     The runtime tries to run synchronous threads to completion. Sometimes it's
+     not possible to continue running a thread, for example when the thread
+     tries to take an empty 'MVar'. The runtime can then either throw a
+     'WouldBlockException', aborting the blocking action, or continue the
+     thread asynchronously.
+ -}
+
+data OnBlocked = ContinueAsync -- ^ continue the thread asynchronously if blocked
+               | ThrowWouldBlock -- ^ throw 'WouldBlockException' if blocked
+               deriving (Data, Typeable, Enum, Show, Eq, Ord)
 
 {- |
      Runs the action synchronously, which means that the thread will not
@@ -80,8 +88,8 @@ isThreadSynchronous = fmap (`testBit` 0) . syncThreadState
      Returns whether the 'ThreadId' will continue running async. Always
      returns 'True' when the thread is not synchronous.
  -}
-isContinueAsync :: ThreadId -> IO Bool
-isContinueAsync = fmap (`testBit` 1) . syncThreadState
+isThreadContinueAsync :: ThreadId -> IO Bool
+isThreadContinueAsync = fmap (`testBit` 1) . syncThreadState
 
 syncThreadState :: ThreadId-> IO Int
 syncThreadState (ThreadId tid) = js_syncThreadState tid
