@@ -7,11 +7,14 @@ module GHCJS.Foreign.Callback
     , asyncCallback
     , asyncCallback1
     , asyncCallback2
+    , asyncCallback3
     , syncCallback
     , syncCallback1
     , syncCallback2
+    , syncCallback3
     ) where
 
+import           GHCJS.Concurrent
 import           GHCJS.Marshal
 import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
@@ -23,17 +26,6 @@ import qualified GHC.Exts as Exts
 import           Data.Typeable
 
 import           Unsafe.Coerce
-
-{- |
-     The runtime tries to run synchronous threads to completion. Sometimes it's
-     not possible to continue running a thread, for example when the thread
-     tries to take an empty 'MVar'. The runtime can then either throw a
-     'WouldBlockException', aborting the blocking action, or continue the
-     thread asynchronously.
- -}
-data OnBlocked = ContinueAsync   -- ^ continue the thread asynchronously if blocked
-               | ThrowWouldBlock -- ^ throw 'WouldBlockException' if blocked
-               deriving (Show, Eq, Enum, Typeable)
 
 {- |
      When you create a callback, the Haskell runtime stores a reference to
@@ -84,6 +76,19 @@ syncCallback2 :: OnBlocked                               -- ^ what to do when th
               -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 syncCallback2 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 2 (unsafeCoerce x)
 
+{- | Make a callback (JavaScript function) that runs the supplied IO function in a synchronous
+     thread when called. The callback takes three arguments that it passes as JSVal values to
+     the Haskell function.
+
+     Call 'releaseCallback' when done with the callback, freeing data referenced
+     by the function.
+ -}
+syncCallback3 :: OnBlocked                               -- ^ what to do when the thread blocks
+              -> (JSVal -> JSVal -> JSVal -> IO ())               -- ^ the Haskell function
+              -> IO (Callback (JSVal -> JSVal -> JSVal -> IO ())) -- ^ the callback
+syncCallback3 onBlocked x = js_syncCallbackApply (onBlocked == ContinueAsync) 3 (unsafeCoerce x)
+
+
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in an asynchronous
      thread when called.
@@ -102,6 +107,10 @@ asyncCallback1 x = js_asyncCallbackApply 1 (unsafeCoerce x)
 asyncCallback2 :: (JSVal -> JSVal -> IO ())            -- ^ the Haskell function that the callback calls
                -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 asyncCallback2 x = js_asyncCallbackApply 2 (unsafeCoerce x)
+
+asyncCallback3 :: (JSVal -> JSVal -> JSVal -> IO ())               -- ^ the Haskell function that the callback calls
+               -> IO (Callback (JSVal -> JSVal -> JSVal -> IO ())) -- ^ the callback
+asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 
 -- ----------------------------------------------------------------------------
 
