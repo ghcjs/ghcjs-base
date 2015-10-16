@@ -19,6 +19,7 @@ library
                    jsbits/foreign.js
                    jsbits/text.js
                    jsbits/utils.js
+                   jsbits/xhr.js
   other-extensions: DeriveDataTypeable
                     DeriveGeneric
                     ForeignFunctionInterface
