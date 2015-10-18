@@ -88,11 +88,7 @@ library
                    JavaScript.Object.Internal
                    JavaScript.RegExp
                    JavaScript.TypedArray
-                   JavaScript.TypedArray.ArrayBuffer
-                   JavaScript.TypedArray.ArrayBuffer.ST
-                   JavaScript.TypedArray.DataView
-                   JavaScript.TypedArray.DataView.ST
-                   JavaScript.TypedArray.Internal
+                   JavaScript.TypedArray.IO
                    JavaScript.TypedArray.ST
                    JavaScript.Web.AnimationFrame
                    JavaScript.Web.Blob
@@ -117,9 +113,8 @@ library
                    JavaScript.Web.Worker
   other-modules:   GHCJS.Internal.Types
                    Data.JSString.Internal.Type
-                   JavaScript.TypedArray.Internal.Types
-                   JavaScript.TypedArray.ArrayBuffer.Internal
-                   JavaScript.TypedArray.DataView.Internal
+                   JavaScript.TypedArray.Internal
+                   JavaScript.TypedArray.Types
   build-depends:   base                 >= 4.7  && < 5,
                    ghc-prim,
                    ghcjs-prim,

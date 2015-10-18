@@ -16,7 +16,7 @@ import Data.Typeable
 import JavaScript.Web.MessageEvent.Internal
 
 import JavaScript.Web.Blob.Internal (Blob, SomeBlob(..))
-import JavaScript.TypedArray.ArrayBuffer.Internal (ArrayBuffer, SomeArrayBuffer(..))
+import JavaScript.TypedArray
 import Data.JSString.Internal.Type (JSString(..))
 
 
