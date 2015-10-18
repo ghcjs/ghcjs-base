@@ -38,3 +38,13 @@ function h$listToArray(xs) {
 function h$listToArrayWrap(xs) {
     return MK_JSVAL(h$listToArray(xs));
 }
+
+
+function h$fromListPrim(xs) {
+    var arr = [];
+    while(IS_CONS(xs)) {
+        arr.push(CONS_HEAD(xs));
+        xs = CONS_TAIL(xs);
+    }
+    return arr;
+}

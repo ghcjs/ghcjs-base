@@ -52,10 +52,9 @@ import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Internal as BS
 import Data.Primitive.ByteArray
 
-import qualified JavaScript.TypedArray.Internal.Types as I
-import           JavaScript.TypedArray.ArrayBuffer.Internal (SomeArrayBuffer)
-import           JavaScript.TypedArray.DataView.Internal    (SomeDataView)
-import qualified JavaScript.TypedArray.Internal as I
+import JavaScript.TypedArray
+    hiding (fromByteArrayPrim, toByteArrayPrim, fromMutableByteArrayPrim, toMutableByteArrayPrim
+           , toByteArray, fromByteArray)
 
 import GHC.ForeignPtr
 
@@ -72,23 +71,23 @@ getArrayBuffer :: SomeBuffer any -> SomeArrayBuffer any
 getArrayBuffer buf = js_getArrayBuffer buf
 {-# INLINE getArrayBuffer #-}
 
-getInt32Array :: SomeBuffer any -> I.SomeInt32Array any
+getInt32Array :: SomeBuffer any -> SomeTypedArray any Int32
 getInt32Array buf = js_getInt32Array buf
 {-# INLINE getInt32Array #-}
 
-getUint8Array :: SomeBuffer any -> I.SomeUint8Array any
+getUint8Array :: SomeBuffer any -> SomeTypedArray any Word8
 getUint8Array buf = js_getUint8Array buf
 {-# INLINE getUint8Array #-}
 
-getUint16Array :: SomeBuffer any -> I.SomeUint16Array any
+getUint16Array :: SomeBuffer any -> SomeTypedArray any Word16
 getUint16Array buf = js_getUint16Array buf
 {-# INLINE getUint16Array #-}
 
-getFloat32Array :: SomeBuffer any -> I.SomeFloat32Array any
+getFloat32Array :: SomeBuffer any -> SomeTypedArray any Float
 getFloat32Array buf = js_getFloat32Array buf
 {-# INLINE getFloat32Array #-}
 
-getFloat64Array :: SomeBuffer any -> I.SomeFloat64Array any
+getFloat64Array :: SomeBuffer any -> SomeTypedArray any Double
 getFloat64Array buf = js_getFloat64Array buf
 {-# INLINE getFloat64Array #-}
 
@@ -180,9 +179,11 @@ unsafeToPtr :: Buffer -> Ptr a
 unsafeToPtr buf = Ptr (js_toAddr buf)
 {-# INLINE unsafeToPtr #-}
 
-byteLength :: SomeBuffer any -> Int
-byteLength buf = js_byteLength buf
-{-# INLINE byteLength #-}
+instance ArrayBufferData (SomeBuffer m) where
+    {-# INLINE byteLength #-}
+    byteLength = js_byteLength
+    {-# INLINE sliceImmutable #-}
+    sliceImmutable = undefined
 
 -- ----------------------------------------------------------------------------
 
@@ -198,15 +199,15 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.buf" js_getArrayBuffer    :: SomeBuffer any -> SomeArrayBuffer any
 foreign import javascript unsafe
-  "$1.i3" js_getInt32Array      :: SomeBuffer any -> I.SomeInt32Array any
+  "$1.i3" js_getInt32Array      :: SomeBuffer any -> SomeTypedArray any Int32
 foreign import javascript unsafe
-  "$1.u8" js_getUint8Array      :: SomeBuffer any -> I.SomeUint8Array  any
+  "$1.u8" js_getUint8Array      :: SomeBuffer any -> SomeTypedArray any Word8
 foreign import javascript unsafe
-  "$1.u1" js_getUint16Array     :: SomeBuffer any -> I.SomeUint16Array any
+  "$1.u1" js_getUint16Array     :: SomeBuffer any -> SomeTypedArray any Word16
 foreign import javascript unsafe
-  "$1.f3" js_getFloat32Array    :: SomeBuffer any -> I.SomeFloat32Array  any
+  "$1.f3" js_getFloat32Array    :: SomeBuffer any -> SomeTypedArray any Float
 foreign import javascript unsafe
-  "$1.f6" js_getFloat64Array    :: SomeBuffer any -> I.SomeFloat64Array any
+  "$1.f6" js_getFloat64Array    :: SomeBuffer any -> SomeTypedArray any Double
 foreign import javascript unsafe
   "$1.dv" js_getDataView        :: SomeBuffer any -> SomeDataView any
 
@@ -214,9 +215,9 @@ foreign import javascript unsafe
 -- these things have the same representation (modulo boxing),
 -- conversion is free
 
-foreign import javascript unsafe  
+foreign import javascript unsafe
   "$r = $1;" js_toByteArray          :: SomeBuffer any      -> ByteArray#
-foreign import javascript unsafe  
+foreign import javascript unsafe
   "$r = $1;" js_fromByteArray        :: ByteArray#          -> JSVal
 foreign import javascript unsafe
   "$r = $1;" js_fromMutableByteArray :: MutableByteArray# s -> JSVal

@@ -43,9 +43,7 @@ import           Data.JSString.Text (textFromJSString)
 import qualified Data.JSString as JSS
 
 import JavaScript.JSON.Types.Internal ( SomeValue(..) )
-import JavaScript.TypedArray.Internal.Types ( SomeTypedArray(..) )
-import JavaScript.TypedArray.ArrayBuffer ( ArrayBuffer(..) )
-import JavaScript.TypedArray.ArrayBuffer.Internal ( SomeArrayBuffer(..) )
+import JavaScript.TypedArray
 
 import JavaScript.Web.Blob
 import JavaScript.Web.Blob.Internal
@@ -57,7 +55,7 @@ data Method = GET | POST | PUT | DELETE
 
 data XHRError = XHRError String
               | XHRAborted
-              deriving (Generic, Data, Typeable, Show, Eq) 
+              deriving (Generic, Data, Typeable, Show, Eq)
 
 instance Exception XHRError
 
@@ -85,7 +83,7 @@ data Request = Request { reqMethod          :: Method
 
 data RequestData = NoData
                  | StringData     JSString
-                 | TypedArrayData (forall e. SomeTypedArray e Immutable)
+                 | TypedArrayData (forall e. SomeTypedArray Immutable e)
                  | FormData       [(JSString, FormDataVal)]
   deriving (Typeable)
 
