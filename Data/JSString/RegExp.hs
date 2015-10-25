@@ -38,9 +38,11 @@ data Match = Match { matched       :: !JSString  -- ^ the matched string
                    }
 
 create :: REFlags -> JSString -> RegExp
-create flags pat = js_createRE (multiline flags)
-                               (ignoreCase flags)
-                               pat
+create flags pat = js_createRE pat $ pack $
+    if multiline  flags then "m" else ""
+    ++
+    if ignoreCase flags then "i" else ""
+{-# INLINE create #-}
 
 pattern :: RegExp -> JSString
 pattern re = js_pattern re
@@ -50,8 +52,6 @@ isMultiline re = js_isMultiline re
 
 isIgnoreCase :: RegExp -> Bool
 isIgnoreCase re = js_isIgnoreCase re
-
-{-# INLINE create #-}
 
 test :: JSString -> RegExp -> Bool
 test x re = js_test x re
@@ -93,7 +93,7 @@ splitN (I# k) x r = unsafeCoerce (js_split k x r)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "new RegExp($1,$2,$3)" js_createRE :: Bool -> Bool -> JSString -> RegExp
+  "new RegExp($1,$2)" js_createRE :: JSString -> JSString -> RegExp
 foreign import javascript unsafe
   "$2.test($1)" js_test :: JSString -> RegExp -> Bool
 foreign import javascript unsafe
