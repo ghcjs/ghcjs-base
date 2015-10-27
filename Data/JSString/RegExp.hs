@@ -3,6 +3,7 @@
 {-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE UnliftedFFITypes #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MagicHash #-}
 
 module Data.JSString.RegExp ( RegExp
@@ -38,10 +39,10 @@ data Match = Match { matched       :: !JSString  -- ^ the matched string
                    }
 
 create :: REFlags -> JSString -> RegExp
-create flags pat = js_createRE pat $ pack $
-    if multiline  flags then "m" else ""
-    ++
-    if ignoreCase flags then "i" else ""
+create flags pat = js_createRE pat flags'
+  where
+    flags' | multiline flags = if ignoreCase flags then "mi" else "m"
+           | otherwise       = if ignoreCase flags then "i"  else ""
 {-# INLINE create #-}
 
 pattern :: RegExp -> JSString
