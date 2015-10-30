@@ -6,6 +6,8 @@
 {-# LANGUAGE JavaScriptFFI #-}
 
 module GHCJS.Types ( JSVal
+                   , WouldBlockException(..)
+                   , JSException(..)
                    , IsJSVal
                    , jsval
                    , isNull
