@@ -4,6 +4,7 @@
   #-}
 
 module JavaScript.Web.MessageEvent ( MessageEvent
+                                   , getData
                                    , MessageEventData(..)
                                    ) where
 
