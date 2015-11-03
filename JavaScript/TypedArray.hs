@@ -44,6 +44,7 @@ import Data.Word
 import Data.Int
 import Data.Coerce
 import Data.Primitive.ByteArray (ByteArray (..))
+import Data.JSString (unpack')
 import Foreign.C.Types
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -86,7 +87,7 @@ unsafeDataView' byteOffset mbyteLength (SomeArrayBuffer b) =
 -----------------------------------------------------------------------------
 
 instance Show (SomeTypedArray m t) where
-    show = show . js_show
+    show = unpack' . js_show
 
 
 
