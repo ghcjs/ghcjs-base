@@ -7,7 +7,7 @@
 function h$fromArray(a) {
     var r = HS_NIL;
     for(var i=a.length-1;i>=0;i--) r = MK_CONS(MK_JSVAL(a[i]), r);
-    return a;
+    return r;
 }
 
 /*
@@ -19,7 +19,7 @@ function h$fromArray(a) {
 function h$fromArrayNoWrap(a) {
     var r = HS_NIL;
     for(var i=a.length-1;i>=0;i--) r = MK_CONS(a[i], r);
-    return a;
+    return r;
 }
 
 /*
