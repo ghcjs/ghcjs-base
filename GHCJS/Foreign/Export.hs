@@ -6,7 +6,6 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE CPP #-}
 
 {- | 
      Dynamically export Haskell values to JavaScript
@@ -30,8 +29,10 @@ import Unsafe.Coerce
 import qualified GHC.Exts as Exts
 
 import GHCJS.Prim
+import GHCJS.Types
 
-type Export a = JSVal
+newtype Export a = Export JSVal
+instance IsJSVal (Export a)
 
 {- |
      Export any Haskell value to a JavaScript reference without evaluating it.
@@ -66,7 +67,7 @@ derefExport e = do
   r <- js_derefExport w1 w2 e
   if isNull r
     then return Nothing
-    else unsafeCoerce (js_toHeapObject r)
+    else Just . unsafeCoerce <$> js_toHeapObject r
 
 {- |
      Release all memory associated with the export. Subsequent calls to
@@ -82,10 +83,9 @@ foreign import javascript unsafe
   js_export :: Word64 -> Word64 -> Any -> IO (Export a)
 foreign import javascript unsafe
   "h$derefExport"
-  js_derefExport :: Word64 -> Word64 -> JSVal -> IO JSVal
+  js_derefExport :: Word64 -> Word64 -> Export a -> IO JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_toHeapObject :: JSVal -> Exts.Any
-
+  "$r = $1;" js_toHeapObject :: JSVal -> IO Any
 foreign import javascript unsafe
   "h$releaseExport"
-  js_releaseExport :: JSVal -> IO ()
+  js_releaseExport :: Export a -> IO ()
