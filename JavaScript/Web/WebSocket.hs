@@ -15,7 +15,9 @@ module JavaScript.Web.WebSocket ( WebSocket
                                 , connect
                                 , close
                                 , send
-                                , getBufferedAmount  
+                                , sendArrayBuffer
+                                , sendBlob
+                                , getBufferedAmount
                                 , getExtensions
                                 , getProtocol
                                 , getReadyState
@@ -44,6 +46,8 @@ import qualified Data.JSString as JSS
 
 import           JavaScript.Array (JSArray)
 import qualified JavaScript.Array as JSA
+import           JavaScript.TypedArray.ArrayBuffer (ArrayBuffer)
+import           JavaScript.Web.Blob (Blob)
 import           JavaScript.Web.MessageEvent
 import           JavaScript.Web.MessageEvent.Internal
 import           JavaScript.Web.CloseEvent
@@ -74,28 +78,22 @@ connect :: WebSocketRequest -> IO WebSocket
 connect req = do
   mcb <- maybeCallback MessageEvent (onMessage req)
   ccb <- maybeCallback CloseEvent   (onClose req)
-  synchronously $ do
+  withoutPreemption $ do
     ws <- case protocols req of
-           []  -> js_createStr (url req) JSS.empty
-           [x] -> js_createStr (url req) x
-           xs  -> js_createArr (url req) (JSA.fromList $ unsafeCoerce xs) -- fixme
+           []  -> js_createDefault (url req)
+           [x] -> js_createStr     (url req) x
     (js_open ws mcb ccb >>= handleOpenErr >> return ws) `onException` js_close 1000 "Haskell Exception" ws
 
 maybeCallback :: (JSVal -> a) -> Maybe (a -> IO ()) -> IO JSVal
 maybeCallback _ Nothing = return jsNull
 maybeCallback f (Just g) = do
-  cb@(Callback cb') <- CB.syncCallback1 CB.ContinueAsync (g . f)
-  CB.releaseCallback cb
-  return cb'
+  Callback cb <- CB.syncCallback1 CB.ContinueAsync (g . f)
+  return cb
 
 handleOpenErr :: JSVal -> IO ()
 handleOpenErr r
   | isNull r  = return ()
   | otherwise = throwIO (userError "WebSocket failed to connect") -- fixme
-
-releaseMessageCallback :: WebSocket -> IO ()
-releaseMessageCallback ws = js_getOnmessage ws >>=
-  \cb -> unless (isNull cb) (CB.releaseCallback $ Callback cb)
 
 {- | close a websocket and release the callbacks -}
 close :: Maybe Int -> Maybe JSString -> WebSocket -> IO ()
@@ -106,6 +104,14 @@ close value reason ws =
 send :: JSString -> WebSocket -> IO ()
 send xs ws = js_send xs ws
 {-# INLINE send #-}
+
+sendBlob :: Blob -> WebSocket -> IO ()
+sendBlob = js_sendBlob
+{-# INLINE sendBlob #-}
+
+sendArrayBuffer :: ArrayBuffer -> WebSocket -> IO ()
+sendArrayBuffer = js_sendArrayBuffer
+{-# INLINE sendArrayBuffer #-}
 
 getBufferedAmount :: WebSocket -> IO Int
 getBufferedAmount ws = js_getBufferedAmount ws
@@ -139,19 +145,25 @@ getLastError ws = do
 
 -- -----------------------------------------------------------------------------
 
-
+foreign import javascript safe
+   "new WebSocket($1)" js_createDefault :: JSString -> IO WebSocket
 foreign import javascript safe
   "new WebSocket($1, $2)" js_createStr :: JSString -> JSString -> IO WebSocket
 foreign import javascript safe
   "new WebSocket($1, $2)" js_createArr :: JSString -> JSArray -> IO WebSocket
-                                          
+
 foreign import javascript interruptible
   "h$openWebSocket($1, $2, $3, $c);"
-  js_open :: WebSocket -> JSVal -> JSVal -> IO JSVal
+  js_open  :: WebSocket -> JSVal -> JSVal -> IO JSVal
 foreign import javascript safe
-  "h$closeWebSocket($1, $2);"    js_close      :: Int -> JSString -> WebSocket -> IO ()
+  "h$closeWebSocket($1, $2, $3);"
+  js_close :: Int -> JSString -> WebSocket -> IO ()
 foreign import javascript unsafe
   "$2.send($1);"          js_send              :: JSString -> WebSocket -> IO ()
+foreign import javascript unsafe
+  "$2.send($1);"          js_sendBlob          :: Blob -> WebSocket -> IO ()
+foreign import javascript unsafe
+  "$2.send($1);"          js_sendArrayBuffer   :: ArrayBuffer -> WebSocket -> IO ()
 foreign import javascript unsafe
   "$1.bufferedAmount"     js_getBufferedAmount :: WebSocket -> IO Int
 foreign import javascript unsafe
@@ -165,16 +177,5 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.binaryType === 'blob' ? 1 : 2"
   js_getBinaryType                             :: WebSocket -> IO Int
-
-foreign import javascript unsafe
-  "$2.onopen = $1;"       js_setOnopen         :: Callback a -> WebSocket -> IO ()
-foreign import javascript unsafe
-  "$2.onclose = $1;"      js_setOnclose        :: Callback a -> WebSocket -> IO ()
-foreign import javascript unsafe
-  "$2.onopen = $1;"       js_setOnerror        :: Callback a -> WebSocket -> IO ()
-foreign import javascript unsafe
-  "$2.onmessage = $1;"    js_setOnmessage      :: Callback a -> WebSocket -> IO ()
-foreign import javascript unsafe
-  "$1.onmessage"          js_getOnmessage      :: WebSocket -> IO JSVal
 foreign import javascript unsafe
   "$1.lastError"          js_getLastError      :: WebSocket -> IO JSVal
