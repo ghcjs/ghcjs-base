@@ -29,6 +29,7 @@ module GHCJS.Concurrent ( isThreadSynchronous
                         , isThreadContinueAsync
                         , OnBlocked(..)
                         , WouldBlockException(..)
+                        , withoutPreemption
                         , synchronously
                         ) where
 
@@ -60,24 +61,38 @@ data OnBlocked = ContinueAsync -- ^ continue the thread asynchronously if blocke
                deriving (Data, Typeable, Enum, Show, Eq, Ord)
 
 {- |
-     Runs the action synchronously, which means that the thread will not
+     Run the action without the scheduler preempting the thread. When a blocking
+     action is encountered, the thread is still suspended and will continue
+     without preemption when it's woken up again.
+
+     When the thread encounters a black hole from another thread, the scheduler
+     will attempt to clear it by temporarily switching to that thread.
+ -}
+
+withoutPreemption :: IO a -> IO a
+withoutPreemption x = Ex.mask $ \restore -> do
+  oldS <- js_setNoPreemption True
+  if oldS
+    then restore x
+    else restore x `Ex.finally` js_setNoPreemption False
+{-# INLINE withoutPreemption #-}
+
+
+{- |
+     Run the action synchronously, which means that the thread will not
      be preempted by the scheduler. If the thread encounters a blocking
-     operation, the scheduler will switch to other threads. When the thread
-     is scheduled again, it will still be non-preemptible.
+     operation, the runtime throws a WouldBlock exception.
 
      When the thread encounters a black hole from another thread, the scheduler
      will attempt to clear it by temporarily switching to that thread.
  -}
 synchronously :: IO a -> IO a
-synchronously x = do
+synchronously x = Ex.mask $ \restore -> do
   oldS <- js_setSynchronous True
   if oldS
-    then x
-    else x `Ex.finally` js_setSynchronous False
+    then restore x
+    else restore x `Ex.finally` js_setSynchronous False
 {-# INLINE synchronously #-}
-
-makeAsynchronous :: ThreadId -> IO ()
-makeAsynchronous (ThreadId tid) = js_makeAsynchronous tid
 
 {- | Returns whether the 'ThreadId' is a synchronous thread
  -}
@@ -91,6 +106,13 @@ isThreadSynchronous = fmap (`testBit` 0) . syncThreadState
 isThreadContinueAsync :: ThreadId -> IO Bool
 isThreadContinueAsync = fmap (`testBit` 1) . syncThreadState
 
+{- |
+     Returns whether the 'ThreadId' is not preemptible. Always
+     returns 'True' when the thread is synchronous.
+ -}
+isThreadNonPreemptible :: ThreadId -> IO Bool
+isThreadNonPreemptible = fmap (`testBit` 2) . syncThreadState
+
 syncThreadState :: ThreadId-> IO Int
 syncThreadState (ThreadId tid) = js_syncThreadState tid
 
@@ -100,10 +122,11 @@ foreign import javascript unsafe "h$syncThreadState($1)"
   js_syncThreadState :: ThreadId# -> IO Int
 
 foreign import javascript unsafe
+  "$r = h$currentThread.noPreemption;\
+  \h$currentThread.noPreemption = $1;"
+  js_setNoPreemption :: Bool -> IO Bool;
+
+foreign import javascript unsafe
   "$r = h$currentThread.isSynchronous;\
   \h$currentThread.isSynchronous = $1;"
   js_setSynchronous :: Bool -> IO Bool
-
-foreign import javascript unsafe
-  "$1.isSynchronous = false;"
-  js_makeAsynchronous :: ThreadId# -> IO ()
