@@ -92,11 +92,6 @@ instance PFromJSVal Float  where pFromJSVal x = F# (jsvalToFloat x)
 instance PFromJSVal Double where pFromJSVal x = D# (jsvalToDouble x)
                                  {-# INLINE pFromJSVal #-}
 
-instance PFromJSVal a => PFromJSVal (Maybe a) where
-    pFromJSVal x | isUndefined x || isNull x = Nothing
-    pFromJSVal x = Just (pFromJSVal x)
-    {-# INLINE pFromJSVal #-}
-
 instance PToJSVal JSVal     where pToJSVal = id
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal JSString  where pToJSVal          = jsval
