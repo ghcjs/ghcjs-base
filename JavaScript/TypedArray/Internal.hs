@@ -129,8 +129,8 @@ foreign import javascript unsafe "new DataView($1.buffer.slice($1.byteOffset, $1
 #define CREATEFUNCTIONS(T , JSName, JSArray, JSSize) \
 foreign import javascript unsafe "new JSArray($1)" js_createM/**/T/**/Array :: Int -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_createM/**/T/**/Array #-};\
 foreign import javascript unsafe "new JSArray($1).fill($2)" js_fillNewM/**/T/**/Array :: Int -> T -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_fillNewM/**/T/**/Array #-};\
-foreign import javascript unsafe "JSArray.from(h$fromListPrim($1))" js_fromListM/**/T/**/Array :: Exts.Any -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_fromListM/**/T/**/Array #-};\
-foreign import javascript unsafe "JSArray.from($1)" js_fromArrayM/**/T/**/Array :: SomeTypedArray m0 t -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_fromArrayM/**/T/**/Array #-};\
+foreign import javascript unsafe "JSArray['from'](h$fromListPrim($1))" js_fromListM/**/T/**/Array :: Exts.Any -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_fromListM/**/T/**/Array #-};\
+foreign import javascript unsafe "JSArray['from']($1)" js_fromArrayM/**/T/**/Array :: SomeTypedArray m0 t -> State# s -> (# State# s, SomeTypedArray m T #); {-# INLINE js_fromArrayM/**/T/**/Array #-};\
 foreign import javascript unsafe "$3[$1] = $2" js_setIndex/**/T/**/Array :: Int -> T -> SomeTypedArray m T -> State# s -> (# State# s, () #); {-# INLINE js_setIndex/**/T/**/Array #-};\
 foreign import javascript unsafe "$3.set(h$fromListPrim($2), $1)" js_setList/**/T/**/Array :: Int -> Exts.Any -> SomeTypedArray m T -> State# s -> (# State# s, () #); {-# INLINE js_setList/**/T/**/Array #-};\
 foreign import javascript unsafe "$3.set($2, $1)" js_setArray/**/T/**/Array :: Int -> SomeTypedArray m0 t -> SomeTypedArray m T -> State# s -> (# State# s, () #); {-# INLINE js_setArray/**/T/**/Array #-};
@@ -259,8 +259,8 @@ CREATECONVERTERS(Word8Clamped,uc,Uint8Clamped,Uint8ClampedArray,1)
 #define JSTYPEDARRAY(T , JSName, JSArray, JSSize) \
 foreign import javascript unsafe "new JSArray($1)" js_create/**/T/**/Array :: Int -> SomeTypedArray m T; {-# INLINE js_create/**/T/**/Array #-};\
 foreign import javascript unsafe "new JSArray($1).fill($2)" js_fillNew/**/T/**/Array :: Int -> T -> SomeTypedArray m T; {-# INLINE js_fillNew/**/T/**/Array #-};\
-foreign import javascript unsafe "JSArray.from(h$fromListPrim($1))" js_fromList/**/T/**/Array :: Exts.Any -> SomeTypedArray m T; {-# INLINE js_fromList/**/T/**/Array #-};\
-foreign import javascript unsafe "JSArray.from($1)" js_fromArray/**/T/**/Array :: SomeTypedArray m0 t -> SomeTypedArray m T; {-# INLINE js_fromArray/**/T/**/Array #-};\
+foreign import javascript unsafe "JSArray['from'](h$fromListPrim($1))" js_fromList/**/T/**/Array :: Exts.Any -> SomeTypedArray m T; {-# INLINE js_fromList/**/T/**/Array #-};\
+foreign import javascript unsafe "JSArray['from']($1)" js_fromArray/**/T/**/Array :: SomeTypedArray m0 t -> SomeTypedArray m T; {-# INLINE js_fromArray/**/T/**/Array #-};\
 foreign import javascript unsafe "new JSArray($1)" js_view/**/T/**/Array :: SomeArrayBuffer m -> SomeTypedArray m T; {-# INLINE js_view/**/T/**/Array #-};\
 foreign import javascript unsafe "$r = $1[$2]" js_index/**/T/**/Array :: SomeTypedArray m T -> Int -> T; {-# INLINE js_index/**/T/**/Array #-};\
 foreign import javascript unsafe "$3.indexOf($2,$1)" js_indexOf/**/T/**/Array :: Int -> T -> SomeTypedArray m T -> Int; {-# INLINE js_indexOf/**/T/**/Array #-};\
