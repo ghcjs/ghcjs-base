@@ -137,7 +137,8 @@ xhr req = js_createXHR >>= \x ->
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
         
         case reqWithCredentials req of
-          True -> js_setWithCredentials x
+          True  -> js_setWithCredentials x
+          False -> return ()
         
         r <- case reqData req of
           NoData                            ->
