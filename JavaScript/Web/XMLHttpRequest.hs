@@ -136,7 +136,7 @@ xhr req = js_createXHR >>= \x ->
           (getResponseTypeString (Proxy :: Proxy a)) x
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
         
-        case reqWithCredentials of
+        case reqWithCredentials req of
           True -> js_setWithCredentials x
         
         r <- case reqData req of
