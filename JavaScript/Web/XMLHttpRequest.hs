@@ -138,7 +138,6 @@ xhr req = js_createXHR >>= \x ->
         
         case reqWithCredentials of
           True -> js_setWithCredentials x
-          False -> return ()
         
         r <- case reqData req of
           NoData                            ->
