@@ -46,7 +46,7 @@ import qualified Data.JSString as JSS
 
 import           JavaScript.Array (JSArray)
 import qualified JavaScript.Array as JSA
-import           JavaScript.TypedArray.ArrayBuffer (ArrayBuffer)
+import           JavaScript.TypedArray (SomeArrayBuffer)
 import           JavaScript.Web.Blob (Blob)
 import           JavaScript.Web.MessageEvent
 import           JavaScript.Web.MessageEvent.Internal
@@ -73,7 +73,7 @@ data ReadyState = Closed | Connecting | Connected
 data BinaryType = Blob | ArrayBuffer
   deriving (Data, Typeable, Enum, Eq, Ord, Show)
 
-{- | create a WebSocket -} 
+{- | create a WebSocket -}
 connect :: WebSocketRequest -> IO WebSocket
 connect req = do
   mcb <- maybeCallback MessageEvent (onMessage req)
@@ -109,7 +109,7 @@ sendBlob :: Blob -> WebSocket -> IO ()
 sendBlob = js_sendBlob
 {-# INLINE sendBlob #-}
 
-sendArrayBuffer :: ArrayBuffer -> WebSocket -> IO ()
+sendArrayBuffer :: SomeArrayBuffer m -> WebSocket -> IO ()
 sendArrayBuffer = js_sendArrayBuffer
 {-# INLINE sendArrayBuffer #-}
 
@@ -163,7 +163,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$2.send($1);"          js_sendBlob          :: Blob -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$2.send($1);"          js_sendArrayBuffer   :: ArrayBuffer -> WebSocket -> IO ()
+  "$2.send($1);"          js_sendArrayBuffer   :: SomeArrayBuffer m -> WebSocket -> IO ()
 foreign import javascript unsafe
   "$1.bufferedAmount"     js_getBufferedAmount :: WebSocket -> IO Int
 foreign import javascript unsafe
