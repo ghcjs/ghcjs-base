@@ -389,9 +389,9 @@ foreign import javascript unsafe "$2.lineCap = $1"
   js_lineCap :: JSString -> Context -> IO ()
 foreign import javascript unsafe "$2.miterLimit = $1"
   js_miterLimit :: Double -> Context -> IO ()
-foreign import javascript unsafe "h$ghcjs_setLineDash($1,$2)"
+foreign import javascript unsafe "$2.setLineDash($1)"
   js_setLineDash :: JSArray -> Context -> IO ()
-foreign import javascript unsafe "h$ghcjs_lineDashOffset($1,$2)"
+foreign import javascript unsafe "$2.lineDashOffset = $1"
   js_lineDashOffset :: Double -> Context -> IO ()
 foreign import javascript unsafe "$2.font = $1"
   js_font :: JSString -> Context -> IO ()

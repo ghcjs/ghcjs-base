@@ -20,6 +20,7 @@ library
                    jsbits/text.js
                    jsbits/utils.js
                    jsbits/xhr.js
+                   jsbits/websocket.js
   other-extensions: DeriveDataTypeable
                     DeriveGeneric
                     ForeignFunctionInterface
@@ -102,6 +103,8 @@ library
                    JavaScript.Web.ErrorEvent
                    JavaScript.Web.ErrorEvent.Internal
                    JavaScript.Web.File
+                   JavaScript.Web.History
+                   JavaScript.Web.Location
                    JavaScript.Web.MessageEvent
                    JavaScript.Web.MessageEvent.Internal
                    JavaScript.Web.Performance
