@@ -1,7 +1,7 @@
 #include <ghcjs/rts.h>
 
 function h$createWebSocket(url, protocols) {
-    return new WebSocket(url, protocols);
+  return new WebSocket(url, protocols);
 }
 
 /*
@@ -9,47 +9,50 @@ function h$createWebSocket(url, protocols) {
    typically synchronously after creating the socket
  */
 function h$openWebSocket(ws, mcb, ccb, c) {
-    if(ws.readyState !== 0) {
-	throw new Error("h$openWebSocket: unexpected readyState, socket must be CONNECTING");
+  if(ws.readyState !== 0) {
+    throw new Error("h$openWebSocket: unexpected readyState, socket must be CONNECTING");
+  }
+  ws.lastError = null;
+  ws.onopen = function() {
+    if(mcb) {
+      ws.onmessage = mcb;
     }
-    ws.lastError = null;
-    // ws.hsListeners = { close: ccb, message: mcb, close: ccb };
-    ws.onopen = function() {
-	if(mcb) {
-	    ws.onmessage = mcb;
-	    h$retain(mcb);
-	}
-	if(ccb || mcb) {
-	    ws.onclose = function(ce) {
-		if(ws.onmessage) {
-		    h$release(ws.onmessage);
-		    ws.onmessage = null;
-		}
-		h$release(ccb);
-		ccb(ce);
-	    }
-	}
-	ws.onerror = function(err) {
-	    ws.lastError = err;
-	    if(ws.onmessage) {
-		h$release(ws.onmessage);
-		ws.onmessage = null;
-	    }
-	    ws.close();
-	}
-	c(0, ws);
-    }
+    if(ccb || mcb) {
+      ws.onclose = function(ce) {
+        if(ws.onmessage) {
+          h$release(ws.onmessage);
+          ws.onmessage = null;
+        }
+        if(ccb) {
+          h$release(ccb);
+          ccb(ce);
+        }
+      };
+    };
     ws.onerror = function(err) {
-	ws.close();
-	c(1, err);
-    }
+      ws.lastError = err;
+      if(ws.onmessage) {
+        h$release(ws.onmessage);
+        ws.onmessage = null;
+      }
+      ws.close();
+    };
+    c(null);
+  };
+  ws.onerror = function(err) {
+    if(ccb) h$release(ccb);
+    if(mcb) h$release(mcb);
+    ws.onmessage = null;
+    ws.close();
+    c(err);
+  };
 }
 
 function h$closeWebSocket(status, reason, ws) {
-    ws.onerror = null;
-    if(ws.onmessage) {
-	h$release(ws.onmessage);
-	ws.onmessage = null;
-    }
-    ws.close();
+  ws.onerror = null;
+  if(ws.onmessage) {
+    h$release(ws.onmessage);
+    ws.onmessage = null;
+  }
+  ws.close(status, reason);
 }
