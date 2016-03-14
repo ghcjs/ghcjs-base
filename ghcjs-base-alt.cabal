@@ -1,7 +1,7 @@
-name:                ghcjs-base
-version:             0.2.0.1
+name:                ghcjs-base-alt
+version:             0.2.0
 synopsis:            base library for GHCJS
-homepage:            http://github.com/ghcjs/ghcjs-base
+homepage:            https://github.com/ghcjs/ghcjs-base
 license:             MIT
 license-file:        LICENSE
 author:              Luite Stegeman
