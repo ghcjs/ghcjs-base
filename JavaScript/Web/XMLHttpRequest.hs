@@ -135,6 +135,11 @@ xhr req = js_createXHR >>= \x ->
         js_setResponseType
           (getResponseTypeString (Proxy :: Proxy a)) x
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
+        
+        case reqWithCredentials req of
+          True  -> js_setWithCredentials x
+          False -> return ()
+        
         r <- case reqData req of
           NoData                            ->
             js_send0 x
@@ -164,7 +169,7 @@ xhr req = js_createXHR >>= \x ->
                               (js_getAllResponseHeaders x)
                               (\h -> getResponseHeader' h x)
           1 -> throwIO XHRAborted
-          2 -> throwIO (XHRError "some error")
+          2 -> throwIO (XHRError "network request error")
   in doRequest `onException` js_abort x
 
 appendFormData :: JSString -> JSVal
@@ -193,6 +198,10 @@ xhrByteString = fmap
   (fmap (Buffer.toByteString 0 Nothing . Buffer.createFromArrayBuffer)) . xhr
 
 -- -----------------------------------------------------------------------------
+
+foreign import javascript unsafe
+  "$1.withCredentials = true;"
+  js_setWithCredentials :: XHR -> IO ()
 
 foreign import javascript unsafe
   "new XMLHttpRequest()"
