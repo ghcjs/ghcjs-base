@@ -175,7 +175,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.url"                js_getUrl            :: WebSocket -> JSString
 foreign import javascript unsafe
-  "$1.binaryType === 'blob' ? 1 : 2"
+  "$1.binaryType === 'blob' ? 0 : 1"
   js_getBinaryType                             :: WebSocket -> IO Int
 foreign import javascript unsafe
   "$1.lastError"          js_getLastError      :: WebSocket -> IO JSVal
