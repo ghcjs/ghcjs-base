@@ -1,7 +1,7 @@
-name:                ghcjs-base
-version:             0.2.0.0
+name:                ghcjs-base-alt
+version:             0.2.0
 synopsis:            base library for GHCJS
-homepage:            http://github.com/ghcjs/ghcjs-base
+homepage:            https://github.com/ghcjs/ghcjs-base
 license:             MIT
 license-file:        LICENSE
 author:              Luite Stegeman
@@ -89,11 +89,7 @@ library
                    JavaScript.Object.Internal
                    JavaScript.RegExp
                    JavaScript.TypedArray
-                   JavaScript.TypedArray.ArrayBuffer
-                   JavaScript.TypedArray.ArrayBuffer.ST
-                   JavaScript.TypedArray.DataView
-                   JavaScript.TypedArray.DataView.ST
-                   JavaScript.TypedArray.Internal
+                   JavaScript.TypedArray.IO
                    JavaScript.TypedArray.ST
                    JavaScript.Web.AnimationFrame
                    JavaScript.Web.Blob
@@ -120,9 +116,8 @@ library
                    JavaScript.Web.Worker
   other-modules:   GHCJS.Internal.Types
                    Data.JSString.Internal.Type
-                   JavaScript.TypedArray.Internal.Types
-                   JavaScript.TypedArray.ArrayBuffer.Internal
-                   JavaScript.TypedArray.DataView.Internal
+                   JavaScript.TypedArray.Internal
+                   JavaScript.TypedArray.Types
   build-depends:   base                 >= 4.7  && < 5,
                    ghc-prim,
                    ghcjs-prim,

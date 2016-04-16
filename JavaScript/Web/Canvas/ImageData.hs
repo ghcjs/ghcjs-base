@@ -18,7 +18,7 @@ width :: ImageData -> Int
 width i = js_width i
 {-# INLINE width #-}
 
-getData :: ImageData -> Uint8ClampedArray
+getData :: ImageData -> TypedArray Word8Clamped
 getData i = js_getData i
 {-# INLINE getData #-}
 
@@ -29,5 +29,5 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1.height" js_height :: ImageData -> Int
 foreign import javascript unsafe
-  "$1.data" js_getData :: ImageData -> Uint8ClampedArray
+  "$1.data" js_getData :: ImageData -> TypedArray Word8Clamped
 
