@@ -49,9 +49,6 @@ class PFromJSVal a where
 class ToJSVal a where
   toJSVal :: a -> IO JSVal
 
-  toJSValListOf :: [a] -> IO JSVal
-  toJSValListOf = Prim.toJSArray <=< mapM toJSVal
-
   -- default toJSVal :: PToJSVal a => a -> IO (JSVal a)
   -- toJSVal x = return (pToJSVal x)
 
@@ -65,12 +62,6 @@ class FromJSVal a where
   fromJSValUnchecked = fmap fromJust . fromJSVal
   {-# INLINE fromJSValUnchecked #-}
 
-  fromJSValListOf :: JSVal -> IO (Maybe [a])
-  fromJSValListOf = fmap sequence . (mapM fromJSVal <=< Prim.fromJSArray) -- fixme should check that it's an array
-
-  fromJSValUncheckedListOf :: JSVal -> IO [a]
-  fromJSValUncheckedListOf = mapM fromJSValUnchecked <=< Prim.fromJSArray
-  
   -- default fromJSVal :: PFromJSVal a => JSVal a -> IO (Maybe a)
   -- fromJSVal x = return (Just (pFromJSVal x))
 

@@ -60,9 +60,6 @@ instance PFromJSVal JSVal where pFromJSVal = id
                                 {-# INLINE pFromJSVal #-}
 instance PFromJSVal ()    where pFromJSVal _ = ()
                                 {-# INLINE pFromJSVal #-}
-
-instance PFromJSVal JSString where pFromJSVal = JSString
-                                   {-# INLINE pFromJSVal #-}
 instance PFromJSVal [Char] where pFromJSVal   = Prim.fromJSString
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Text   where pFromJSVal   = textFromJSVal
@@ -92,14 +89,7 @@ instance PFromJSVal Float  where pFromJSVal x = F# (jsvalToFloat x)
 instance PFromJSVal Double where pFromJSVal x = D# (jsvalToDouble x)
                                  {-# INLINE pFromJSVal #-}
 
-instance PFromJSVal a => PFromJSVal (Maybe a) where
-    pFromJSVal x | isUndefined x || isNull x = Nothing
-    pFromJSVal x = Just (pFromJSVal x)
-    {-# INLINE pFromJSVal #-}
-
 instance PToJSVal JSVal     where pToJSVal = id
-                                  {-# INLINE pToJSVal #-}
-instance PToJSVal JSString  where pToJSVal          = jsval
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal [Char]    where pToJSVal          = Prim.toJSString
                                   {-# INLINE pToJSVal #-}
@@ -131,11 +121,6 @@ instance PToJSVal Float     where pToJSVal (F# x)   = floatToJSVal x
 instance PToJSVal Double    where pToJSVal (D# x)   = doubleToJSVal x
                                   {-# INLINE pToJSVal #-}
 
-instance PToJSVal a => PToJSVal (Maybe a) where
-    pToJSVal Nothing  = jsNull
-    pToJSVal (Just a) = pToJSVal a
-    {-# INLINE pToJSVal #-}
-
 foreign import javascript unsafe "$r = $1|0;"          jsvalToWord   :: JSVal -> Word#
 foreign import javascript unsafe "$r = $1&0xff;"       jsvalToWord8  :: JSVal -> Word#
 foreign import javascript unsafe "$r = $1&0xffff;"     jsvalToWord16 :: JSVal -> Word#
@@ -151,4 +136,3 @@ foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
 foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
 foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
 foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
-

@@ -62,7 +62,7 @@ module Data.JSString ( JSString
                      , minimum
 
                        -- * Construction
-                       
+
                        -- ** Scans
                      , scanl
                      , scanl1
@@ -166,10 +166,6 @@ import           Data.JSString.Internal.Fusion        (stream, unstream)
 import qualified Data.JSString.Internal.Fusion        as S
 import qualified Data.JSString.Internal.Fusion.Common as S
 
-getJSVal :: JSString -> JSVal
-getJSVal (JSString x) = x
-{-# INLINE getJSVal #-}
-
 instance Exts.IsString JSString where
   fromString = pack
 
@@ -205,7 +201,7 @@ instance Data JSString where
   gunfold k z c = case constrIndex c of
     1 -> k (z pack)
     _ -> P.error "gunfold"
-  dataTypeOf _ = jsstringDataType  
+  dataTypeOf _ = jsstringDataType
 
 packConstr :: Constr
 packConstr = mkConstr jsstringDataType "pack" [] Prefix
@@ -1472,7 +1468,7 @@ count pat src
 --  RULES
 -- "JSSTRING count/singleton -> countChar" [~1] forall c t.
 --    count (singleton c) t = countChar c t
--- 
+--
 
 -- | /O(n)/ The 'countChar' function returns the number of times the
 -- query element appears in the given 'JSString'. Subject to fusion.
@@ -1514,7 +1510,7 @@ words x = loop 0# -- js_words x {- t@(Text arr off len) = loop 0 0
 words' :: JSString -> [JSString]
 words' x = unsafeCoerce (js_words x)
 {-# INLINE words' #-}
-                              
+
 -- | /O(n)/ Breaks a 'JSString' up into a list of 'JSString's at
 -- newline 'Char's. The resulting strings do not contain newlines.
 lines :: JSString -> [JSString]
@@ -1742,7 +1738,7 @@ foreign import javascript unsafe
 --  "h$jsstringGroup1" js_group1
 --  :: Int# -> Bool -> JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
-   "h$jsstringConcat" js_concat :: Exts.Any {- [JSString] -} -> JSString 
+   "h$jsstringConcat" js_concat :: Exts.Any {- [JSString] -} -> JSString
 -- debug this below!
 foreign import javascript unsafe
    "h$jsstringReplace" js_replace :: JSString -> JSString -> JSString -> JSString

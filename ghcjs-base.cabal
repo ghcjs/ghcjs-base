@@ -71,12 +71,15 @@ library
                    GHCJS.Foreign.Internal
                    GHCJS.Marshal
                    GHCJS.Marshal.Internal
+                   GHCJS.Marshal.List
+                   GHCJS.Marshal.Maybe
                    GHCJS.Marshal.Pure
                    GHCJS.Nullable
                    GHCJS.Types
                    JavaScript.Array
                    JavaScript.Array.Internal
                    JavaScript.Array.ST
+                   JavaScript.Boolean
                    JavaScript.Cast
                    JavaScript.JSON
                    JavaScript.JSON.Types

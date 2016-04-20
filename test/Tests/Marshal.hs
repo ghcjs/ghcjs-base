@@ -5,6 +5,8 @@ module Tests.Marshal (
 
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import GHCJS.Marshal.Maybe (EnsureNotMaybe)
+import GHCJS.Marshal.List (ListToJSVal, ListFromJSVal)
 import GHCJS.Marshal.Pure (PFromJSVal(..), PToJSVal(..))
 import GHCJS.Marshal (FromJSVal(..), ToJSVal(..))
 import Tests.QuickCheckUtils (eq)
@@ -24,7 +26,7 @@ pure_to_from_jsval' a = pFromJSVal (pToJSVal a) == a
 pure_to_from_jsval :: (PToJSVal a, PFromJSVal a, Eq a) => TypeName a -> a -> Bool
 pure_to_from_jsval _ = pure_to_from_jsval'
 
-pure_to_from_jsval_maybe :: (PToJSVal a, PFromJSVal a, Eq a) => TypeName a -> Maybe a -> Bool
+pure_to_from_jsval_maybe :: (PToJSVal a, PFromJSVal a, Eq a, EnsureNotMaybe a) => TypeName a -> Maybe a -> Bool
 pure_to_from_jsval_maybe _ = pure_to_from_jsval'
 
 to_from_jsval' :: (ToJSVal a, FromJSVal a, Eq a) => a -> Property
@@ -35,22 +37,22 @@ to_from_jsval' a = monadicIO $ do
 to_from_jsval :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> a -> Property
 to_from_jsval _ = to_from_jsval'
 
-to_from_jsval_maybe :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> Maybe a -> Property
+to_from_jsval_maybe :: (ToJSVal a, FromJSVal a, Eq a, EnsureNotMaybe a) => TypeName a -> Maybe a -> Property
 to_from_jsval_maybe _ = to_from_jsval'
 
-to_from_jsval_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [a] -> Property
+to_from_jsval_list :: (ListToJSVal a, ListFromJSVal a, FromJSVal a, Eq a) => TypeName a -> [a] -> Property
 to_from_jsval_list _ = to_from_jsval'
 
-to_from_jsval_list_maybe :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [Maybe a] -> Property
+to_from_jsval_list_maybe :: (ListToJSVal (Maybe a), ListFromJSVal (Maybe a), FromJSVal a, Eq a) => TypeName a -> [Maybe a] -> Property
 to_from_jsval_list_maybe _ = to_from_jsval'
 
-to_from_jsval_list_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> [[a]] -> Property
+to_from_jsval_list_list :: (ListToJSVal [a], ListFromJSVal [a], FromJSVal a, Eq a) => TypeName a -> [[a]] -> Property
 to_from_jsval_list_list _ = to_from_jsval'
 
-to_from_jsval_maybe_list :: (ToJSVal a, FromJSVal a, Eq a) => TypeName a -> Maybe [a] -> Property
+to_from_jsval_maybe_list :: (ListToJSVal a, ListFromJSVal a, FromJSVal a, Eq a) => TypeName a -> Maybe [a] -> Property
 to_from_jsval_maybe_list _ = to_from_jsval'
 
-pureMarshalTestGroup :: (PToJSVal a, PFromJSVal a, ToJSVal a, FromJSVal a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
+pureMarshalTestGroup :: (PToJSVal a, PFromJSVal a, ToJSVal a, FromJSVal a, ListToJSVal a, ListFromJSVal a, EnsureNotMaybe a, Eq a, Show a, Arbitrary a) => TypeName a -> Test
 pureMarshalTestGroup t@(TypeName n) =
     testGroup n [
         testProperty "pure_to_from_jsval"       (pure_to_from_jsval t),
