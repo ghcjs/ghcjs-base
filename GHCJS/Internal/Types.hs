@@ -29,9 +29,12 @@ jsval :: IsJSVal a => a -> JSVal
 jsval = jsval_
 {-# INLINE jsval #-}
 
-data MutabilityType s = Mutable
-                      | Immutable
+data MutabilityType s = Mutable_ s
+                      | Immutable_ s
                       | STMutable s
+
+type Mutable   = Mutable_ ()
+type Immutable = Immutable_ ()
 
 data IsItMutable = IsImmutable
                  | IsMutable

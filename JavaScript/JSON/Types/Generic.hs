@@ -2,7 +2,7 @@
     FunctionalDependencies, KindSignatures, OverlappingInstances,
     ScopedTypeVariables, TypeOperators, UndecidableInstances,
     ViewPatterns, NamedFieldPuns, FlexibleContexts, PatternGuards,
-    RecordWildCards #-}
+    RecordWildCards, DataKinds #-}
 
 -- |
 -- Module:      Data.Aeson.Types.Generic
@@ -571,7 +571,11 @@ instance (Constructor c, GFromJSON a, ConsFromJSON a) => FromPair (C1 c a) where
 class IsRecord (f :: * -> *) isRecord | f -> isRecord
 
 instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
+#if MIN_VERSION_base(4,9,0)
+instance IsRecord (M1 S ('MetaSel 'Nothing u ss ds) f) False
+#else
 instance IsRecord (M1 S NoSelector f) False
+#endif
 instance (IsRecord f isRecord) => IsRecord (M1 S c f) isRecord
 instance IsRecord (K1 i c) True
 instance IsRecord U1 False
