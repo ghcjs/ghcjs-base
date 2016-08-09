@@ -52,7 +52,13 @@ import JavaScript.Web.Blob.Internal
 
 import JavaScript.Web.File
 
-data Method = GET | POST | PUT | DELETE
+data Method = GET
+            | POST
+            | HEAD
+            | PUT
+            | DELETE
+            | OPTIONS
+            | PATCH
   deriving (Show, Eq, Ord, Enum)
 
 data XHRError = XHRError String
@@ -62,10 +68,13 @@ data XHRError = XHRError String
 instance Exception XHRError
 
 methodJSString :: Method -> JSString
-methodJSString GET    = "GET"
-methodJSString POST   = "POST"
-methodJSString PUT    = "PUT"
-methodJSString DELETE = "DELETE"
+methodJSString GET     = "GET"
+methodJSString POST    = "POST"
+methodJSString HEAD    = "HEAD"
+methodJSString PUT     = "PUT"
+methodJSString DELETE  = "DELETE"
+methodJSString OPTIONS = "OPTIONS"
+methodJSString PATCH   = "PATCH"
 
 type Header = (JSString, JSString)
 
@@ -135,11 +144,11 @@ xhr req = js_createXHR >>= \x ->
         js_setResponseType
           (getResponseTypeString (Proxy :: Proxy a)) x
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
-        
+
         case reqWithCredentials req of
           True  -> js_setWithCredentials x
           False -> return ()
-        
+
         r <- case reqData req of
           NoData                            ->
             js_send0 x
