@@ -5,9 +5,15 @@
              LambdaCase, MultiParamTypeClasses, DeriveGeneric #-}
 
 module JavaScript.Web.XMLHttpRequest ( xhr
+                                     , xhr'
                                      , xhrByteString
+                                     , xhrByteString'
                                      , xhrText
+                                     , xhrText'
                                      , xhrString
+                                     , xhrString'
+                                     , xhrCreate
+                                     , xhrAbort
                                      , Method(..)
                                      , Request(..)
                                      , RequestData(..)
@@ -57,7 +63,7 @@ data Method = GET | POST | PUT | DELETE
 
 data XHRError = XHRError String
               | XHRAborted
-              deriving (Generic, Data, Typeable, Show, Eq) 
+              deriving (Generic, Data, Typeable, Show, Eq)
 
 instance Exception XHRError
 
@@ -124,53 +130,59 @@ newtype XHR = XHR JSVal deriving (Typeable)
 -- -----------------------------------------------------------------------------
 -- main entry point
 
+doRequest :: forall a. ResponseType a => Request -> XHR -> IO (Response a)
+doRequest req x = do
+  case reqLogin req of
+    Nothing           ->
+      js_open2 (methodJSString (reqMethod req)) (reqURI req) x
+    Just (user, pass) ->
+      js_open4 (methodJSString (reqMethod req)) (reqURI req) user pass x
+  js_setResponseType
+    (getResponseTypeString (Proxy :: Proxy a)) x
+  forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
+
+  case reqWithCredentials req of
+    True  -> js_setWithCredentials x
+    False -> return ()
+
+  r <- case reqData req of
+    NoData                            ->
+      js_send0 x
+    StringData str                    ->
+      js_send1 (pToJSVal str) x
+    TypedArrayData (SomeTypedArray t) ->
+      js_send1 t x
+    FormData xs                       -> do
+      fd@(JSFormData fd') <- js_createFormData
+      forM_ xs $ \(name, val) -> case val of
+        StringVal str               ->
+          js_appendFormData2 name (pToJSVal str) fd
+        BlobVal (SomeBlob b) mbFile ->
+          appendFormData name b mbFile fd
+        FileVal (SomeBlob b) mbFile ->
+          appendFormData name b mbFile fd
+      js_send1 fd' x
+  case r of
+    0 -> do
+      status <- js_getStatus x
+      r      <- do
+        hr <- js_hasResponse x
+        if hr then Just . wrapResponseType <$> js_getResponse x
+              else pure Nothing
+      return $ Response r
+                        status
+                        (js_getAllResponseHeaders x)
+                        (\h -> getResponseHeader' h x)
+    1 -> throwIO XHRAborted
+    2 -> throwIO (XHRError "network request error")
+
 xhr :: forall a. ResponseType a => Request -> IO (Response a)
-xhr req = js_createXHR >>= \x ->
-  let doRequest = do
-        case reqLogin req of
-          Nothing           ->
-            js_open2 (methodJSString (reqMethod req)) (reqURI req) x
-          Just (user, pass) ->
-            js_open4 (methodJSString (reqMethod req)) (reqURI req) user pass x
-        js_setResponseType
-          (getResponseTypeString (Proxy :: Proxy a)) x
-        forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
-        
-        case reqWithCredentials req of
-          True  -> js_setWithCredentials x
-          False -> return ()
-        
-        r <- case reqData req of
-          NoData                            ->
-            js_send0 x
-          StringData str                    ->
-            js_send1 (pToJSVal str) x
-          TypedArrayData (SomeTypedArray t) ->
-            js_send1 t x
-          FormData xs                       -> do
-            fd@(JSFormData fd') <- js_createFormData
-            forM_ xs $ \(name, val) -> case val of
-              StringVal str               ->
-                js_appendFormData2 name (pToJSVal str) fd
-              BlobVal (SomeBlob b) mbFile ->
-                appendFormData name b mbFile fd
-              FileVal (SomeBlob b) mbFile ->
-                appendFormData name b mbFile fd
-            js_send1 fd' x
-        case r of
-          0 -> do
-            status <- js_getStatus x
-            r      <- do
-              hr <- js_hasResponse x
-              if hr then Just . wrapResponseType <$> js_getResponse x
-                    else pure Nothing
-            return $ Response r
-                              status
-                              (js_getAllResponseHeaders x)
-                              (\h -> getResponseHeader' h x)
-          1 -> throwIO XHRAborted
-          2 -> throwIO (XHRError "network request error")
-  in doRequest `onException` js_abort x
+xhr req = js_createXHR >>= \x -> doRequest req x `onException` js_abort x
+
+-- applications might need to abort xhr requests based on their business logic
+-- so we provide them a way to have xhr handle to cancel the xhr on demand
+xhr' :: forall a. ResponseType a => XHR -> Request -> IO (Response a)
+xhr' xo req = doRequest req xo `onException` js_abort xo
 
 appendFormData :: JSString -> JSVal
                -> Maybe JSString -> JSFormData -> IO ()
@@ -197,6 +209,19 @@ xhrByteString :: Request -> IO (Response ByteString)
 xhrByteString = fmap
   (fmap (Buffer.toByteString 0 Nothing . Buffer.createFromArrayBuffer)) . xhr
 
+xhrString' :: XHR -> Request -> IO (Response String)
+xhrString' xo = fmap (fmap JSS.unpack) . xhr' xo
+
+xhrText' :: XHR -> Request -> IO (Response Text)
+xhrText' xo = fmap (fmap textFromJSString) . xhr' xo
+
+xhrByteString' :: XHR -> Request -> IO (Response ByteString)
+xhrByteString' xo = fmap
+  (fmap (Buffer.toByteString 0 Nothing . Buffer.createFromArrayBuffer)) . xhr' xo
+
+  -- -----------------------------------------------------------------------------
+xhrCreate = js_createXHR
+xhrAbort  = js_abort
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
