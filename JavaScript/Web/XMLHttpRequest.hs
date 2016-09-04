@@ -21,6 +21,7 @@ module JavaScript.Web.XMLHttpRequest ( xhr
                                      , ResponseType(..)
                                      , FormDataVal(..)
                                      , XHRError(..)
+                                     , XHR(..)
                                      ) where
 
 import Control.Applicative
