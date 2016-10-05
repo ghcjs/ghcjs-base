@@ -40,7 +40,7 @@ if(String.prototype.codePointAt) {
     }
     h$jsstringHead = function(str) {
         TRACE_JSSTRING("(codePointAt) head: " + str);
-	var cp = ch.codePointAt(0);
+	var cp = str.codePointAt(0);
 	return (cp === undefined) ? -1 : (cp|0);
     }
     h$jsstringTail = function(str) {
