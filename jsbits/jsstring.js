@@ -68,7 +68,7 @@ if(String.prototype.codePointAt) {
         }
 	var ch = str.codePointAt(0);
         if(ch === undefined) {
-  	  RETURN_UBX_TUP2(null, null);
+  	  RETURN_UBX_TUP2(-1, null);
         }
         RETURN_UBX_TUP2(ch, str.substr(IS_ASTRAL(ch)?2:1));
     }
