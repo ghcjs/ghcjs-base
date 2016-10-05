@@ -63,7 +63,9 @@ if(String.prototype.codePointAt) {
     h$jsstringUncons = function(str) {
         TRACE_JSSTRING("(codePointAt) uncons: '" + str + "'");
 	var l = str.length;
-	if(l===0) return null;
+	if(l===0) {
+          RETURN_UBX_TUP2(-1, null);
+        }
 	var ch = str.codePointAt(0);
         if(ch === undefined) {
   	  RETURN_UBX_TUP2(null, null);
@@ -121,7 +123,9 @@ if(String.prototype.codePointAt) {
     h$jsstringUncons = function(str) {
         TRACE_JSSTRING("(no codePointAt) uncons: '" + str + "'");
 	var l = str.length;
-	if(l===0) return -1;
+	if(l===0) {
+          RETURN_UBX_TUP2(-1, null);
+        }
 	var ch = str.charCodeAt(0);
 	if(IS_HI_SURR(ch)) {
 	  if(l > 1) {
