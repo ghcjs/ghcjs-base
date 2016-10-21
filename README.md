@@ -125,7 +125,9 @@ class PFromJSVal a where
 
 #### Impure Marshalling
 
-If the conversion from and to `JSVal` involves side effects, you may want to use `GHCJS.Marshal`. `GHCJS.Marshal` exports
+If the conversion from and to `JSVal` involves side effects or doesn't return
+the same output every time for the same input, you may want to use
+`GHCJS.Marshal`. `GHCJS.Marshal` exports
 
 ```haskell
 import qualified Data.Aeson as AE
