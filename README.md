@@ -53,7 +53,8 @@ would not be difficult.
 
 #### ArrayBuffer
 
-It is represented by `GHCJS.Buffer`.
+It is represented by `JavaScript.TypedArray.ArrayBuffer`.
+`GHCJS.Buffer` is an obsolete implementation of ArrayBuffer.
 
 TODO : Add more details.
 
