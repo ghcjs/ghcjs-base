@@ -48,9 +48,13 @@ newtype JSString = JSString JSVal
 
 #### TypedArray
 
-It seems TypedArray is handled by `GHCJS.Buffer` or `JavaScript.TypedArray`, but I don't know details.
+If you already knew how to use TypedArray, understanding `JavaScript.TypedArray`
+would not be difficult.
 
-TODO : Add more details.
+#### ArrayBuffer
+
+It is represented by `JavaScript.TypedArray.ArrayBuffer`.
+`GHCJS.Buffer` is an obsolete implementation of ArrayBuffer.
 
 ### Conversion among Javascript Types
 
