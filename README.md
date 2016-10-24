@@ -56,8 +56,6 @@ would not be difficult.
 It is represented by `JavaScript.TypedArray.ArrayBuffer`.
 `GHCJS.Buffer` is an obsolete implementation of ArrayBuffer.
 
-TODO : Add more details.
-
 ### Conversion among Javascript Types
 
 It seems people use `unsafeCoerce` from `Unsafe.Coerce` to convert `JSVal` to other Javascript types and vice versa. There is `JavaScript.Cast`, but it is considered incomplete.
