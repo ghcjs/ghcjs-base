@@ -287,8 +287,8 @@ asyncCallbackMulti :: ([JSVal] -> IO ()) -> IO (Callback ([JSVal] -> IO ()))
 Each of them makes a callback (JavaScript function) that runs the supplied
 function. The callback takes an arbitrary number of arguments that it passes
 as an array of JSVal values to the Haskell function. The following NodeJS
-example shows how to use `asyncCallbackMulti`. You can apply the following
-nodejs example to `syncCallbackMulti` and `syncCallbackMulti'`.
+example shows how to use `syncCallbackMulti'`. You can adapt the following
+nodejs example to `syncCallbackMulti` and `asyncCallbackMulti`.
 
 ```haskell
 {-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
@@ -299,19 +299,18 @@ import GHCJS.Types
 import Control.Concurrent (threadDelay)
 
 foreign import javascript unsafe
-  "$1(1, 'abc', 3.5, 'dee')"
-  js_testCall :: C.Callback ([JSVal] -> IO ()) -> IO ()
+  "console.log($1(1, 'abc', 3.5, 'dee'))"
+  js_testCall :: C.Callback ([JSVal] -> IO JSVal) -> IO ()
 
 foreign import javascript unsafe
   "require('console').log($1)" js_consoleLog :: JSVal -> IO ()
 
-testCall :: (JSVal -> JSVal -> JSVal -> JSVal -> IO ()) -> IO ()
+testCall :: (JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal) -> IO ()
 testCall f = do
-  cb <- C.asyncCallbackMulti $ \args -> case args of
+  cb <- C.syncCallbackMulti' $ \args -> case args of
     [a, b, c, d] -> f a b c d
     _ -> do
-      putStr "Unexpected arguments : "
-      mapM_ js_consoleLog args
+      error "Unexpected arguments"
   js_testCall cb
 
 main :: IO ()
@@ -321,6 +320,7 @@ main = do
     js_consoleLog b
     js_consoleLog c
     js_consoleLog d
+    return d
   threadDelay 1000000
 ```
 
