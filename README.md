@@ -251,7 +251,9 @@ syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
                -> IO (Callback (JSVal -> JSVal -> JSVal -> IO JSVal))
 ```
 
-Lastly, there is a multi version for each type of callback generator.
+#### Callbacks with Arbitrary Numbers of Arguments
+
+There is a multi version for each type of callback generator.
 
 ```haskell
 syncCallbackMulti :: OnBlocked -> ([JSVal] -> IO ())
