@@ -55,9 +55,9 @@ releaseCallback x = js_release x
      Call 'releaseCallback' when done with the callback, freeing memory
      referenced by the IO action.
  -}
-syncCallback :: OnBlocked -- what to do when the thread blocks
-             -> IO ()     -- the Haskell action
-             -> IO (Callback (IO ())) -- the callback
+syncCallback :: OnBlocked -- ^ what to do when the thread blocks
+             -> IO ()     -- ^ the Haskell action
+             -> IO (Callback (IO ())) -- ^ the callback
 syncCallback onBlocked x =
   js_syncCallback (onBlocked == ContinueAsync) (unsafeCoerce x)
 
@@ -68,9 +68,9 @@ syncCallback onBlocked x =
      Call 'releaseCallback' when done with the callback, freeing data
      referenced by the function.
  -}
-syncCallback1 :: OnBlocked -- what to do when the thread blocks
-              -> (JSVal -> IO ()) -- the Haskell function
-              -> IO (Callback (JSVal -> IO ())) -- the callback
+syncCallback1 :: OnBlocked -- ^ what to do when the thread blocks
+              -> (JSVal -> IO ()) -- ^ the Haskell function
+              -> IO (Callback (JSVal -> IO ())) -- ^ the callback
 syncCallback1 onBlocked x =
   js_syncCallbackApply (onBlocked == ContinueAsync) 1 (unsafeCoerce x)
 
@@ -81,9 +81,9 @@ syncCallback1 onBlocked x =
      Call 'releaseCallback' when done with the callback, freeing data
      referenced by the function.
  -}
-syncCallback2 :: OnBlocked -- what to do when the thread blocks
-              -> (JSVal -> JSVal -> IO ()) -- the Haskell function
-              -> IO (Callback (JSVal -> JSVal -> IO ())) -- the callback
+syncCallback2 :: OnBlocked -- ^ what to do when the thread blocks
+              -> (JSVal -> JSVal -> IO ()) -- ^ the Haskell function
+              -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 syncCallback2 onBlocked x =
   js_syncCallbackApply (onBlocked == ContinueAsync) 2 (unsafeCoerce x)
 
@@ -94,8 +94,8 @@ syncCallback2 onBlocked x =
      Call 'releaseCallback' when done with the callback, freeing data
      referenced by the function.
  -}
-syncCallback3 :: OnBlocked -- what to do when the thread blocks
-              -> (JSVal -> JSVal -> JSVal -> IO ()) -- the Haskell function
+syncCallback3 :: OnBlocked -- ^ what to do when the thread blocks
+              -> (JSVal -> JSVal -> JSVal -> IO ()) -- ^ the Haskell function
               -> IO (Callback (JSVal -> JSVal -> JSVal -> IO ()))
               -- ^ the callback
 syncCallback3 onBlocked x =
@@ -109,8 +109,9 @@ syncCallback3 onBlocked x =
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti :: OnBlocked -> ([JSVal] -> IO ())
-                  -> IO (Callback ([JSVal] -> IO ()))
+syncCallbackMulti :: OnBlocked -- ^ what to do when the thread blocks
+                  -> ([JSVal] -> IO ()) -- ^ the Haskell action
+                  -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
 syncCallbackMulti onBlocked f = do
   js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $ \args ->
     Array.toListIO (unsafeCoerce args) >>= f
@@ -152,7 +153,8 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
      freeing data referenced by the function.
  -}
 syncCallbackMulti' :: ([JSVal] -> IO JSVal)
-                   -> IO (Callback ([JSVal] -> IO JSVal))
+                   -- ^ the function that the callback calls.
+                   -> IO (Callback ([JSVal] -> IO JSVal)) -- ^ the callback
 syncCallbackMulti' f = js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
   Array.toListIO (unsafeCoerce args) >>= f
 
@@ -162,17 +164,17 @@ syncCallbackMulti' f = js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
      Call 'releaseCallback' when done with the callback, freeing data
      referenced by the IO action.
  -}
-asyncCallback :: IO () -- the action that the callback runs
-              -> IO (Callback (IO ())) -- the callback
+asyncCallback :: IO () -- ^ the action that the callback runs
+              -> IO (Callback (IO ())) -- ^ the callback
 asyncCallback x = js_asyncCallback (unsafeCoerce x)
 
-asyncCallback1 :: (JSVal -> IO ()) -- the function that the callback calls
-               -> IO (Callback (JSVal -> IO ())) -- the calback
+asyncCallback1 :: (JSVal -> IO ()) -- ^ the function that the callback calls
+               -> IO (Callback (JSVal -> IO ())) -- ^ the calback
 asyncCallback1 x = js_asyncCallbackApply 1 (unsafeCoerce x)
 
 asyncCallback2 :: (JSVal -> JSVal -> IO ())
                   -- ^ the Haskell function that the callback calls
-               -> IO (Callback (JSVal -> JSVal -> IO ())) -- the callback
+               -> IO (Callback (JSVal -> JSVal -> IO ())) -- ^ the callback
 asyncCallback2 x = js_asyncCallbackApply 2 (unsafeCoerce x)
 
 asyncCallback3 :: (JSVal -> JSVal -> JSVal -> IO ())
@@ -191,7 +193,7 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
  -}
 asyncCallbackMulti :: ([JSVal] -> IO ())
                    -- ^ the Haskell function that the callback calls
-                   -> IO (Callback ([JSVal] -> IO ())) -- the callback
+                   -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
 asyncCallbackMulti f = js_asyncCallbackMulti $ unsafeCoerce $ \args ->
   Array.toListIO (unsafeCoerce args) >>= f
 
