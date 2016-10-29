@@ -251,6 +251,27 @@ syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
                -> IO (Callback (JSVal -> JSVal -> JSVal -> IO JSVal))
 ```
 
+#### An Example of Using Callback in NodeJs
+
+```haskell
+import GHCJS.Foreign.Callback
+import Data.JSString -- This includes an IsString instance for JSString
+import GHCJS.Types (JSVal)
+
+foreign import javascript unsafe
+  "require('console').log($1)" js_consoleLog :: JSVal -> IO ()
+
+foreign import javascript unsafe
+  "require('fs').stat($1, $2)"
+  js_fsStat :: JSString -> Callback (JSVal -> JSVal -> IO ()) -> IO ()
+
+main :: IO ()
+main = do
+  cb <- asyncCallback2 $ \err stat -> js_consoleLog stat
+  js_fsStat "/home" cb
+  releaseCallback cb
+```
+
 #### Callbacks with Arbitrary Numbers of Arguments
 
 There is a multi version for each type of callback generator.
@@ -301,27 +322,6 @@ main = do
     js_consoleLog c
     js_consoleLog d
   threadDelay 1000000
-```
-
-#### An Example of Using Callback in NodeJs
-
-```haskell
-import GHCJS.Foreign.Callback
-import Data.JSString -- This includes an IsString instance for JSString
-import GHCJS.Types (JSVal)
-
-foreign import javascript unsafe
-  "require('console').log($1)" js_consoleLog :: JSVal -> IO ()
-
-foreign import javascript unsafe
-  "require('fs').stat($1, $2)"
-  js_fsStat :: JSString -> Callback (JSVal -> JSVal -> IO ()) -> IO ()
-
-main :: IO ()
-main = do
-  cb <- asyncCallback2 $ \err stat -> js_consoleLog stat
-  js_fsStat "/home" cb
-  releaseCallback cb
 ```
 
 #### Caveats on Callbacks
