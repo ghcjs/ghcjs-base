@@ -1,5 +1,5 @@
 name:                ghcjs-base
-version:             0.2.0.0
+version:             0.2.1.0
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
@@ -21,6 +21,7 @@ library
                    jsbits/utils.js
                    jsbits/xhr.js
                    jsbits/websocket.js
+                   jsbits/callback.js
   other-extensions: DeriveDataTypeable
                     DeriveGeneric
                     ForeignFunctionInterface

@@ -231,9 +231,75 @@ data OnBlocked = ContinueAsync -- ^ continue the thread asynchronously if blocke
                deriving (Data, Typeable, Enum, Show, Eq, Ord)
 ```
 
+`OnBlocked` is exported from `GHCJS.Foreign.Callback`, so you don't have to
+import `GHCJS.Concurretn` separately.
 You can guess what `syncCallback1`, `syncCallback2`, and `syncCallback3` do.
 
-`syncCallback'`, `syncCallback1'`, and so on generate synchronous callbacks that throw `WouldBlockException` when their threads block. It's the same as `syncCallback ThrowWouldBlock`, `syncCallback1 ThrowWouldBlock`, and so on.
+`syncCallback'`, `syncCallback1'`, and so on generate synchronous callbacks that
+throw `WouldBlockException` when their threads block. It's almost the same as
+`syncCallback ThrowWouldBlock`, `syncCallback1 ThrowWouldBlock`, and so on.
+But, the generated callbacks return `IO JSVal`.
+
+```haskell
+syncCallback' :: IO JSVal
+              -> IO (Callback (IO JSVal))
+syncCallback1' :: (JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> IO JSVal))
+syncCallback2' :: (JSVal -> JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> JSVal -> IO JSVal))
+syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> JSVal -> JSVal -> IO JSVal))
+```
+
+Lastly, there is a multi version for each type of callback generator.
+
+```haskell
+syncCallbackMulti :: OnBlocked -> ([JSVal] -> IO ())
+                  -> IO (Callback ([JSVal] -> IO ()))
+syncCallbackMulti' :: ([JSVal] -> IO JSVal)
+                   -> IO (Callback ([JSVal] -> IO JSVal))
+asyncCallbackMulti :: ([JSVal] -> IO ()) -> IO (Callback ([JSVal] -> IO ()))
+```
+
+Each of them makes a callback (JavaScript function) that runs the supplied
+function. The callback takes an arbitrary number of arguments that it passes
+as an array of JSVal values to the Haskell function. The following NodeJS
+example shows how to use `asyncCallbackMulti`. You can apply the following
+nodejs example to `syncCallbackMulti` and `syncCallbackMulti'`.
+
+```haskell
+{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
+module Main where
+
+import qualified GHCJS.Foreign.Callback as C
+import GHCJS.Types
+import Control.Concurrent (threadDelay)
+
+foreign import javascript unsafe
+  "$1(1, 'abc', 3.5, 'dee')"
+  js_testCall :: C.Callback ([JSVal] -> IO ()) -> IO ()
+
+foreign import javascript unsafe
+  "require('console').log($1)" js_consoleLog :: JSVal -> IO ()
+
+testCall :: (JSVal -> JSVal -> JSVal -> JSVal -> IO ()) -> IO ()
+testCall f = do
+  cb <- C.asyncCallbackMulti $ \args -> case args of
+    [a, b, c, d] -> f a b c d
+    _ -> do
+      putStr "Unexpected arguments : "
+      mapM_ js_consoleLog args
+  js_testCall cb
+
+main :: IO ()
+main = do
+  testCall $ \a b c d -> do
+    js_consoleLog a
+    js_consoleLog b
+    js_consoleLog c
+    js_consoleLog d
+  threadDelay 1000000
+```
 
 #### An Example of Using Callback in NodeJs
 

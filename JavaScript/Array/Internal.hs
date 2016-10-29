@@ -190,4 +190,3 @@ foreign import javascript unsafe "h$fromHsListJSVal($1)"
   js_toJSArray :: Exts.Any -> State# s -> (# State# s, SomeJSArray m #)
 foreign import javascript unsafe "h$fromHsListJSVal($1)"
   js_toJSArrayPure :: Exts.Any -> JSArray
-
