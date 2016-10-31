@@ -291,37 +291,37 @@ example shows how to use `syncCallbackMulti'`. You can adapt the following
 nodejs example to `syncCallbackMulti` and `asyncCallbackMulti`.
 
 ```haskell
-{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface, LambdaCase #-}
 module Main where
 
 import qualified GHCJS.Foreign.Callback as C
 import GHCJS.Types
-import Control.Concurrent (threadDelay)
+import qualified Data.JSString as JSS
+import qualified GHCJS.Marshal.Pure as MP
+import qualified Control.Concurrent.MVar as M
 
 foreign import javascript unsafe
-  "console.log($1(1, 'abc', 3.5, 'dee'))"
-  js_testCall :: C.Callback ([JSVal] -> IO JSVal) -> IO ()
+  "$1(1, 'abc', 3.5)"
+  js_testCall :: C.Callback ([JSVal] -> IO JSVal) -> IO JSVal
 
 foreign import javascript unsafe
-  "require('console').log($1)" js_consoleLog :: JSVal -> IO ()
-
-testCall :: (JSVal -> JSVal -> JSVal -> JSVal -> IO JSVal) -> IO ()
-testCall f = do
-  cb <- C.syncCallbackMulti' $ \args -> case args of
-    [a, b, c, d] -> f a b c d
-    _ -> do
-      error "Unexpected arguments"
-  js_testCall cb
+  "'' + $1" js_toString :: JSVal -> JSString
 
 main :: IO ()
 main = do
-  testCall $ \a b c d -> do
-    js_consoleLog a
-    js_consoleLog b
-    js_consoleLog c
-    js_consoleLog d
-    return d
-  threadDelay 1000000
+  comm <- M.newEmptyMVar
+  cb <- C.syncCallbackMulti' $ \case
+    [a, b, c] -> do
+      putStrLn $ show ((MP.pFromJSVal a) :: Int)
+      putStrLn $ (JSS.unpack . MP.pFromJSVal) b
+      putStrLn $ show ((MP.pFromJSVal c) :: Double)
+      return c <* M.putMVar comm "MVar box cat 1"
+    args -> do
+      putStrLn "Unexpected number of arguments : "
+      mapM_ (putStrLn . show . js_toString) args
+      return (head args) <* M.putMVar comm "MVar box cat 2"
+  js_testCall cb >>= putStrLn . show . js_toString
+  M.takeMVar comm >>= putStrLn
 ```
 
 #### Caveats on Callbacks
