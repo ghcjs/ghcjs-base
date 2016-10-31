@@ -296,32 +296,32 @@ module Main where
 
 import qualified GHCJS.Foreign.Callback as C
 import GHCJS.Types
-import qualified Data.JSString as JSS
 import qualified GHCJS.Marshal.Pure as MP
 import qualified Control.Concurrent.MVar as M
 
 foreign import javascript unsafe
   "$1(1, 'abc', 3.5)"
-  js_testCall :: C.Callback ([JSVal] -> IO JSVal) -> IO JSVal
+  js_testCallback :: C.Callback ([JSVal] -> IO JSVal) -> IO JSVal
 
 foreign import javascript unsafe
-  "'' + $1" js_toString :: JSVal -> JSString
+  "$1.toString()"
+  js_toString :: JSVal -> JSString
 
 main :: IO ()
 main = do
   comm <- M.newEmptyMVar
   cb <- C.syncCallbackMulti' $ \case
     [a, b, c] -> do
-      putStrLn $ show ((MP.pFromJSVal a) :: Int)
-      putStrLn $ (JSS.unpack . MP.pFromJSVal) b
-      putStrLn $ show ((MP.pFromJSVal c) :: Double)
+      print $ (MP.pFromJSVal a :: Int)
+      print $ (MP.pFromJSVal b :: JSString)
+      print $ (MP.pFromJSVal c :: Double)
       return c <* M.putMVar comm "MVar box cat 1"
     args -> do
-      putStrLn "Unexpected number of arguments : "
-      mapM_ (putStrLn . show . js_toString) args
+      print "Unexpected number of arguments : "
+      mapM_ (print . js_toString) args
       return (head args) <* M.putMVar comm "MVar box cat 2"
-  js_testCall cb >>= putStrLn . show . js_toString
-  M.takeMVar comm >>= putStrLn
+  js_testCallback cb >>= print . js_toString
+  M.takeMVar comm >>= print
 ```
 
 #### Caveats on Callbacks
