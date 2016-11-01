@@ -30,7 +30,6 @@ import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
 import           GHCJS.Prim
 import           GHCJS.Types
-import           qualified JavaScript.Array as Array
 
 import qualified GHC.Exts as Exts
 
@@ -114,7 +113,7 @@ syncCallbackMulti :: OnBlocked -- ^ what to do when the thread blocks
                   -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
 syncCallbackMulti onBlocked f = do
   js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $ \args ->
-    Array.toListIO (unsafeCoerce args) >>= f
+    fromJSArray args >>= f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in
      a synchronous thread when called. The callback returns JSVal.
@@ -156,7 +155,7 @@ syncCallbackMulti' :: ([JSVal] -> IO JSVal)
                    -- ^ the function that the callback calls.
                    -> IO (Callback ([JSVal] -> IO JSVal)) -- ^ the callback
 syncCallbackMulti' f = js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
-  Array.toListIO (unsafeCoerce args) >>= f
+  fromJSArray args >>= f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action
      in an asynchronous thread when called.
@@ -195,7 +194,7 @@ asyncCallbackMulti :: ([JSVal] -> IO ())
                    -- ^ the Haskell function that the callback calls
                    -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
 asyncCallbackMulti f = js_asyncCallbackMulti $ unsafeCoerce $ \args ->
-  Array.toListIO (unsafeCoerce args) >>= f
+  fromJSArray args >>= f
 
 -- ----------------------------------------------------------------------------
 
