@@ -287,8 +287,9 @@ asyncCallbackMulti :: ([JSVal] -> IO ()) -> IO (Callback ([JSVal] -> IO ()))
 Each of them makes a callback (JavaScript function) that runs the supplied
 function. The callback takes an arbitrary number of arguments that it passes
 as an array of JSVal values to the Haskell function. The following NodeJS
-example shows how to use `syncCallbackMulti'`. You can adapt the following
-nodejs example to `syncCallbackMulti` and `asyncCallbackMulti`.
+example shows how to use `asyncCallbackMulti`. You can adapt the following
+nodejs example to `syncCallbackMulti` and `syncCallbackMulti'`.
+
 
 ```haskell
 {-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface, LambdaCase #-}
@@ -296,32 +297,37 @@ module Main where
 
 import qualified GHCJS.Foreign.Callback as C
 import GHCJS.Types
-import qualified GHCJS.Marshal.Pure as MP
 import qualified Control.Concurrent.MVar as M
+import GHCJS.Prim (toJSArray)
+import Data.JSString (unpack)
 
 foreign import javascript unsafe
   "$1(1, 'abc', 3.5)"
-  js_testCallback :: C.Callback ([JSVal] -> IO JSVal) -> IO JSVal
+  js_testCallback :: C.Callback ([JSVal] -> IO ()) -> IO ()
 
 foreign import javascript unsafe
-  "$1.toString()"
-  js_toString :: JSVal -> JSString
+  "'' + $1"
+  js_toJSString :: JSVal -> JSString
+
+printJsval :: JSVal -> IO ()
+printJsval = putStrLn . unpack . js_toJSString
 
 main :: IO ()
 main = do
+  putStrLn "Test asyncCallbackMulti"
   comm <- M.newEmptyMVar
-  cb <- C.syncCallbackMulti' $ \case
+  cb <- C.asyncCallbackMulti $ \case
     [a, b, c] -> do
-      print $ (MP.pFromJSVal a :: Int)
-      print $ (MP.pFromJSVal b :: JSString)
-      print $ (MP.pFromJSVal c :: Double)
-      return c <* M.putMVar comm "MVar box cat 1"
+      printJsval a
+      printJsval b
+      printJsval c
+      M.putMVar comm "MVar box cat 1"
     args -> do
       print "Unexpected number of arguments : "
-      mapM_ (print . js_toString) args
-      return (head args) <* M.putMVar comm "MVar box cat 2"
-  js_testCallback cb >>= print . js_toString
-  M.takeMVar comm >>= print
+      toJSArray args >>= printJsval
+      M.putMVar comm "MVar box cat 2"
+  js_testCallback cb
+  M.takeMVar comm >>= putStrLn
 ```
 
 #### Caveats on Callbacks
