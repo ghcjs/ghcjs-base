@@ -277,33 +277,33 @@ main = do
 There is a multi version for each type of callback generator.
 
 ```haskell
-syncCallbackMulti :: OnBlocked -> ([JSVal] -> IO ())
-                  -> IO (Callback ([JSVal] -> IO ()))
-syncCallbackMulti' :: ([JSVal] -> IO JSVal)
-                   -> IO (Callback ([JSVal] -> IO JSVal))
-asyncCallbackMulti :: ([JSVal] -> IO ()) -> IO (Callback ([JSVal] -> IO ()))
+syncCallbackMulti :: ToArrayCallback f () => OnBlocked -> f -> IO (Callback f)
+syncCallbackMulti' :: ToArrayCallback f JSVal => f -> IO (Callback f)
+asyncCallbackMulti :: ToArrayCallback f () => f -> IO (Callback f)
 ```
 
-Each of them makes a callback (JavaScript function) that runs the supplied
-function. The callback takes an arbitrary number of arguments that it passes
-as an array of JSVal values to the Haskell function. The following NodeJS
-example shows how to use `asyncCallbackMulti`. You can adapt the following
-nodejs example to `syncCallbackMulti` and `syncCallbackMulti'`.
-
+Each of them generates a callback (JavaScript function) that runs the supplied
+function. The supplied haskell function, `f`, is a polyvariadic function.
+The type of `f` is like `IsJSVal a => a -> ... -> a -> IO a`. In other words,
+`f` takes one or more arguments of `IsJSVal` instance and returns
+`IO a`. However, each argument of `f` can be a different instance of `IsJSVal`.
+The following NodeJS example shows how to use `asyncCallbackMulti`.
+You can adapt the following nodejs example to `syncCallbackMulti` and
+`syncCallbackMulti'`.
 
 ```haskell
-{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface, LambdaCase #-}
+{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
 module Main where
 
 import qualified GHCJS.Foreign.Callback as C
 import GHCJS.Types
 import qualified Control.Concurrent.MVar as M
-import GHCJS.Prim (toJSArray)
-import Data.JSString (unpack)
+import Data.JSString
 
 foreign import javascript unsafe
   "$1(1, 'abc', 3.5)"
-  js_testCallback :: C.Callback ([JSVal] -> IO ()) -> IO ()
+  js_testCallback ::
+    C.Callback (JSVal -> JSString -> JSVal -> IO ()) -> IO ()
 
 foreign import javascript unsafe
   "'' + $1"
@@ -314,25 +314,22 @@ printJsval = putStrLn . unpack . js_toJSString
 
 main :: IO ()
 main = do
-  putStrLn "Test asyncCallbackMulti"
+  putStrLn "Test syncCallbackMulti"
   comm <- M.newEmptyMVar
-  cb <- C.asyncCallbackMulti $ \case
-    [a, b, c] -> do
-      printJsval a
-      printJsval b
-      printJsval c
-      M.putMVar comm "MVar box cat 1"
-    args -> do
-      print "Unexpected number of arguments : "
-      toJSArray args >>= printJsval
-      M.putMVar comm "MVar box cat 2"
+  cb <- C.syncCallbackMulti C.ContinueAsync $ \a b c -> do
+    printJsval a
+    putStrLn . unpack $ b
+    printJsval c
+    M.putMVar comm "MVar box cat 1"
   js_testCallback cb
   M.takeMVar comm >>= putStrLn
+  putStrLn "---------------------"
 ```
 
 #### Caveats on Callbacks
 
 * All callbacks should be manually released from memory by `releaseCallback` later.
+* `putStrLn` and some other I/O operations could block a synchronous thread. Thus, I strongly recommend that you avoid `syncCallback'`, `syncCallback ThrowWouldBlock`, and their derivatives.
 
 ### How can Arbitrary Haskell Value be stored in and retrieved from Javascript Data Structures?
 

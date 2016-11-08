@@ -29,6 +29,9 @@ jsval :: IsJSVal a => a -> JSVal
 jsval = jsval_
 {-# INLINE jsval #-}
 
+instance IsJSVal JSVal where
+  jsval_ = id
+
 data MutabilityType s = Mutable_ s
                       | Immutable_ s
                       | STMutable s
@@ -43,5 +46,3 @@ type family Mutability (a :: MutabilityType s) :: IsItMutable where
   Mutability Immutable     = IsImmutable
   Mutability Mutable       = IsMutable
   Mutability (STMutable s) = IsMutable
-
-

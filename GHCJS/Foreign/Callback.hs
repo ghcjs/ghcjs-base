@@ -1,7 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
              GHCForeignImportPrim, DeriveDataTypeable, GHCForeignImportPrim #-}
+{-# LANGUAGE FlexibleContexts #-}
 module GHCJS.Foreign.Callback
     ( Callback
+    , ToArrayCallback
     , OnBlocked(..)
     , releaseCallback
       -- * asynchronous callbacks
@@ -28,6 +30,7 @@ import           GHCJS.Concurrent
 import           GHCJS.Marshal
 import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
+import           GHCJS.Foreign.Callback.ToArrayCallback
 import           GHCJS.Prim
 import           GHCJS.Types
 
@@ -100,20 +103,23 @@ syncCallback3 :: OnBlocked -- ^ what to do when the thread blocks
 syncCallback3 onBlocked x =
   js_syncCallbackApply (onBlocked == ContinueAsync) 3 (unsafeCoerce x)
 
-{- | Make a callback (JavaScript function) that runs the supplied IO function
-     in a synchronous thread when called. The callback takes an arbitrary
-     number of arguments that it passes as an array of JSVal values to the
-     Haskell function.
+{- | Make a callback (JavaScript function) that runs the supplied haskell
+     function in a synchronous thread when called.
+
+     The haskell function is a polyvariadic function that behaves like
+     IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
+     one or more arguments of an IsJSVal instance and returns IO ().
 
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti :: OnBlocked -- ^ what to do when the thread blocks
-                  -> ([JSVal] -> IO ()) -- ^ the Haskell action
-                  -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
+syncCallbackMulti :: ToArrayCallback f () =>
+  OnBlocked -- ^ what to do when the thread blocks
+  -> f -- ^ the Haskell function
+  -> IO (Callback f) -- ^ the Callback
 syncCallbackMulti onBlocked f = do
   js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $ \args ->
-    fromJSArray args >>= f
+    fromJSArray args >>= toArrayCallback f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in
      a synchronous thread when called. The callback returns JSVal.
@@ -141,21 +147,24 @@ syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
 syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function
-     in a synchronous thread when called. The callback takes an arbitrary
-     number of arguments that it passes as an array of JSVal values to the
-     Haskell function. The callback returns JSVal.
+     in a synchronous thread when called.
+
+     The haskell function is a polyvariadic function that behaves like
+     IsJSVal a => a -> ... -> a -> IO JSVal. In other words, the function
+     takes one or more arguments of an IsJSVal instance and returns IO JSVal
+     to Javascript.
 
      When the thread is blocked, it throws an
      `GHCJS.Concurrent.WouldBlockException` exception.
 
-     Call 'releaseCallback' on the raw callback when done with the callback,
+     Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti' :: ([JSVal] -> IO JSVal)
-                   -- ^ the function that the callback calls.
-                   -> IO (Callback ([JSVal] -> IO JSVal)) -- ^ the callback
+syncCallbackMulti' :: ToArrayCallback f JSVal =>
+                      f -- ^ the Haskell function
+                   -> IO (Callback f) -- ^ the callback
 syncCallbackMulti' f = js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
-  fromJSArray args >>= f
+  fromJSArray args >>= toArrayCallback f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action
      in an asynchronous thread when called.
@@ -183,18 +192,20 @@ asyncCallback3 :: (JSVal -> JSVal -> JSVal -> IO ())
 asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 
 {- | Make a callback (JavaScript function) that runs the supplied IO function
-     in an asynchronous thread when called. The callback takes an arbitrary
-     number of arguments that it passes as an array of JSVal values to the
-     Haskell function.
+     in an asynchronous thread when called.
 
-     Call 'releaseCallback' on the raw callback when done with the callback,
+     The haskell function is a polyvariadic function that behaves like
+     IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
+     one or more arguments of an IsJSVal instance and returns IO ().
+
+     Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-asyncCallbackMulti :: ([JSVal] -> IO ())
-                   -- ^ the Haskell function that the callback calls
-                   -> IO (Callback ([JSVal] -> IO ())) -- ^ the callback
+asyncCallbackMulti :: ToArrayCallback f () =>
+                      f -- ^ the Haskell functionn
+                   -> IO (Callback f) -- ^ the callback
 asyncCallbackMulti f = js_asyncCallbackMulti $ unsafeCoerce $ \args ->
-  fromJSArray args >>= f
+  fromJSArray args >>= toArrayCallback f
 
 -- ----------------------------------------------------------------------------
 
@@ -214,12 +225,12 @@ foreign import javascript unsafe
   js_syncCallbackApplyReturn :: Int -> Exts.Any -> IO (Callback b)
 
 foreign import javascript unsafe "h$makeCallbackMulti(h$runSync, [$1], $2)"
-  js_syncCallbackMulti :: Bool -> Exts.Any -> IO (Callback ([JSVal] -> IO ()))
+  js_syncCallbackMulti :: Bool -> Exts.Any -> IO (Callback a)
 foreign import javascript unsafe "h$makeCallbackMulti(h$run, [], $1)"
-  js_asyncCallbackMulti :: Exts.Any -> IO (Callback ([JSVal] -> IO ()))
+  js_asyncCallbackMulti :: Exts.Any -> IO (Callback a)
 foreign import javascript unsafe
   "h$makeCallbackMulti(h$runSyncReturn, [false], $1)"
-  js_syncCallbackMultiReturn :: Exts.Any -> IO (Callback ([JSVal] -> IO JSVal))
+  js_syncCallbackMultiReturn :: Exts.Any -> IO (Callback a)
 
 foreign import javascript unsafe "h$release"
   js_release :: Callback a -> IO ()
