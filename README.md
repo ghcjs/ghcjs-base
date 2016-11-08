@@ -287,9 +287,9 @@ function. The supplied haskell function, `f`, is a polyvariadic function.
 The type of `f` is like `IsJSVal a => a -> ... -> a -> IO a`. In other words,
 `f` takes one or more arguments of `IsJSVal` instance and returns
 `IO a`. However, each argument of `f` can be a different instance of `IsJSVal`.
-The following NodeJS example shows how to use `asyncCallbackMulti`.
+The following NodeJS example shows how to use `syncCallbackMulti`.
 You can adapt the following nodejs example to `syncCallbackMulti` and
-`syncCallbackMulti'`.
+`asyncCallbackMulti'`.
 
 ```haskell
 {-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
