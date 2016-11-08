@@ -288,8 +288,8 @@ The type of `f` is like `IsJSVal a => a -> ... -> a -> IO a`. In other words,
 `f` takes one or more arguments of `IsJSVal` instance and returns
 `IO a`. However, each argument of `f` can be a different instance of `IsJSVal`.
 The following NodeJS example shows how to use `syncCallbackMulti`.
-You can adapt the following nodejs example to `syncCallbackMulti` and
-`asyncCallbackMulti'`.
+You can adapt the following nodejs example to `asyncCallbackMulti` and
+`syncCallbackMulti'`.
 
 ```haskell
 {-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
