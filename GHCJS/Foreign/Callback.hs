@@ -108,7 +108,8 @@ syncCallback3 onBlocked x =
 
      The haskell function is a polyvariadic function that behaves like
      IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
-     one or more arguments of an IsJSVal instance and returns IO ().
+     one or more IsJSVal arguments and returns IO ().
+     Each argument can be a different IsJSVal instance.
 
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
@@ -151,8 +152,8 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
 
      The haskell function is a polyvariadic function that behaves like
      IsJSVal a => a -> ... -> a -> IO JSVal. In other words, the function
-     takes one or more arguments of an IsJSVal instance and returns IO JSVal
-     to Javascript.
+     takes one or more IsJSVal arguments and returns IO JSVal
+     to Javascript. Each argument can be a difference IsJSVal instance.
 
      When the thread is blocked, it throws an
      `GHCJS.Concurrent.WouldBlockException` exception.
@@ -196,7 +197,8 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 
      The haskell function is a polyvariadic function that behaves like
      IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
-     one or more arguments of an IsJSVal instance and returns IO ().
+     one or more IsJSVal arguments and returns IO ().
+     Each argument can be a different IsJSVal instance.
 
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
