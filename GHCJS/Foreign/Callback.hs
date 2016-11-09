@@ -1,6 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
              GHCForeignImportPrim, DeriveDataTypeable, GHCForeignImportPrim #-}
-{-# LANGUAGE FlexibleContexts #-}
 module GHCJS.Foreign.Callback
     ( Callback
     , VariadicCallback
