@@ -284,9 +284,9 @@ syncCallbackMulti' :: VariadicCallbackReturn f => f -> IO (Callback f)
 
 Each of them generates a callback (JavaScript function) that runs the supplied
 function. The supplied haskell function, `f`, is a polyvariadic function.
-The types of `f` can be `IO ()`, `IsJSVal j => j -> IO ()`,
-`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`, and so on for
-`VariadicCallback f`. Those of `f` can be `IO JSVal`,
+For `VariadicCallback f`, the types of `f` can be `IO ()`,
+`IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+and so on. For `VariadicCallbackReturn f`, those of `f` can be `IO JSVal`,
 `IsJSVal j => j -> IO IsJSVal`,
 `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal)`, and so on. You can
 substitue actual types for IsJSVal instances in the types of `f`.
