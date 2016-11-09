@@ -277,23 +277,27 @@ main = do
 There is a multi version for each type of callback generator.
 
 ```haskell
-syncCallbackMulti :: ToArrayCallback f () => OnBlocked -> f -> IO (Callback f)
-syncCallbackMulti' :: ToArrayCallback f JSVal => f -> IO (Callback f)
-asyncCallbackMulti :: ToArrayCallback f () => f -> IO (Callback f)
+syncCallbackMulti :: VariadicCallback f => OnBlocked -> f -> IO (Callback f)
+asyncCallbackMulti :: VariadicCallback f => f -> IO (Callback f)
+syncCallbackMulti' :: VariadicCallbackReturn f => f -> IO (Callback f)
 ```
 
 Each of them generates a callback (JavaScript function) that runs the supplied
 function. The supplied haskell function, `f`, is a polyvariadic function.
-The type of `f` is like `IsJSVal a => a -> ... -> a -> IO a`. In other words,
-`f` takes one or more arguments of `IsJSVal` instance and returns
-`IO a`. However, each argument of `f` can be a different instance of `IsJSVal`.
-The following NodeJS example shows how to use `syncCallbackMulti`.
-You can adapt the following nodejs example to `asyncCallbackMulti` and
+The types of `f` can be `IO ()`, `IsJSVal j => j -> IO ()`,
+`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`, and so on for
+`VariadicCallback f`. Those of `f` can be `IO JSVal`,
+`IsJSVal j => j -> IO IsJSVal`,
+`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal)`, and so on. You can
+substitue actual types for IsJSVal instances in the types of `f`.
+
+The following NodeJS example shows how to use `asyncCallbackMulti`.
+You can adapt the following nodejs example to `syncCallbackMulti` and
 `syncCallbackMulti'`.
 
 ```haskell
 {-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
-module Main where
+module AsyncCallbackMulti where
 
 import qualified GHCJS.Foreign.Callback as C
 import GHCJS.Types
@@ -314,9 +318,9 @@ printJsval = putStrLn . unpack . js_toJSString
 
 main :: IO ()
 main = do
-  putStrLn "Test syncCallbackMulti"
+  putStrLn "Test asyncCallbackMulti"
   comm <- M.newEmptyMVar
-  cb <- C.syncCallbackMulti C.ContinueAsync $ \a b c -> do
+  cb <- C.asyncCallbackMulti $ \a b c -> do
     printJsval a
     putStrLn . unpack $ b
     printJsval c

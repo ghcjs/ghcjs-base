@@ -3,7 +3,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 module GHCJS.Foreign.Callback
     ( Callback
-    , ToArrayCallback
+    , VariadicCallback
+    , VariadicCallbackReturn
     , OnBlocked(..)
     , releaseCallback
       -- * asynchronous callbacks
@@ -30,7 +31,7 @@ import           GHCJS.Concurrent
 import           GHCJS.Marshal
 import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
-import           GHCJS.Foreign.Callback.ToArrayCallback
+import           GHCJS.Foreign.Callback.Variadic
 import           GHCJS.Prim
 import           GHCJS.Types
 
@@ -106,21 +107,20 @@ syncCallback3 onBlocked x =
 {- | Make a callback (JavaScript function) that runs the supplied haskell
      function in a synchronous thread when called.
 
-     The haskell function is a polyvariadic function that behaves like
-     IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
-     one or more IsJSVal arguments and returns IO ().
-     Each argument can be a different IsJSVal instance.
+     The types of the supplied haskell function can be `IO ()`,
+     `IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+     and so on.
 
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti :: ToArrayCallback f () =>
-  OnBlocked -- ^ what to do when the thread blocks
-  -> f -- ^ the Haskell function
-  -> IO (Callback f) -- ^ the Callback
+syncCallbackMulti :: VariadicCallback f =>
+                     OnBlocked -- ^ what to do when the thread blocks
+                  -> f -- ^ the Haskell function
+                  -> IO (Callback f) -- ^ the Callback
 syncCallbackMulti onBlocked f = do
   js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $ \args ->
-    fromJSArray args >>= toArrayCallback f
+    fromJSArray args >>= foldVariadicCb f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in
      a synchronous thread when called. The callback returns JSVal.
@@ -147,13 +147,12 @@ syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
                -> IO (Callback (JSVal -> JSVal -> JSVal -> IO JSVal))
 syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
 
-{- | Make a callback (JavaScript function) that runs the supplied IO function
-     in a synchronous thread when called.
+{- | Make a callback (JavaScript function) that runs the supplied Haskell
+     function in a synchronous thread when called.
 
-     The haskell function is a polyvariadic function that behaves like
-     IsJSVal a => a -> ... -> a -> IO JSVal. In other words, the function
-     takes one or more IsJSVal arguments and returns IO JSVal
-     to Javascript. Each argument can be a difference IsJSVal instance.
+     The types of the supplied haskell function can be `IO JSVal`,
+     `IsJSVal j => j -> IO JSVal`,
+     `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal`, and so on.
 
      When the thread is blocked, it throws an
      `GHCJS.Concurrent.WouldBlockException` exception.
@@ -161,11 +160,12 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti' :: ToArrayCallback f JSVal =>
+syncCallbackMulti' :: VariadicCallbackReturn f =>
                       f -- ^ the Haskell function
                    -> IO (Callback f) -- ^ the callback
-syncCallbackMulti' f = js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
-  fromJSArray args >>= toArrayCallback f
+syncCallbackMulti' f = do
+  js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
+    fromJSArray args >>= foldVariadicCbReturn f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action
      in an asynchronous thread when called.
@@ -192,22 +192,22 @@ asyncCallback3 :: (JSVal -> JSVal -> JSVal -> IO ())
                   -- ^ the callback
 asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 
-{- | Make a callback (JavaScript function) that runs the supplied IO function
-     in an asynchronous thread when called.
+{- | Make a callback (JavaScript function) that runs the supplied Haskell
+     function in an asynchronous thread when called.
 
-     The haskell function is a polyvariadic function that behaves like
-     IsJSVal a => a -> ... -> a -> IO (). In other words, the function takes
-     one or more IsJSVal arguments and returns IO ().
-     Each argument can be a different IsJSVal instance.
+     The types of the supplied haskell function can be `IO ()`,
+     `IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+     and so on.
 
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-asyncCallbackMulti :: ToArrayCallback f () =>
+asyncCallbackMulti :: VariadicCallback f =>
                       f -- ^ the Haskell functionn
                    -> IO (Callback f) -- ^ the callback
-asyncCallbackMulti f = js_asyncCallbackMulti $ unsafeCoerce $ \args ->
-  fromJSArray args >>= toArrayCallback f
+asyncCallbackMulti f = do
+  js_asyncCallbackMulti $ unsafeCoerce $ \args ->
+    fromJSArray args >>= foldVariadicCb f
 
 -- ----------------------------------------------------------------------------
 
