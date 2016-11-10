@@ -286,11 +286,18 @@ syncCallbackMulti' :: VariadicCallback f (IO JSVal) => f -> IO (Callback f)
 Each of them generates a callback (JavaScript function) that runs the supplied
 function. The supplied haskell function, `f`, is a polyvariadic function.
 For `VariadicCallback f (IO ())`, the types of `f` can be `IO ()`,
-`IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+`PFromJSVal j => j -> IO ()`,
+`(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO ()`,
 and so on. For `VariadicCallback f (IO JSVal)`, those of `f` can be `IO JSVal`,
-`IsJSVal j => j -> IO IsJSVal`,
-`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal)`, and so on. You should
-substitue actual types for IsJSVal instances in `f` at some point.
+`PFromJSVal j => j -> IO JSVal`,
+`(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO JSVal)`, and so on.
+Thus, you might want to see available `PFromJSVal` instances from
+various modules.
+
+Note that if you didn't substitue actual types for `PFromJSVal` instances
+in `f` at some point, there would be compiler errors.
+Fortunately, the way callbacks are used guarantees that type constants are
+always substituted for `PFromJSVal` instances.
 
 The following NodeJS example shows how to use `asyncCallbackMulti`.
 You can adapt the following nodejs example to `syncCallbackMulti` and
@@ -308,7 +315,7 @@ import Data.JSString
 foreign import javascript unsafe
   "$1(1, 'abc', 3.5)"
   js_testCallback ::
-    C.Callback (JSVal -> JSString -> JSVal -> IO ()) -> IO ()
+    C.Callback (JSVal -> String -> Double -> IO()) -> IO ()
 
 foreign import javascript unsafe
   "'' + $1"
@@ -323,8 +330,8 @@ main = do
   comm <- M.newEmptyMVar
   cb <- C.asyncCallbackMulti $ \a b c -> do
     printJsval a
-    putStrLn . unpack $ b
-    printJsval c
+    putStrLn b
+    print c
     M.putMVar comm "MVar box cat 1"
   js_testCallback cb
   M.takeMVar comm >>= putStrLn
