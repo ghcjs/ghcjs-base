@@ -1,9 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
              GHCForeignImportPrim, DeriveDataTypeable, GHCForeignImportPrim #-}
+{-# LANGUAGE FlexibleContexts #-}
 module GHCJS.Foreign.Callback
     ( Callback
     , VariadicCallback
-    , VariadicCallbackReturn
     , OnBlocked(..)
     , releaseCallback
       -- * asynchronous callbacks
@@ -113,7 +113,7 @@ syncCallback3 onBlocked x =
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti :: VariadicCallback f =>
+syncCallbackMulti :: VariadicCallback f (IO ()) =>
                      OnBlocked -- ^ what to do when the thread blocks
                   -> f -- ^ the Haskell function
                   -> IO (Callback f) -- ^ the Callback
@@ -159,7 +159,7 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-syncCallbackMulti' :: VariadicCallbackReturn f =>
+syncCallbackMulti' :: VariadicCallback f (IO JSVal) =>
                       f -- ^ the Haskell function
                    -> IO (Callback f) -- ^ the callback
 syncCallbackMulti' f = do
@@ -201,8 +201,8 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
      Call 'releaseCallback' on the callback when done with the callback,
      freeing data referenced by the function.
  -}
-asyncCallbackMulti :: VariadicCallback f =>
-                      f -- ^ the Haskell functionn
+asyncCallbackMulti :: VariadicCallback f (IO ()) =>
+                      f -- ^ the Haskell function
                    -> IO (Callback f) -- ^ the callback
 asyncCallbackMulti f = do
   js_asyncCallbackMulti $ unsafeCoerce $ \args ->

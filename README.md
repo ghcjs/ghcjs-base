@@ -277,19 +277,20 @@ main = do
 There is a multi version for each type of callback generator.
 
 ```haskell
-syncCallbackMulti :: VariadicCallback f => OnBlocked -> f -> IO (Callback f)
-asyncCallbackMulti :: VariadicCallback f => f -> IO (Callback f)
-syncCallbackMulti' :: VariadicCallbackReturn f => f -> IO (Callback f)
+syncCallbackMulti :: VariadicCallback f (IO ()) =>
+  OnBlocked -> f -> IO (Callback f)
+asyncCallbackMulti :: VariadicCallback f (IO ()) => f -> IO (Callback f)
+syncCallbackMulti' :: VariadicCallback f (IO JSVal) => f -> IO (Callback f)
 ```
 
 Each of them generates a callback (JavaScript function) that runs the supplied
 function. The supplied haskell function, `f`, is a polyvariadic function.
-For `VariadicCallback f`, the types of `f` can be `IO ()`,
+For `VariadicCallback f (IO ())`, the types of `f` can be `IO ()`,
 `IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
-and so on. For `VariadicCallbackReturn f`, those of `f` can be `IO JSVal`,
+and so on. For `VariadicCallback f (IO JSVal)`, those of `f` can be `IO JSVal`,
 `IsJSVal j => j -> IO IsJSVal`,
-`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal)`, and so on. You can
-substitue actual types for IsJSVal instances in the types of `f`.
+`(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal)`, and so on. You should
+substitue actual types for IsJSVal instances in `f` at some point.
 
 The following NodeJS example shows how to use `asyncCallbackMulti`.
 You can adapt the following nodejs example to `syncCallbackMulti` and
