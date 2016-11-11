@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module GHCJS.Foreign.Callback
     ( Callback
-    , VariadicCallback
     , OnBlocked(..)
     , releaseCallback
       -- * asynchronous callbacks
