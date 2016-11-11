@@ -106,7 +106,8 @@ syncCallback3 onBlocked x =
      function in a synchronous thread when called.
 
      The types of the supplied haskell function can be `IO ()`,
-     `IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+     `PFromJSVal j => j -> IO ()`,
+     `(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO ()`,
      and so on.
 
      Call 'releaseCallback' on the callback when done with the callback,
@@ -149,8 +150,8 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
      function in a synchronous thread when called.
 
      The types of the supplied haskell function can be `IO JSVal`,
-     `IsJSVal j => j -> IO JSVal`,
-     `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO JSVal`, and so on.
+     `PFromJSVal j => j -> IO JSVal`,
+     `(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO JSVal`, and so on.
 
      When the thread is blocked, it throws an
      `GHCJS.Concurrent.WouldBlockException` exception.
@@ -194,7 +195,8 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
      function in an asynchronous thread when called.
 
      The types of the supplied haskell function can be `IO ()`,
-     `IsJSVal j => j -> IO ()`, `(IsJSVal j, IsJSVal j2) => j -> j2 -> IO ()`,
+     `PFromJSVal j => j -> IO ()`,
+     `(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO ()`,
      and so on.
 
      Call 'releaseCallback' on the callback when done with the callback,
