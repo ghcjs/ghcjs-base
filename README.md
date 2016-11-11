@@ -274,7 +274,7 @@ main = do
 
 #### Callbacks with Arbitrary Numbers of Arguments
 
-There is a multi version for each type of callback generator.
+There is a variadic version for each type of callback generator.
 
 ```haskell
 syncCallbackMulti :: VariadicCallback f (IO ()) =>
