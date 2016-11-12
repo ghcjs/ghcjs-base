@@ -164,7 +164,7 @@ syncCallbackMulti' :: VariadicCallback f (IO JSVal) =>
                    -> IO (Callback f) -- ^ the callback
 syncCallbackMulti' f = do
   js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
-    fromJSArray args >>= foldVariadicCbReturn f
+    fromJSArray args >>= foldVariadicCb f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action
      in an asynchronous thread when called.
