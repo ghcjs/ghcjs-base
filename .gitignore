@@ -1,3 +1,6 @@
 *~
 *#
 /dist
+/.stack-work
+*.js_hi
+*.js_o

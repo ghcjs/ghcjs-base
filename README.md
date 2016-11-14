@@ -231,9 +231,25 @@ data OnBlocked = ContinueAsync -- ^ continue the thread asynchronously if blocke
                deriving (Data, Typeable, Enum, Show, Eq, Ord)
 ```
 
+`OnBlocked` is exported from `GHCJS.Foreign.Callback`, so you don't have to
+import `GHCJS.Concurretn` separately.
 You can guess what `syncCallback1`, `syncCallback2`, and `syncCallback3` do.
 
-`syncCallback'`, `syncCallback1'`, and so on generate synchronous callbacks that throw `WouldBlockException` when their threads block. It's the same as `syncCallback ThrowWouldBlock`, `syncCallback1 ThrowWouldBlock`, and so on.
+`syncCallback'`, `syncCallback1'`, and so on generate synchronous callbacks that
+throw `WouldBlockException` when their threads block. It's almost the same as
+`syncCallback ThrowWouldBlock`, `syncCallback1 ThrowWouldBlock`, and so on.
+But, the generated callbacks return `IO JSVal`.
+
+```haskell
+syncCallback' :: IO JSVal
+              -> IO (Callback (IO JSVal))
+syncCallback1' :: (JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> IO JSVal))
+syncCallback2' :: (JSVal -> JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> JSVal -> IO JSVal))
+syncCallback3' :: (JSVal -> JSVal -> JSVal -> IO JSVal)
+               -> IO (Callback (JSVal -> JSVal -> JSVal -> IO JSVal))
+```
 
 #### An Example of Using Callback in NodeJs
 
@@ -256,9 +272,76 @@ main = do
   releaseCallback cb
 ```
 
+#### Callbacks with Arbitrary Numbers of Arguments
+
+There is a variadic version for each type of callback generator.
+
+```haskell
+syncCallbackMulti :: VariadicCallback f (IO ()) =>
+  OnBlocked -> f -> IO (Callback f)
+asyncCallbackMulti :: VariadicCallback f (IO ()) => f -> IO (Callback f)
+syncCallbackMulti' :: VariadicCallback f (IO JSVal) => f -> IO (Callback f)
+```
+
+Each of them generates a callback (JavaScript function) that runs the supplied
+function. The supplied haskell function, `f`, is a polyvariadic function.
+For `VariadicCallback f (IO ())`, the types of `f` can be `IO ()`,
+`PFromJSVal j => j -> IO ()`,
+`(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO ()`,
+and so on. For `VariadicCallback f (IO JSVal)`, those of `f` can be `IO JSVal`,
+`PFromJSVal j => j -> IO JSVal`,
+`(PFromJSVal j, PFromJSVal j2) => j -> j2 -> IO JSVal)`, and so on.
+Thus, you might want to see available `PFromJSVal` instances from
+various modules.
+
+Note that if you didn't substitue actual types for `PFromJSVal` instances
+in `f` at some point, there would be compiler errors.
+Fortunately, the way callbacks are used guarantees that type constants are
+always substituted for `PFromJSVal` instances.
+
+The following NodeJS example shows how to use `asyncCallbackMulti`.
+You can adapt the following nodejs example to `syncCallbackMulti` and
+`syncCallbackMulti'`.
+
+```haskell
+{-# LANGUAGE JavaScriptFFI, ForeignFunctionInterface #-}
+module AsyncCallbackMulti where
+
+import qualified GHCJS.Foreign.Callback as C
+import GHCJS.Types
+import qualified Control.Concurrent.MVar as M
+import Data.JSString
+
+foreign import javascript unsafe
+  "$1(1, 'abc', 3.5)"
+  js_testCallback ::
+    C.Callback (JSVal -> String -> Double -> IO()) -> IO ()
+
+foreign import javascript unsafe
+  "'' + $1"
+  js_toJSString :: JSVal -> JSString
+
+printJsval :: JSVal -> IO ()
+printJsval = putStrLn . unpack . js_toJSString
+
+main :: IO ()
+main = do
+  putStrLn "Test asyncCallbackMulti"
+  comm <- M.newEmptyMVar
+  cb <- C.asyncCallbackMulti $ \a b c -> do
+    printJsval a
+    putStrLn b
+    print c
+    M.putMVar comm "MVar box cat 1"
+  js_testCallback cb
+  M.takeMVar comm >>= putStrLn
+  putStrLn "---------------------"
+```
+
 #### Caveats on Callbacks
 
 * All callbacks should be manually released from memory by `releaseCallback` later.
+* `putStrLn` and some other I/O operations could block a synchronous thread. Thus, I strongly recommend that you avoid `syncCallback'`, `syncCallback ThrowWouldBlock`, and their derivatives.
 
 ### How can Arbitrary Haskell Value be stored in and retrieved from Javascript Data Structures?
 
