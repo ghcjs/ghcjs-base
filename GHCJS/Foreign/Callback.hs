@@ -118,8 +118,8 @@ syncCallbackMulti :: VariadicCallback f (IO ()) =>
                   -> f -- ^ the Haskell function
                   -> IO (Callback f) -- ^ the Callback
 syncCallbackMulti onBlocked f = do
-  js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $ \args ->
-    fromJSArray args >>= foldVariadicCb f
+  js_syncCallbackMulti (onBlocked == ContinueAsync) $ unsafeCoerce $
+    foldVariadicCb f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action in
      a synchronous thread when called. The callback returns JSVal.
@@ -162,9 +162,8 @@ syncCallback3' x = js_syncCallbackApplyReturn 3 (unsafeCoerce x)
 syncCallbackMulti' :: VariadicCallback f (IO JSVal) =>
                       f -- ^ the Haskell function
                    -> IO (Callback f) -- ^ the callback
-syncCallbackMulti' f = do
-  js_syncCallbackMultiReturn $ unsafeCoerce $ \args ->
-    fromJSArray args >>= foldVariadicCb f
+syncCallbackMulti' f =
+  js_syncCallbackMultiReturn $ unsafeCoerce $ foldVariadicCbReturn f
 
 {- | Make a callback (JavaScript function) that runs the supplied IO action
      in an asynchronous thread when called.
@@ -205,9 +204,7 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 asyncCallbackMulti :: VariadicCallback f (IO ()) =>
                       f -- ^ the Haskell function
                    -> IO (Callback f) -- ^ the callback
-asyncCallbackMulti f = do
-  js_asyncCallbackMulti $ unsafeCoerce $ \args ->
-    fromJSArray args >>= foldVariadicCb f
+asyncCallbackMulti f = js_asyncCallbackMulti $ unsafeCoerce $ foldVariadicCb f
 
 -- ----------------------------------------------------------------------------
 
