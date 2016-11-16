@@ -1,5 +1,5 @@
 name:                ghcjs-base
-version:             0.2.0.0
+version:             0.2.1.0
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
@@ -13,6 +13,7 @@ cabal-version:       >=1.8
 library
   js-sources:      jsbits/array.js
                    jsbits/animationFrame.js
+                   jsbits/callback.js
                    jsbits/export.js
                    jsbits/jsstring.js
                    jsbits/jsstringRaw.js
@@ -67,6 +68,7 @@ library
                    GHCJS.Foreign
                    GHCJS.Foreign.Callback
                    GHCJS.Foreign.Callback.Internal
+                   GHCJS.Foreign.Callback.Variadic
                    GHCJS.Foreign.Export
                    GHCJS.Foreign.Internal
                    GHCJS.Marshal
