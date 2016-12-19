@@ -12,6 +12,8 @@ module JavaScript.Web.Canvas ( Context
                              , Repeat(..)
                              , Gradient
                              , Pattern
+                             , unsafeToCanvas
+                             , toCanvas
                              , create
                              , unsafeToCanvas
                              , toCanvas
