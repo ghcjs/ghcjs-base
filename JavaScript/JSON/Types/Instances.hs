@@ -77,16 +77,11 @@ import Data.Monoid (Dual(..), First(..), Last(..), mappend)
 import Data.Ratio (Ratio, (%), numerator, denominator)
 import Data.Text (Text, pack, unpack)
 import Data.Time (UTCTime, ZonedTime(..), TimeZone(..))
-import Data.Time.Format (FormatTime, formatTime, parseTime)
+import Data.Time.Format (FormatTime, formatTime, parseTimeM, defaultTimeLocale, dateTimeFmt)
 import Data.Traversable (traverse)
 import Data.Vector (Vector)
 import Data.Word (Word, Word8, Word16, Word32, Word64)
 import Foreign.Storable (Storable)
--- #if MIN_VERSION_time(1,5,0)
-import Data.Time.Format(defaultTimeLocale, dateTimeFmt)
--- #else
--- import System.Locale (defaultTimeLocale, dateTimeFmt)
--- #endif
 import Unsafe.Coerce
 
 import qualified Data.HashMap.Strict as H
@@ -491,7 +486,7 @@ instance FromJSON DotNetTime where
     parseJSON = withJSString "DotNetTime" $ \t ->
         let (s,m) = JSS.splitAt (JSS.length t - 5) t
             t'    = JSS.concat [s,".",m]
-        in case parseTime defaultTimeLocale "/Date(%s%Q)/" (JSS.unpack t') of
+        in case parseTimeM True defaultTimeLocale "/Date(%s%Q)/" (JSS.unpack t') of
              Just d -> pure (DotNetTime d)
              _      -> fail "could not parse .NET time"
     {-# INLINE parseJSON #-}
@@ -513,7 +508,7 @@ instance FromJSON ZonedTime where
       <|> fail "could not parse ECMA-262 ISO-8601 date"
       where
         tryFormat f =
-          case parseTime defaultTimeLocale f (JSS.unpack t) of
+          case parseTimeM True defaultTimeLocale f (JSS.unpack t) of
             Just d -> pure d
             Nothing -> empty
         tryFormats = foldr1 (<|>) . map tryFormat
@@ -536,7 +531,7 @@ instance ToJSON UTCTime where
 
 instance FromJSON UTCTime where
     parseJSON = withJSString "UTCTime" $ \t ->
-        case parseTime defaultTimeLocale "%FT%T%QZ" (JSS.unpack t) of
+        case parseTimeM True defaultTimeLocale "%FT%T%QZ" (JSS.unpack t) of
           Just d -> pure d
           _      -> fail "could not parse ISO-8601 date"
     {-# INLINE parseJSON #-}
