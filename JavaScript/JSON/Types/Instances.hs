@@ -1,9 +1,7 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts, FlexibleInstances,
-    GeneralizedNewtypeDeriving, IncoherentInstances, OverlappingInstances,
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances,
+    IncoherentInstances, OverlappingInstances,
     OverloadedStrings, UndecidableInstances, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
-{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module:      Data.Aeson.Types.Instances
