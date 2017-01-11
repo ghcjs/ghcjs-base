@@ -1,7 +1,5 @@
-{-# LANGUAGE DefaultSignatures,
-             TypeOperators,
+{-# LANGUAGE TypeOperators,
              ScopedTypeVariables,
-             DefaultSignatures,
              FlexibleContexts,
              FlexibleInstances,
              OverloadedStrings,
@@ -10,8 +8,7 @@
              CPP,
              JavaScriptFFI,
              ForeignFunctionInterface,
-             UnliftedFFITypes,
-             BangPatterns
+             UnliftedFFITypes
   #-}
 
 module GHCJS.Marshal ( FromJSVal(..)
@@ -20,42 +17,25 @@ module GHCJS.Marshal ( FromJSVal(..)
                      , toJSVal_pure
                      ) where
 
-import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 
 import qualified Data.Aeson as AE
-import           Data.Attoparsec.Number (Number(..))
-import           Data.Bits ((.&.))
-import           Data.Char (chr, ord)
 import qualified Data.HashMap.Strict as H
-import           Data.Int (Int8, Int16, Int32)
-import qualified Data.JSString as JSS
 import qualified Data.JSString.Text as JSS
-import           Data.Maybe
 import           Data.Scientific (Scientific, scientific, fromFloatDigits)
 import           Data.Text (Text)
 import qualified Data.Vector as V
-import           Data.Word (Word8, Word16, Word32, Word)
-import           Data.Primitive.ByteArray
-
-import           Unsafe.Coerce (unsafeCoerce)
 
 import           GHC.Int
 import           GHC.Word
-import           GHC.Types
-import           GHC.Float
-import           GHC.Prim
-import           GHC.Generics
 
 import           GHCJS.Types
 import           GHCJS.Foreign.Internal
 import           GHCJS.Marshal.Pure
 
 
-import qualified JavaScript.Array           as A
 import qualified JavaScript.Array.Internal  as AI
-import qualified JavaScript.Object          as O
 import qualified JavaScript.Object.Internal as OI
 
 import           GHCJS.Marshal.Internal
@@ -293,7 +273,7 @@ toJSVal_aeson x = cv (AE.toJSON x)
     convertValue :: AE.Value -> IO JSVal
     convertValue AE.Null       = return jsNull
     convertValue (AE.String t) = return (pToJSVal t)
-    convertValue (AE.Array a)  = (\(AI.SomeJSArray x) -> x) <$>
+    convertValue (AE.Array a)  = (\(AI.SomeJSArray x') -> x') <$>
                                  (AI.fromListIO =<< mapM convertValue (V.toList a))
     convertValue (AE.Number n) = toJSVal (realToFrac n :: Double)
     convertValue (AE.Bool b)   = return (toJSBool b)
