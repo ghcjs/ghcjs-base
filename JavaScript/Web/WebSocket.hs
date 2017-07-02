@@ -22,6 +22,7 @@ module JavaScript.Web.WebSocket ( WebSocket
                                 , getProtocol
                                 , getReadyState
                                 , getBinaryType
+                                , setBinaryType
                                 , getUrl
                                 ) where
 
@@ -143,6 +144,10 @@ getLastError ws = do
   return $ if isNull le then Nothing else Just (ErrorEvent le)
 {-# INLINE getLastError #-}
 
+setBinaryType :: BinaryType -> WebSocket -> IO ()
+setBinaryType Blob = js_setBinaryType (JSS.pack "blob")
+setBinaryType ArrayBuffer = js_setBinaryType (JSS.pack "arraybuffer")
+
 -- -----------------------------------------------------------------------------
 
 foreign import javascript safe
@@ -179,3 +184,7 @@ foreign import javascript unsafe
   js_getBinaryType                             :: WebSocket -> IO Int
 foreign import javascript unsafe
   "$1.lastError"          js_getLastError      :: WebSocket -> IO JSVal
+
+foreign import javascript unsafe
+  "$2.binaryType = $1"
+  js_setBinaryType                             :: JSString -> WebSocket -> IO ()
