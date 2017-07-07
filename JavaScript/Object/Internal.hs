@@ -25,7 +25,7 @@ import qualified GHCJS.Prim                as Prim
 import           GHCJS.Types
 
 import qualified JavaScript.Array          as JA
-import           JavaScript.Array.Internal (JSArray, SomeJSArray(..))
+import           JavaScript.Array.Internal (JSArray, SomeJSArray(..), toListIO)
 
 import           Unsafe.Coerce
 import qualified GHC.Exts as Exts
@@ -43,7 +43,10 @@ allProps o = js_allProps o
 {-# INLINE allProps #-}
 
 listProps :: Object -> IO [JSString]
-listProps o = unsafeCoerce (js_listProps o)
+listProps o = do
+  ps <- js_listProps o
+  l <- toListIO ps
+  return $ unsafeCoerce l
 {-# INLINE listProps #-}
 
 {- | get a property from an object. If accessing the property results in
@@ -88,4 +91,4 @@ foreign import javascript unsafe "$1 instanceof $2"
 foreign import javascript unsafe  "h$allProps"
   js_allProps      :: Object -> IO JSArray
 foreign import javascript unsafe  "h$listProps"
-  js_listProps     :: Object -> IO Exts.Any -- [JSString]
+  js_listProps     :: Object -> IO JSArray
