@@ -140,7 +140,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$3.indexOf($1,$2)" js_indexOf :: JSString -> Int# -> JSString -> Int#
 foreign import javascript unsafe
-  "$3.indexOf($1)" js_indexOf1 :: JSString -> JSString -> Int#
+  "$2.indexOf($1)" js_indexOf1 :: JSString -> JSString -> Int#
 foreign import javascript unsafe
   "$2.charCodeAt($1)" js_charCodeAt :: Int# -> JSString -> Int#
 foreign import javascript unsafe
