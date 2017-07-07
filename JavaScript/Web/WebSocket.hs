@@ -67,7 +67,7 @@ data WebSocketRequest = WebSocketRequest
 newtype WebSocket = WebSocket JSVal
 -- instance IsJSVal WebSocket
 
-data ReadyState = Closed | Connecting | Connected
+data ReadyState = Connecting | Open | Closing | Closed
   deriving (Data, Typeable, Enum, Eq, Ord, Show)
 
 data BinaryType = Blob | ArrayBuffer
