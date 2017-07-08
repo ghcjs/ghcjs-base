@@ -1,9 +1,7 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts, FlexibleInstances,
-    GeneralizedNewtypeDeriving, IncoherentInstances, OverlappingInstances,
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances,
+    IncoherentInstances, OverlappingInstances,
     OverloadedStrings, UndecidableInstances, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
-{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module:      Data.Aeson.Types.Instances
@@ -68,16 +66,15 @@ import qualified JavaScript.JSON.Types.Internal as I
 
 import Data.Scientific (Scientific)
 import qualified Data.Scientific as Scientific (coefficient, base10Exponent, fromFloatDigits, toRealFloat)
-import Data.Attoparsec.Number (Number(..))
 import Data.Fixed
 import Data.Hashable (Hashable(..))
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Dual(..), First(..), Last(..), mappend)
 import Data.Ratio (Ratio, (%), numerator, denominator)
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text)
 import Data.Time (UTCTime, ZonedTime(..), TimeZone(..))
-import Data.Time.Format (FormatTime, formatTime, parseTime)
+import Data.Time.Format (FormatTime, formatTime, parseTimeM)
 import Data.Traversable (traverse)
 import Data.Vector (Vector)
 import Data.Word (Word, Word8, Word16, Word32, Word64)
@@ -486,6 +483,9 @@ instance ToJSON DotNetTime where
         stringValue (JSS.pack (secs ++ formatMillis t ++ ")/"))
       where secs  = formatTime defaultTimeLocale "/Date(%s" t
     {-# INLINE toJSON #-}
+
+
+parseTime = parseTimeM True
 
 instance FromJSON DotNetTime where
     parseJSON = withJSString "DotNetTime" $ \t ->
@@ -1057,27 +1057,6 @@ typeMismatch expected actual =
              Number _ -> "Number"
              Bool _   -> "Boolean"
              Null     -> "Null"
-
-realFloatToJSON :: RealFloat a => a -> Value
-realFloatToJSON d
-    | isNaN d || isInfinite d = nullValue
-    | otherwise               = doubleValue (realToFrac d)
-{-# INLINE realFloatToJSON #-}
-
-scientificToNumber :: Scientific -> Number
-scientificToNumber s
-    | e < 0     = D $ Scientific.toRealFloat s
-    | otherwise = I $ c * 10 ^ e
-  where
-    e = Scientific.base10Exponent s
-    c = Scientific.coefficient s
-{-# INLINE scientificToNumber #-}
-
-parseRealFloat :: RealFloat a => String -> Value -> Parser a
-parseRealFloat _        (match -> Number d) = pure $ realToFrac d
-parseRealFloat _        (match -> Null)     = pure (0/0)
-parseRealFloat expected v                   = typeMismatch expected v
-{-# INLINE parseRealFloat #-}
 
 parseIntegral :: Integral a => String -> Value -> Parser a
 parseIntegral expected = withDouble expected $ pure . floor

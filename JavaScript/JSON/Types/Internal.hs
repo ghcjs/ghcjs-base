@@ -8,7 +8,6 @@ module JavaScript.JSON.Types.Internal
     ( -- * Core JSON types
       SomeValue(..),  Value,  MutableValue
     , SomeValue'(..), Value', MutableValue'
-    , MutableValue, MutableValue'
     , emptyArray, isEmptyArray
     , Pair
     , Object, MutableObject

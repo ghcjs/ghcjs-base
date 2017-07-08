@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI #-}
+{-# LANGUAGE JavaScriptFFI #-}
 module JavaScript.Array
     ( JSArray
     , MutableJSArray
