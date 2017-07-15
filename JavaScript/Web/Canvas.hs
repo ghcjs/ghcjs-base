@@ -13,6 +13,8 @@ module JavaScript.Web.Canvas ( Context
                              , Gradient
                              , Pattern
                              , create
+                             , unsafeToCanvas
+                             , toCanvas
                              , getContext
                              , save
                              , restore
@@ -54,6 +56,10 @@ module JavaScript.Web.Canvas ( Context
                              , strokeRect
                              , clearRect
                              , drawImage
+                             , width
+                             , setWidth
+                             , height
+                             , setHeight
                              ) where
 
 import Prelude hiding (Left, Right)
