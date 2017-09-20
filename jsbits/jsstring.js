@@ -733,6 +733,30 @@ function h$jsstringUnpack(str) {
     return r;
 }
 
+
+
+#if __GLASGOW_HASKELL__ >= 800
+function h$jsstringDecInteger(val) {
+  TRACE_JSSTRING("decInteger");
+  if(IS_INTEGER_S(val)) {
+    return '' + INTEGER_S_DATA(val);
+  } else if(IS_INTEGER_Jp(val)) {
+    return h$ghcjsbn_showBase(INTEGER_J_DATA(val), 10);
+  } else {
+    return '-' + h$ghcjsbn_showBase(INTEGER_J_DATA(val), 10);
+  }
+}
+#else
+function h$jsstringDecInteger(val) {
+  TRACE_JSSTRING("decInteger");
+  if(IS_INTEGER_S(val)) {
+    return '' + INTEGER_S_DATA(val);
+  } else {
+    return INTEGER_J_DATA(val).toString();
+  }
+}
+#endif
+
 function h$jsstringDecI64(hi,lo) {
     TRACE_JSSTRING("decI64: " + hi + " " + lo);
     var lo0 = (lo < 0) ? lo+4294967296:lo;
@@ -763,6 +787,27 @@ function h$jsstringDecW64(hi,lo) {
     var x2  = hi0*4294+Math.floor((x0+lo0-x1)/1000000);
     return '' + x2 + h$jsstringDecIPadded6(x1);
 }
+
+#if __GLASGOW_HASKELL__ >= 800
+function h$jsstringHexInteger(val) {
+  TRACE_JSSTRING("hexInteger");
+  if(IS_INTEGER_S(val)) {
+    return '' + INTEGER_S_DATA(val);
+  } else {
+    // we assume it's nonnegative. this condition is checked by the Haskell code
+    return h$ghcjsbn_showBase(INTEGER_J_DATA(val), 16);
+  }
+}
+#else
+function h$jsstringHexInteger(val) {
+  TRACE_JSSTRING("hexInteger");
+  if(IS_INTEGER_S(val)) {
+    return '' + INTEGER_S_DATA(val);
+  } else {
+    return INTEGER_J_DATA(val).toRadix(16);
+  }
+}
+#endif
 
 function h$jsstringHexI64(hi,lo) {
     var lo0 = lo<0 ? lo+4294967296 : lo;
@@ -984,7 +1029,11 @@ function h$jsstringReadInteger(str) {
   } else if(str.length <= 9) {
     return MK_INTEGER_S(parseInt(str, 10));
   } else {
+#if __GLASGOW_HASKELL__ >= 800
+    return h$ghcjsbn_readInteger(str);
+#else
     return MK_INTEGER_J(new BigInteger(str, 10));
+#endif
   }
 }
 

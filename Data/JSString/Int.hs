@@ -1,6 +1,9 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
-             MagicHash, BangPatterns
-  #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
+{-# LANGUAGE UnliftedFFITypes #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
 
 module Data.JSString.Int
     ( decimal
@@ -92,12 +95,10 @@ decimalW (W# x) = js_decW32 x
 data MyI = MyS Int# | MyJ Int# ByteArray#
 
 decimalInteger :: Integer -> JSString
-decimalInteger (S# x)   = js_decI x
-decimalInteger i        = let !(MyJ _ x) = unsafeCoerce i -- hack for unexposed J#
-                          in js_decInteger x
+decimalInteger !i = js_decInteger (unsafeCoerce i)
 {-# INLINE decimalInteger #-}
 
-decimal' :: Integral a => a ->JSString
+decimal' :: Integral a => a -> JSString
 decimal' i = decimalInteger (toInteger i)
 {-# NOINLINE decimal' #-}
 {-
@@ -149,10 +150,9 @@ hexadecimal' i
 {-# NOINLINE hexadecimal' #-}
 
 hexInteger :: Integer -> JSString
-hexInteger (S# x) = if isTrue# (x <# 0#) then error hexErrMsg else js_hexI x
-hexInteger i | i < 0     = error hexErrMsg
-             | otherwise = let !(MyJ _ x) = unsafeCoerce i -- hack for non-exposed J#
-                           in  js_hexInteger x
+hexInteger !i
+  | i < 0     = error hexErrMsg
+  | otherwise = js_hexInteger (unsafeCoerce i)
 {-# INLINE hexInteger #-}
 
 hexI :: Int -> JSString
@@ -230,8 +230,8 @@ foreign import javascript unsafe
   "h$jsstringDecW64($1_1, $1_2)"
   js_decW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "$1.toString()"
-  js_decInteger :: ByteArray# -> JSString
+  "h$jsstringDecInteger($1)"
+  js_decInteger :: Any -> JSString
 
 -- these are expected to be only applied to nonnegative integers
 foreign import javascript unsafe
@@ -251,8 +251,8 @@ foreign import javascript unsafe
   "h$jsstringHexW64($1_1, $1_2)"
   js_hexW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "$1.toString(16)"
-  js_hexInteger :: ByteArray# -> JSString -- hack warning!
+  "h$jsstringHexInteger($1)"
+  js_hexInteger :: Any -> JSString
 
 foreign import javascript unsafe
   "'-'+$1+(-$2)"
