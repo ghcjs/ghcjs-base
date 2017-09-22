@@ -70,6 +70,11 @@ instance FromJSVal () where
   {-# INLINE fromJSValUnchecked #-}
   fromJSVal = fromJSVal_pure
 --    {-# INLINE fromJSVal #-}
+instance FromJSVal (AI.SomeJSArray m) where
+    fromJSVal x = case jsonTypeOf x of
+        JSONArray -> return $ Just $ AI.SomeJSArray x
+        _ -> return Nothing
+    {-# INLINE fromJSVal #-}
 instance FromJSVal a => FromJSVal [a] where
     fromJSVal = fromJSValListOf
     {-# INLINE fromJSVal #-}
@@ -275,6 +280,9 @@ instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d, ToJSVal e, ToJSVal f) => T
     {-# INLINE toJSVal #-}
 instance (ToJSVal a, ToJSVal b, ToJSVal c, ToJSVal d, ToJSVal e, ToJSVal f, ToJSVal g) => ToJSVal (a,b,c,d,e,f,g) where
     toJSVal (a,b,c,d,e,f,g) = join $ arr7 <$> toJSVal a <*> toJSVal b <*> toJSVal c <*> toJSVal d <*> toJSVal e <*> toJSVal f <*> toJSVal g
+    {-# INLINE toJSVal #-}
+instance ToJSVal (AI.SomeJSArray m) where
+    toJSVal = return . jsval
     {-# INLINE toJSVal #-}
 
 foreign import javascript unsafe "[$1]"                   arr1     :: JSVal -> IO JSVal

@@ -24,6 +24,7 @@ newtype SomeJSArray (m :: MutabilityType s) = SomeJSArray JSVal
 instance IsJSVal (SomeJSArray m)
 
 type JSArray        = SomeJSArray Immutable
+
 type MutableJSArray = SomeJSArray Mutable
 
 type STJSArray s    = SomeJSArray (STMutable s)

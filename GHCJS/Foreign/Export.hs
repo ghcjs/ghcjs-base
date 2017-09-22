@@ -22,6 +22,7 @@ module GHCJS.Foreign.Export
 import Control.Exception (bracket)
 import GHC.Exts (Any)
 import GHC.Fingerprint
+import Data.Proxy (Proxy(..))
 import Data.Typeable
 import Data.Typeable.Internal (TypeRep(..))
 import Data.Word
@@ -29,10 +30,28 @@ import Unsafe.Coerce
 import qualified GHC.Exts as Exts
 
 import GHCJS.Prim
+import GHCJS.Marshal (ToJSVal(..), FromJSVal(..))
+import GHCJS.Marshal.Pure (PToJSVal(..))
 import GHCJS.Types
 
 newtype Export a = Export JSVal
+
 instance IsJSVal (Export a)
+
+instance PToJSVal (Export a) where
+  pToJSVal (Export x) = x
+
+instance ToJSVal (Export a) where
+  toJSVal (Export x) = return x
+
+instance Typeable a => FromJSVal (Export a) where
+  fromJSVal x = do
+    let TypeRep (Fingerprint w1 w2) _ _ _ = typeRep (Proxy :: Proxy a)
+    r <- js_derefExport w1 w2 (Export x)
+    if isNull r
+      then return Nothing
+      else return $ Just $ Export x
+  fromJSValUnchecked = return . Export
 
 {- |
      Export any Haskell value to a JavaScript reference without evaluating it.

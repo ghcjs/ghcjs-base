@@ -46,6 +46,8 @@ import qualified GHCJS.Prim as Prim
 import           GHCJS.Foreign.Internal
 import           GHCJS.Marshal.Internal
 
+import           JavaScript.Array.Internal
+
 {-
 type family IsPureShared a where
   IsPureShared PureExclusive = False
@@ -129,6 +131,9 @@ instance PToJSVal Word32    where pToJSVal (W32# x) = wordToJSVal x
 instance PToJSVal Float     where pToJSVal (F# x)   = floatToJSVal x
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal Double    where pToJSVal (D# x)   = doubleToJSVal x
+                                  {-# INLINE pToJSVal #-}
+
+instance PToJSVal JSArray   where pToJSVal = jsval
                                   {-# INLINE pToJSVal #-}
 
 instance PToJSVal a => PToJSVal (Maybe a) where
