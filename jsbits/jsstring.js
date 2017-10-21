@@ -33,6 +33,56 @@ var h$jsstringHead, h$jsstringTail, h$jsstringCons,
     h$jsstringIndex, h$jsstringUncheckedIndex,
     h$jsstringTake, h$jsstringDrop, h$jsstringTakeEnd, h$jsstringDropEnd;
 
+var h$fromCodePoint;
+
+if(String.prototype.fromCodePoint) {
+    h$fromCodePoint = String.fromCodePoint;
+} else {
+    // polyfill from https://github.com/mathiasbynens/String.fromCodePoint (MIT-license)
+    h$fromCodePoint =
+      (function() {
+          var stringFromCharCode = String.fromCharCode;
+          var floor = Math.floor;
+          return function(_) {
+              var MAX_SIZE = 0x4000;
+              var codeUnits = [];
+              var highSurrogate;
+              var lowSurrogate;
+              var index = -1;
+              var length = arguments.length;
+              if (!length) {
+                  return '';
+              }
+              var result = '';
+              while (++index < length) {
+                  var codePoint = Number(arguments[index]);
+                  if (
+                      !isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
+                      codePoint < 0 || // not a valid Unicode code point
+                      codePoint > 0x10FFFF || // not a valid Unicode code point
+                      floor(codePoint) != codePoint // not an integer
+                  ) {
+                      throw RangeError('Invalid code point: ' + codePoint);
+                  }
+                  if (codePoint <= 0xFFFF) { // BMP code point
+                      codeUnits.push(codePoint);
+                  } else { // Astral code point; split in surrogate halves
+                      // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+                      codePoint -= 0x10000;
+                      highSurrogate = (codePoint >> 10) + 0xD800;
+                      lowSurrogate = (codePoint % 0x400) + 0xDC00;
+                      codeUnits.push(highSurrogate, lowSurrogate);
+                  }
+                  if (index + 1 == length || codeUnits.length > MAX_SIZE) {
+                      result += stringFromCharCode.apply(null, codeUnits);
+                      codeUnits.length = 0;
+                  }
+              }
+              return result;
+          }
+      })();
+}
+
 if(String.prototype.codePointAt) {
     h$jsstringSingleton = function(ch) {
         TRACE_JSSTRING("(codePointAt) singleton: " + ch);
@@ -157,13 +207,13 @@ function h$jsstringPack(xs) {
 	c = CONS_HEAD(xs);
 	a[i++] = UNWRAP_NUMBER(c);
 	if(i >= 60000) {
-	    r += String.fromCharCode.apply(null, a);
+	    r += h$fromCodePoint.apply(null, a);
 	    a = [];
 	    i = 0;
 	}
 	xs = CONS_TAIL(xs);
     }
-    if(i > 0) r += String.fromCharCode.apply(null, a);
+    if(i > 0) r += h$fromCodePoint.apply(null, a);
     TRACE_JSSTRING("pack: '" + r + "'");
     return r;
 }
@@ -193,11 +243,11 @@ function h$jsstringPackArrayReverse(arr) {
 
 function h$jsstringConvertArray(arr) {
     if(arr.length < 60000) {
-	return String.fromCharCode.apply(null, arr);
+	return h$fromCodePoint.apply(null, arr);
     } else {
 	var r = '';
 	for(var i=0; i<arr.length; i+=60000) {
-	    r += String.fromCharCode.apply(null, arr.slice(i, i+60000));
+	    r += h$fromCodePoint.apply(null, arr.slice(i, i+60000));
 	}
 	return r;
     }

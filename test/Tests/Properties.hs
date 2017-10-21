@@ -23,6 +23,8 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Monadic
 import Test.QuickCheck.Property (Property(..))
+import Test.Framework.Providers.HUnit (testCase)
+import Test.HUnit ((@=?), Assertion)
 -- import Text.Show.Functions ()
 import qualified Control.Exception as Exception
 import qualified Data.Bits as Bits (shiftL, shiftR)
@@ -51,6 +53,10 @@ j_stream_unstream   = (S.unstream . S.stream) `eq` id
 j_reverse_stream t  = (S.reverse . S.reverseStream) t == t
 j_singleton c       = [c] == (J.unpack . J.singleton) c
 j_singleton' c      = [c] == (J.unpack' . J.singleton) c
+
+-- Insufficiently handled by quickcheck
+packingAstralPlaneCharacter :: Assertion
+packingAstralPlaneCharacter = J.unpack (J.pack "\120590") @=? "\120590"
 
 s_Eq s            = (s==)    `eq` ((S.streamList s==) . S.streamList)
     where _types = s :: String
@@ -487,6 +493,7 @@ tests =
     testGroup "creation/elimination" [
       testProperty "j_pack_unpack" j_pack_unpack,
       testProperty "j_pack_unpack'" j_pack_unpack',
+      testCase "packing astral plane character" packingAstralPlaneCharacter,
       testProperty "j_stream_unstream" j_stream_unstream,
       testProperty "j_reverse_stream" j_reverse_stream,
       testProperty "j_singleton" j_singleton,
