@@ -23,7 +23,6 @@ import Control.Exception (bracket)
 import GHC.Exts (Any)
 import GHC.Fingerprint
 import Data.Typeable
-import Data.Typeable.Internal (TypeRep(..))
 import Data.Word
 import Unsafe.Coerce
 import qualified GHC.Exts as Exts
@@ -45,7 +44,7 @@ instance IsJSVal (Export a)
 export :: Typeable a => a -> IO (Export a)
 export x = js_export w1 w2 (unsafeCoerce x)
   where
-    TypeRep (Fingerprint w1 w2) _ _ _ = typeOf x
+    Fingerprint w1 w2 = typeRepFingerprint (typeOf x)
 
 {- |
      Export the value and run the action. The value is only exported for the
@@ -63,7 +62,7 @@ withExport x m = bracket (export x) releaseExport m
 
 derefExport :: forall a. Typeable a => Export a -> IO (Maybe a)
 derefExport e = do
-  let TypeRep (Fingerprint w1 w2) _ _ _ = typeOf (undefined :: a)
+  let Fingerprint w1 w2 = typeRepFingerprint (typeOf (undefined :: a))
   r <- js_derefExport w1 w2 e
   if isNull r
     then return Nothing
