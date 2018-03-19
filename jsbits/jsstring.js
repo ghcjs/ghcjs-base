@@ -201,6 +201,23 @@ if(String.prototype.codePointAt) {
     }
 }
 
+function h$jsstringUnsnoc(str) {
+  TRACE_JSSTRING("unsnoc: '" + str + "'");
+  var l = str.length;
+  if(l===0) {
+    RETURN_UBX_TUP2(-1, null);
+  }
+  var ch = str.charCodeAt(l-1);
+  if(IS_LO_SURR(ch)) {
+    if(l !== 1) {
+      RETURN_UBX_TUP2(FROM_SURR(str.charCodeAt(l-2),ch), str.substr(0,l-2));
+    } else {
+      RETURN_UBX_TUP2(-1, null);
+    }
+  }
+}
+
+
 function h$jsstringPack(xs) {
     var r = '', i = 0, a = [], c;
     while(IS_CONS(xs)) {
@@ -270,7 +287,7 @@ function h$jsstringLast(str) {
     var ch = str.charCodeAt(l-1);
     if(IS_LO_SURR(ch)) {
 	return (l>1) ? FROM_SURR(str.charCodeAt(l-2), ch) : -1;
-                     
+
     } else return ch;
 }
 
@@ -527,7 +544,7 @@ function h$jsstringBreakOnEnd(b, x) {
 function h$jsstringBreakOnAll1(n, b, x) {
     TRACE_JSSTRING("breakOnAll1: " + n + " '" + b + "' '" + x + "'");
     var i = x.indexOf(b, n);
-    if(i===0) { 
+    if(i===0) {
        RETURN_UBX_TUP3(b.length, "", x);
     }
     if(i===-1) {
@@ -579,14 +596,14 @@ function h$jsstringWords1(n, x) {
 	if(m >= l) return -1;
     } while(h$isSpace(x.charCodeAt(m++)));
     // found start of word
-    s = m - 1;  
+    s = m - 1;
     while(m < l) {
 	if(h$isSpace(x.charCodeAt(m++))) {
 	    // found end of word
             var r1 = (m-s<=1) ? "" : x.substr(s,m-s-1);
             RETURN_UBX_TUP2(m, r1);
 	}
-    } 
+    }
     // end of string
     if(s < l) {
         var r1 = s === 0 ? x : x.substr(s);
@@ -605,7 +622,7 @@ function h$jsstringWords(x) {
 	    if(m >= l) { s = m; break outer; }
 	} while(h$isSpace(x.charCodeAt(m++)));
 	// found start of word
-	s = m - 1;  
+	s = m - 1;
 	while(m < l) {
 	    if(h$isSpace(x.charCodeAt(m++))) {
 		// found end of word

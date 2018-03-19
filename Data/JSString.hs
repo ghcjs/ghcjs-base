@@ -1,6 +1,6 @@
 {-# LANGUAGE MagicHash, BangPatterns, UnboxedTuples, TypeFamilies,
              ForeignFunctionInterface, JavaScriptFFI, UnliftedFFITypes,
-             GHCForeignImportPrim
+             GHCForeignImportPrim, CPP
   #-}
 {-| Manipulation of JavaScript strings, API and fusion implementation
     based on Data.Text by Tom Harper, Duncan Coutts, Bryan O'Sullivan e.a.
@@ -18,6 +18,7 @@ module Data.JSString ( JSString
                      , snoc
                      , append
                      , uncons
+                     , unsnoc
                      , head
                      , last
                      , tail
@@ -62,7 +63,7 @@ module Data.JSString ( JSString
                      , minimum
 
                        -- * Construction
-                       
+
                        -- ** Scans
                      , scanl
                      , scanl1
@@ -86,6 +87,7 @@ module Data.JSString ( JSString
                      , drop
                      , dropEnd
                      , takeWhile
+                     , takeWhileEnd
                      , dropWhile
                      , dropWhileEnd
                      , dropAround
@@ -147,6 +149,7 @@ import           Prelude
 import qualified Prelude                              as P
 
 import           Control.DeepSeq                      (NFData(..))
+import           Data.Binary                          (Binary(..))
 import           Data.Char                            (isSpace)
 import qualified Data.List                            as L
 import           Data.Data
@@ -156,15 +159,21 @@ import           GHC.Exts
   , Int(..), Addr#, tagToEnum#)
 import qualified GHC.Exts                             as Exts
 import qualified GHC.CString                          as GHC
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup (Semigroup(..))
+#endif
 
 import           Unsafe.Coerce
 
 import           GHCJS.Prim                           (JSVal)
+import qualified GHCJS.Prim                           as Prim
 
 import           Data.JSString.Internal.Type
 import           Data.JSString.Internal.Fusion        (stream, unstream)
 import qualified Data.JSString.Internal.Fusion        as S
 import qualified Data.JSString.Internal.Fusion.Common as S
+
+import           Text.Printf                          (PrintfArg(..))
 
 getJSVal :: JSString -> JSVal
 getJSVal (JSString x) = x
@@ -178,13 +187,38 @@ instance Exts.IsList JSString where
   fromList           = pack
   toList             = unpack
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup JSString where
+  (<>) = append
+#endif
+
 instance P.Monoid JSString where
   mempty  = empty
+#if MIN_VERSION_base(4,9,0)
+  mappend = (<>) -- future-proof definition
+#else
   mappend = append
+#endif
   mconcat = concat
+
+instance NFData JSString where
+  rnf (JSString _) = ()
 
 instance Eq JSString where
   x == y = js_eq x y
+
+instance Binary JSString where
+  put jss = put (encodeUtf8 jss)
+  get     = do
+    bs <- get
+    case decodeUtf8' bs of
+      P.Left exn -> P.fail (P.show exn)
+      P.Right a  -> pure a
+
+#if MIN_VERSION_base(4,7,0)
+instance PrintfArg JSString where
+  formatArg txt = formatString $ unpack txt
+#endif
 
 instance Ord JSString where
   compare x y = compareStrings x y
@@ -205,7 +239,7 @@ instance Data JSString where
   gunfold k z c = case constrIndex c of
     1 -> k (z pack)
     _ -> P.error "gunfold"
-  dataTypeOf _ = jsstringDataType  
+  dataTypeOf _ = jsstringDataType
 
 packConstr :: Constr
 packConstr = mkConstr jsstringDataType "pack" [] Prefix
@@ -265,6 +299,11 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
     unstream (S.map safe (S.streamList [a]))
       = singleton a #-}
 
+#if MIN_VERSION_ghcjs_prim(0,1,1)
+{-# RULES "JSSTRING literal prim" [0] forall a.
+    unpackCString# a = JSString (Prim.unsafeUnpackJSStringUtf8# a)
+  #-}
+#endif
 
 -- | /O(1)/ Convert a character into a 'JSString'.  Subject to fusion.
 -- Performs replacement on invalid scalar values.
@@ -365,6 +404,12 @@ uncons x = case js_uncons x of
              (# cp, t  #) -> Just (C# (chr# cp), t)
 {-# INLINE [1] uncons #-}
 
+unsnoc :: JSString -> Maybe (Char, JSString)
+unsnoc x = case js_unsnoc x of
+             (# -1#, _ #) -> Nothing
+             (# cp, t  #) -> Just (C# (chr# cp), t)
+{-# INLINE [1] unsnoc #-}
+
 -- | Lifted from Control.Arrow and specialized.
 second :: (b -> c) -> (a,b) -> (a,c)
 second f (a, b) = (a, f b)
@@ -448,7 +493,9 @@ isSingleton x = js_isSingleton x
 -- Subject to fusion.
 length :: JSString -> Int
 length x = I# (js_length x)
-{-# INLINE [1] length #-}
+{-# INLINE [0] length #-}
+-- length needs to be phased after the compareN/length rules otherwise
+-- it may inline before the rules have an opportunity to fire.
 
 {-# RULES
 "JSSTRING length -> fused" [~1] forall x.
@@ -474,39 +521,46 @@ compareLength t n = S.compareLengthI (stream t) n
 
 {-# RULES
 "JSSTRING ==N/length -> compareLength/==EQ" [~1] forall t n.
-    (==) (length t) n = compareLength t n == EQ
+    eqInt (length t) n = compareLength t n == EQ
   #-}
 
 {-# RULES
 "JSSTRING /=N/length -> compareLength//=EQ" [~1] forall t n.
-    (/=) (length t) n = compareLength t n /= EQ
+    neInt (length t) n = compareLength t n /= EQ
   #-}
 
 {-# RULES
 "JSSTRING <N/length -> compareLength/==LT" [~1] forall t n.
-    (<) (length t) n = compareLength t n == LT
+    ltInt (length t) n = compareLength t n == LT
   #-}
 
 {-# RULES
 "JSSTRING <=N/length -> compareLength//=GT" [~1] forall t n.
-    (<=) (length t) n = compareLength t n /= GT
+    leInt (length t) n = compareLength t n /= GT
   #-}
 
 {-# RULES
 "JSSTRING >N/length -> compareLength/==GT" [~1] forall t n.
-    (>) (length t) n = compareLength t n == GT
+    gtInt (length t) n = compareLength t n == GT
   #-}
 
 {-# RULES
 "JSSTRING >=N/length -> compareLength//=LT" [~1] forall t n.
-    (>=) (length t) n = compareLength t n /= LT
+    geInt (length t) n = compareLength t n /= LT
   #-}
 
 -- -----------------------------------------------------------------------------
 -- * Transformations
 -- | /O(n)/ 'map' @f@ @t@ is the 'JSString' obtained by applying @f@ to
--- each element of @t@.  Subject to fusion.  Performs replacement on
--- invalid scalar values.
+-- each element of @t@.
+--
+-- Example:
+--
+-- >>> let message = pack "I am not angry. Not at all."
+-- >>> T.map (\c -> if c == '.' then '!' else c) message
+-- "I am not angry! Not at all!"
+--
+-- Subject to fusion.  Performs replacement on invalid scalar values.
 map :: (Char -> Char) -> JSString -> JSString
 map f t = unstream (S.map (safe . f) (stream t))
 {-# INLINE [1] map #-}
@@ -519,8 +573,14 @@ intercalate i xs = rnf xs `seq` js_intercalate i (unsafeCoerce xs)
 {-# INLINE [1] intercalate #-}
 
 -- | /O(n)/ The 'intersperse' function takes a character and places it
--- between the characters of a 'JSString'.  Subject to fusion.  Performs
--- replacement on invalid scalar values.
+-- between the characters of a 'JSString'.
+--
+-- Example:
+--
+-- >>> T.intersperse '.' "SHIELD"
+-- "S.H.I.E.L.D"
+--
+-- Subject to fusion.  Performs replacement on invalid scalar values.
 intersperse     :: Char -> JSString -> JSString
 intersperse c x = js_intersperse c x
 {-# INLINE [1] intersperse #-}
@@ -532,7 +592,14 @@ intersperse c x = js_intersperse c x
     unstream (S.intersperse (safe c) (stream x)) = intersperse c x
  #-}
 
--- | /O(n)/ Reverse the characters of a string. Subject to fusion.
+-- | /O(n)/ Reverse the characters of a string.
+--
+-- Example:
+--
+-- >>> T.reverse "desrever"
+-- "reversed"
+--
+-- Subject to fusion.
 reverse :: JSString -> JSString
 reverse x = js_reverse x -- S.reverse (stream x)
 {-# INLINE [1] reverse #-}
@@ -558,12 +625,14 @@ reverse x = js_reverse x -- S.reverse (stream x)
 -- @needle@ occurs in @replacement@, that occurrence will /not/ itself
 -- be replaced recursively:
 --
--- > replace "oo" "foo" "oo" == "foo"
+-- >>> replace "oo" "foo" "oo"
+-- "foo"
 --
 -- In cases where several instances of @needle@ overlap, only the
 -- first one will be replaced:
 --
--- > replace "ofo" "bar" "ofofo" == "barfo"
+-- >>> replace "ofo" "bar" "ofofo"
+-- "barfo"
 --
 -- In (unlikely) bad cases, this function's time complexity degrades
 -- towards /O(n*m)/.
@@ -618,7 +687,7 @@ replace needle replacement haystack
 -- instead of itself.
 toCaseFold :: JSString -> JSString
 toCaseFold t = unstream (S.toCaseFold (stream t))
-{-# INLINE [0] toCaseFold #-}
+{-# INLINE toCaseFold #-}
 
 -- | /O(n)/ Convert a string to lower case, using simple case
 -- conversion.  Subject to fusion.
@@ -683,8 +752,11 @@ toTitle t = unstream (S.toTitle (stream t))
 --
 -- Examples:
 --
--- > justifyLeft 7 'x' "foo"    == "fooxxxx"
--- > justifyLeft 3 'x' "foobar" == "foobar"
+-- >>> justifyLeft 7 'x' "foo"
+-- "fooxxxx"
+--
+-- >>> justifyLeft 3 'x' "foobar"
+-- "foobar"
 justifyLeft :: Int -> Char -> JSString -> JSString
 justifyLeft k c t
     | len >= k  = t
@@ -705,8 +777,11 @@ justifyLeft k c t
 --
 -- Examples:
 --
--- > justifyRight 7 'x' "bar"    == "xxxxbar"
--- > justifyRight 3 'x' "foobar" == "foobar"
+-- >>> justifyRight 7 'x' "bar"
+-- "xxxxbar"
+--
+-- >>> justifyRight 3 'x' "foobar"
+-- "foobar"
 justifyRight :: Int -> Char -> JSString -> JSString
 justifyRight k c t
     | len >= k  = t
@@ -720,7 +795,8 @@ justifyRight k c t
 --
 -- Examples:
 --
--- > center 8 'x' "HS" = "xxxHSxxx"
+-- >>> center 8 'x' "HS"
+-- "xxxHSxxx"
 center :: Int -> Char -> JSString -> JSString
 center k c t
     | len >= k  = t
@@ -735,6 +811,14 @@ center k c t
 -- of its 'JSString' argument.  Note that this function uses 'pack',
 -- 'unpack', and the list version of transpose, and is thus not very
 -- efficient.
+--
+-- Examples:
+--
+-- >>> transpose ["green","orange"]
+-- ["go","rr","ea","en","ng","e"]
+--
+-- >>> transpose ["blue","red"]
+-- ["br","le","ud","e"]
 transpose :: [JSString] -> [JSString]
 transpose ts = P.map pack (L.transpose (P.map unpack ts))
 
@@ -808,7 +892,7 @@ concatMap f = concat . foldr ((:) . f) []
 {-# INLINE concatMap #-}
 
 -- | /O(n)/ 'any' @p@ @t@ determines whether any character in the
--- 'JSString' @t@ satisifes the predicate @p@. Subject to fusion.
+-- 'JSString' @t@ satisfies the predicate @p@. Subject to fusion.
 any :: (Char -> Bool) -> JSString -> Bool
 any p t = S.any p (stream t)
 {-# INLINE any #-}
@@ -991,7 +1075,9 @@ iterN n t@(Text _arr _off len) = loop 0 0
 --
 -- Examples:
 --
--- > takeEnd 3 "foobar" == "bar"
+-- >>> takeEnd 3 "foobar"
+-- "bar"
+--
 takeEnd :: Int -> JSString -> JSString
 takeEnd (I# n) x = js_takeEnd n x
 {-
@@ -1022,7 +1108,9 @@ drop (I# n) x = js_drop n x
 --
 -- Examples:
 --
--- > dropEnd 3 "foobar" == "foo"
+-- >>> dropEnd 3 "foobar"
+-- "foo"
+--
 dropEnd :: Int -> JSString -> JSString
 dropEnd n x = js_dropEnd n x
 
@@ -1045,13 +1133,29 @@ takeWhile p x = loop 0# (js_length x)
     unstream (S.takeWhile p (stream t)) = takeWhile p t
   #-}
 
+-- | /O(n)/ 'takeWhileEnd', applied to a predicate @p@ and a 'Text',
+-- returns the longest suffix (possibly empty) of elements that
+-- satisfy @p@.
+-- Examples:
+--
+-- >>> takeWhileEnd (=='o') "foo"
+-- "oo"
+--
+takeWhileEnd :: (Char -> Bool) -> JSString -> JSString
+takeWhileEnd p = loop (js_length x -# 1)
+  where loop -1# = empty
+        loop i   = case js_uncheckedIndexR i x of
+                     c | p (C# (chr# c)) -> loop (i -# charWidth c)
+                     _                   -> js_substr1 (i +# 1#) x
+{-# INLINE takeWhileEnd #-}
+
 -- | /O(n)/ 'dropWhile' @p@ @t@ returns the suffix remaining after
 -- 'takeWhile' @p@ @t@. Subject to fusion.
 dropWhile :: (Char -> Bool) -> JSString -> JSString
 dropWhile p x = loop 0# (js_length x)
   where loop i l | isTrue# (i >=# l) = empty
                  | otherwise =
-                     case js_index i x of
+                     case js_uncheckedIndex i x of
                       c | p (C# (chr# c)) -> loop (i +# charWidth c) l
                       _                   -> js_substr1 i x
 {-# INLINE [1] dropWhile #-}
@@ -1064,15 +1168,16 @@ dropWhile p x = loop 0# (js_length x)
   #-}
 
 -- | /O(n)/ 'dropWhileEnd' @p@ @t@ returns the prefix remaining after
--- dropping characters that fail the predicate @p@ from the end of
+-- dropping characters that satisfy the predicate @p@ from the end of
 -- @t@.  Subject to fusion.
 -- Examples:
 --
--- > dropWhileEnd (=='.') "foo..." == "foo"
+-- >>> dropWhileEnd (=='.') "foo..."
+-- "foo"
 dropWhileEnd :: (Char -> Bool) -> JSString -> JSString
 dropWhileEnd p x = loop (js_length x -# 1#)
   where loop -1# = empty
-        loop i   = case js_indexR i x of
+        loop i   = case js_uncheckedIndexR i x of
                      c | p (C# (chr# c)) -> loop (i -# charWidth c)
                      _                   -> js_substr 0# (i +# 1#) x
 {-# INLINE [1] dropWhileEnd #-}
@@ -1085,7 +1190,7 @@ dropWhileEnd p x = loop (js_length x -# 1#)
   #-}
 
 -- | /O(n)/ 'dropAround' @p@ @t@ returns the substring remaining after
--- dropping characters that fail the predicate @p@ from both the
+-- dropping characters that satisfy the predicate @p@ from both the
 -- beginning and end of @t@.  Subject to fusion.
 dropAround :: (Char -> Bool) -> JSString -> JSString
 dropAround p = dropWhile p . dropWhileEnd p
@@ -1221,9 +1326,14 @@ tails x =
 --
 -- Examples:
 --
--- > splitOn "\r\n" "a\r\nb\r\nd\r\ne" == ["a","b","d","e"]
--- > splitOn "aaa"  "aaaXaaaXaaaXaaa"  == ["","X","X","X",""]
--- > splitOn "x"    "x"                == ["",""]
+-- >>> splitOn "\r\n" "a\r\nb\r\nd\r\ne"
+-- ["a","b","d","e"]
+--
+-- >>> splitOn "aaa"  "aaaXaaaXaaaXaaa"
+-- ["","X","X","X",""]
+--
+-- >>> splitOn "x"    "x"
+-- ["",""]
 --
 -- and
 --
@@ -1275,8 +1385,11 @@ splitOn' pat src
 -- resulting components do not contain the separators.  Two adjacent
 -- separators result in an empty component in the output.  eg.
 --
--- > split (=='a') "aabbaca" == ["","","bb","c",""]
--- > split (=='a') ""        == [""]
+-- >>> split (=='a') "aabbaca"
+-- ["","","bb","c",""]
+--
+-- >>> split (=='a') ""
+-- [""]
 split :: (Char -> Bool) -> JSString -> [JSString]
 split p x = case js_length x of
              0# -> [empty]
@@ -1296,8 +1409,11 @@ split p x = case js_length x of
 -- element may be shorter than the other chunks, depending on the
 -- length of the input. Examples:
 --
--- > chunksOf 3 "foobarbaz"   == ["foo","bar","baz"]
--- > chunksOf 4 "haskell.org" == ["hask","ell.","org"]
+-- >>> chunksOf 3 "foobarbaz"
+-- ["foo","bar","baz"]
+--
+-- >>> chunksOf 4 "haskell.org"
+-- ["hask","ell.","org"]
 chunksOf :: Int -> JSString -> [JSString]
 chunksOf (I# k) p = go 0#
   where
@@ -1353,8 +1469,11 @@ filter p t = unstream (S.filter p (stream t))
 --
 -- Examples:
 --
--- > breakOn "::" "a::b::c" ==> ("a", "::b::c")
--- > breakOn "/" "foobar"   ==> ("foobar", "")
+-- >>> breakOn "::" "a::b::c"
+-- ("a","::b::c")
+--
+-- >>> breakOn "/" "foobar"
+-- ("foobar","")
 --
 -- Laws:
 --
@@ -1380,7 +1499,8 @@ breakOn pat src
 -- up to and including the last match of @needle@.  The second is the
 -- remainder of @haystack@, following the match.
 --
--- > breakOnEnd "::" "a::b::c" ==> ("a::b::", "c")
+-- >>> breakOnEnd "::" "a::b::c"
+-- ("a::b::","c")
 breakOnEnd :: JSString -> JSString -> (JSString, JSString)
 breakOnEnd pat src
   | null pat  = emptyError "breakOnEnd"
@@ -1396,10 +1516,11 @@ breakOnEnd pat src
 --
 -- Examples:
 --
--- > breakOnAll "::" ""
--- > ==> []
--- > breakOnAll "/" "a/b/c/"
--- > ==> [("a", "/b/c/"), ("a/b", "/c/"), ("a/b/c", "/")]
+-- >>> breakOnAll "::" ""
+-- []
+--
+-- >>> breakOnAll "/" "a/b/c/"
+-- [("a","/b/c/"),("a/b","/c/"),("a/b/c","/")]
 --
 -- In (unlikely) bad cases, this function's time complexity degrades
 -- towards /O(n*m)/.
@@ -1472,7 +1593,7 @@ count pat src
 --  RULES
 -- "JSSTRING count/singleton -> countChar" [~1] forall c t.
 --    count (singleton c) t = countChar c t
--- 
+--
 
 -- | /O(n)/ The 'countChar' function returns the number of times the
 -- query element appears in the given 'JSString'. Subject to fusion.
@@ -1489,7 +1610,7 @@ countChar c t = S.countChar c (stream t)
 -- equivalent to a pair of 'unpack' operations.
 zip :: JSString -> JSString -> [(Char,Char)]
 zip a b = S.unstreamList $ S.zipWith (,) (stream a) (stream b)
-{-# INLINE [0] zip #-}
+{-# INLINE zip #-}
 
 -- | /O(n)/ 'zipWith' generalises 'zip' by zipping with the function
 -- given as the first argument, instead of a tupling function.
@@ -1497,7 +1618,7 @@ zip a b = S.unstreamList $ S.zipWith (,) (stream a) (stream b)
 zipWith :: (Char -> Char -> Char) -> JSString -> JSString -> JSString
 zipWith f t1 t2 = unstream (S.zipWith g (stream t1) (stream t2))
     where g a b = safe (f a b)
-{-# INLINE [0] zipWith #-}
+{-# INLINE zipWith #-}
 
 -- | /O(n)/ Breaks a 'JSString' up into a list of words, delimited by 'Char's
 -- representing white space.
@@ -1514,7 +1635,7 @@ words x = loop 0# -- js_words x {- t@(Text arr off len) = loop 0 0
 words' :: JSString -> [JSString]
 words' x = unsafeCoerce (js_words x)
 {-# INLINE words' #-}
-                              
+
 -- | /O(n)/ Breaks a 'JSString' up into a list of 'JSString's at
 -- newline 'Char's. The resulting strings do not contain newlines.
 lines :: JSString -> [JSString]
@@ -1605,9 +1726,14 @@ isInfixOf needle haystack = js_isInfixOf needle haystack
 --
 -- Examples:
 --
--- > stripPrefix "foo" "foobar" == Just "bar"
--- > stripPrefix ""    "baz"    == Just "baz"
--- > stripPrefix "foo" "quux"   == Nothing
+-- >>> stripPrefix "foo" "foobar"
+-- Just "bar"
+--
+-- >>> stripPrefix ""    "baz"
+-- Just "baz"
+--
+-- >>> stripPrefix "foo" "quux"
+-- Nothing
 --
 -- This is particularly useful with the @ViewPatterns@ extension to
 -- GHC, as follows:
@@ -1631,9 +1757,14 @@ stripPrefix x y = unsafeCoerce (js_stripPrefix x y)
 --
 -- Examples:
 --
--- > commonPrefixes "foobar" "fooquux" == Just ("foo","bar","quux")
--- > commonPrefixes "veeble" "fetzer"  == Nothing
--- > commonPrefixes "" "baz"           == Nothing
+-- >>> commonPrefixes "foobar" "fooquux"
+-- Just ("foo","bar","quux")
+--
+-- >>> commonPrefixes "veeble" "fetzer"
+-- Nothing
+--
+-- >>> commonPrefixes "" "baz"
+-- Nothing
 commonPrefixes :: JSString -> JSString -> Maybe (JSString,JSString,JSString)
 commonPrefixes x y = unsafeCoerce (js_commonPrefixes x y)
 {-# INLINE commonPrefixes #-}
@@ -1643,9 +1774,14 @@ commonPrefixes x y = unsafeCoerce (js_commonPrefixes x y)
 --
 -- Examples:
 --
--- > stripSuffix "bar" "foobar" == Just "foo"
--- > stripSuffix ""    "baz"    == Just "baz"
--- > stripSuffix "foo" "quux"   == Nothing
+-- >>> stripSuffix "bar" "foobar"
+-- Just "foo"
+--
+-- >>> stripSuffix ""    "baz"
+-- Just "baz"
+--
+-- >>> stripSuffix "foo" "quux"
+-- Nothing
 --
 -- This is particularly useful with the @ViewPatterns@ extension to
 -- GHC, as follows:
@@ -1707,6 +1843,8 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringUncons" js_uncons :: JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
+  "h$jsstringUnsnoc" js_unsnoc :: JSString -> (# Int#, JSString #)
+foreign import javascript unsafe
   "$3.substr($1,$2)" js_substr :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
   "$2.substr($1)" js_substr1 :: Int# -> JSString -> JSString
@@ -1742,7 +1880,7 @@ foreign import javascript unsafe
 --  "h$jsstringGroup1" js_group1
 --  :: Int# -> Bool -> JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
-   "h$jsstringConcat" js_concat :: Exts.Any {- [JSString] -} -> JSString 
+   "h$jsstringConcat" js_concat :: Exts.Any {- [JSString] -} -> JSString
 -- debug this below!
 foreign import javascript unsafe
    "h$jsstringReplace" js_replace :: JSString -> JSString -> JSString -> JSString

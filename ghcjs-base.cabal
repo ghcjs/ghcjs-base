@@ -127,6 +127,7 @@ library
                    ghc-prim,
                    ghcjs-prim,
                    integer-gmp,
+                   binary               >= 0.8  && < 0.9,
                    bytestring           >= 0.10 && < 0.11,
                    text                 >= 1.1  && < 1.3,
                    aeson                >= 0.8  && < 1.3,
