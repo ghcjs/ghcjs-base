@@ -159,6 +159,8 @@ import           GHC.Exts
   , Int(..), Addr#, tagToEnum#)
 import qualified GHC.Exts                             as Exts
 import qualified GHC.CString                          as GHC
+import qualified GHC.Base                             as GHC
+
 #if MIN_VERSION_base(4,9,0)
 import Data.Semigroup (Semigroup(..))
 #endif
@@ -173,7 +175,7 @@ import           Data.JSString.Internal.Fusion        (stream, unstream)
 import qualified Data.JSString.Internal.Fusion        as S
 import qualified Data.JSString.Internal.Fusion.Common as S
 
-import           Text.Printf                          (PrintfArg(..))
+import           Text.Printf                          (PrintfArg(..), formatString)
 
 getJSVal :: JSString -> JSVal
 getJSVal (JSString x) = x
@@ -201,19 +203,18 @@ instance P.Monoid JSString where
 #endif
   mconcat = concat
 
-instance NFData JSString where
-  rnf (JSString _) = ()
-
 instance Eq JSString where
   x == y = js_eq x y
 
+{-
 instance Binary JSString where
   put jss = put (encodeUtf8 jss)
   get     = do
     bs <- get
     case decodeUtf8' bs of
       P.Left exn -> P.fail (P.show exn)
-      P.Right a  -> pure a
+      P.Right a  -> P.pure a
+-}
 
 #if MIN_VERSION_base(4,7,0)
 instance PrintfArg JSString where
@@ -521,32 +522,32 @@ compareLength t n = S.compareLengthI (stream t) n
 
 {-# RULES
 "JSSTRING ==N/length -> compareLength/==EQ" [~1] forall t n.
-    eqInt (length t) n = compareLength t n == EQ
+    GHC.eqInt (length t) n = compareLength t n == EQ
   #-}
 
 {-# RULES
 "JSSTRING /=N/length -> compareLength//=EQ" [~1] forall t n.
-    neInt (length t) n = compareLength t n /= EQ
+    GHC.neInt (length t) n = compareLength t n /= EQ
   #-}
 
 {-# RULES
 "JSSTRING <N/length -> compareLength/==LT" [~1] forall t n.
-    ltInt (length t) n = compareLength t n == LT
+    GHC.ltInt (length t) n = compareLength t n == LT
   #-}
 
 {-# RULES
 "JSSTRING <=N/length -> compareLength//=GT" [~1] forall t n.
-    leInt (length t) n = compareLength t n /= GT
+    GHC.leInt (length t) n = compareLength t n /= GT
   #-}
 
 {-# RULES
 "JSSTRING >N/length -> compareLength/==GT" [~1] forall t n.
-    gtInt (length t) n = compareLength t n == GT
+    GHC.gtInt (length t) n = compareLength t n == GT
   #-}
 
 {-# RULES
 "JSSTRING >=N/length -> compareLength//=LT" [~1] forall t n.
-    geInt (length t) n = compareLength t n /= LT
+    GHC.geInt (length t) n = compareLength t n /= LT
   #-}
 
 -- -----------------------------------------------------------------------------
@@ -1142,7 +1143,7 @@ takeWhile p x = loop 0# (js_length x)
 -- "oo"
 --
 takeWhileEnd :: (Char -> Bool) -> JSString -> JSString
-takeWhileEnd p = loop (js_length x -# 1)
+takeWhileEnd p x = loop (js_length x -# 1#)
   where loop -1# = empty
         loop i   = case js_uncheckedIndexR i x of
                      c | p (C# (chr# c)) -> loop (i -# charWidth c)
@@ -1861,6 +1862,8 @@ foreign import javascript unsafe
   "h$jsstringIndexR" js_indexR :: Int# -> JSString -> Int#
 foreign import javascript unsafe
   "h$jsstringUncheckedIndex" js_uncheckedIndex :: Int# -> JSString -> Int#
+foreign import javascript unsafe
+  "h$jsstringdIndexR" js_uncheckedIndexR :: Int# -> JSString -> Int#
 
 -- js_head and js_last return -1 for empty string
 foreign import javascript unsafe

@@ -25,7 +25,7 @@ import Test.QuickCheck.Monadic
 import Test.QuickCheck.Property (Property(..))
 import Test.Framework.Providers.HUnit (testCase)
 import Test.HUnit ((@=?), Assertion)
--- import Text.Show.Functions ()
+import Text.Show.Functions ()
 import qualified Control.Exception as Exception
 import qualified Data.Bits as Bits (shiftL, shiftR)
 import qualified Data.ByteString as B
