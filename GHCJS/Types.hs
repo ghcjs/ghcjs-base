@@ -32,7 +32,6 @@ import GHC.Prim
 import GHC.Ptr
 
 import Control.DeepSeq
-import Unsafe.Coerce
 
 type Ref# = ByteArray#
 
@@ -44,14 +43,12 @@ nullRef = js_nullRef
 {-# INLINE nullRef #-}
 
 toPtr :: JSVal -> Ptr a
-toPtr (JSVal x) = unsafeCoerce (Ptr' x 0#)
+toPtr j = js_mkPtr j
 {-# INLINE toPtr #-}
 
 fromPtr :: Ptr a -> JSVal
 fromPtr p = js_ptrVal p
 {-# INLINE fromPtr #-}
-
-data Ptr' a = Ptr' ByteArray# Int#
 
 foreign import javascript unsafe "$r = null;"
   js_nullRef :: JSVal
