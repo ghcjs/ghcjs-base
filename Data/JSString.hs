@@ -405,10 +405,10 @@ uncons x = case js_uncons x of
              (# cp, t  #) -> Just (C# (chr# cp), t)
 {-# INLINE [1] uncons #-}
 
-unsnoc :: JSString -> Maybe (Char, JSString)
+unsnoc :: JSString -> Maybe (JSString, Char)
 unsnoc x = case js_unsnoc x of
              (# -1#, _ #) -> Nothing
-             (# cp, t  #) -> Just (C# (chr# cp), t)
+             (# cp, t  #) -> Just (t, C# (chr# cp))
 {-# INLINE [1] unsnoc #-}
 
 -- | Lifted from Control.Arrow and specialized.
