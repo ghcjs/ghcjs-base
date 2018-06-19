@@ -1863,7 +1863,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringUncheckedIndex" js_uncheckedIndex :: Int# -> JSString -> Int#
 foreign import javascript unsafe
-  "h$jsstringdIndexR" js_uncheckedIndexR :: Int# -> JSString -> Int#
+  "h$jsstringIndexR" js_uncheckedIndexR :: Int# -> JSString -> Int#
 
 -- js_head and js_last return -1 for empty string
 foreign import javascript unsafe
