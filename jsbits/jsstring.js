@@ -30,8 +30,7 @@ var h$jsstringEmpty = MK_JSVAL('');
 
 var h$jsstringHead, h$jsstringTail, h$jsstringCons,
     h$jsstringSingleton, h$jsstringSnoc, h$jsstringUncons,
-    h$jsstringIndex, h$jsstringUncheckedIndex,
-    h$jsstringTake, h$jsstringDrop, h$jsstringTakeEnd, h$jsstringDropEnd;
+    h$jsstringIndex, h$jsstringUncheckedIndex;
 
 var h$fromCodePoint;
 
