@@ -214,6 +214,8 @@ function h$jsstringUnsnoc(str) {
     } else {
       RETURN_UBX_TUP2(-1, null);
     }
+  } else {
+    RETURN_UBX_TUP2(ch, str.substr(0,l-1));
   }
 }
 
