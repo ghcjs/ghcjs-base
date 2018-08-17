@@ -493,17 +493,10 @@ isSingleton x = js_isSingleton x
 -- | /O(n)/ Returns the number of characters in a 'JSString'.
 -- Subject to fusion.
 length :: JSString -> Int
-length x = I# (js_length x)
+length x = S.length (stream x)
 {-# INLINE [0] length #-}
 -- length needs to be phased after the compareN/length rules otherwise
 -- it may inline before the rules have an opportunity to fire.
-
-{-# RULES
-"JSSTRING length -> fused" [~1] forall x.
-    length x = S.length (stream x)
-"JSSTRING length -> unfused" [1] forall x.
-    S.length (stream x) = length x
- #-}
 
 -- | /O(n)/ Compare the count of characters in a 'JSString' to a number.
 -- Subject to fusion.
