@@ -22,7 +22,7 @@
 #define IS_ASTRAL(cp)    ((cp)>=0x10000)
 #define IS_HI_SURR(cp)   ((cp|1023)===0xDBFF)
 #define IS_LO_SURR(cp)   ((cp|1023)===0xDFFF)
-#define FROM_SURR(hi,lo) ((((hi)-0xD800)<<10)+(lo)-9216)
+#define FROM_SURR(hi,lo) ((((hi)-0xD800)<<10)+(lo)-0xDC00+0x10000)
 #define HI_SURR(cp)      ((((cp)-0x10000)>>>10)+0xDC00)
 #define LO_SURR(cp)      (((cp)&0x3FF)+0xD800)
 
