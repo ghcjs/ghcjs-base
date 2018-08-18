@@ -388,12 +388,8 @@ function h$jsstringIntersperse(ch, ys) {
     TRACE_JSSTRING("intersperse: " + ch + " '" + ys + "'");
     var i = 0, l = ys.length, j = 0, a = [], ych;
     if(IS_ASTRAL(ch)) {
-	var ch1 = HI_SURR(ch), ch2 = LO_SURR(ch);
 	while(j < l) {
-	    if(i) {
-		a[i++] = ch1;
-		a[i++] = ch2;
-	    }
+	    if(i) a[i++] = ch;
 	    ych = ys.charCodeAt(j++);
 	    a[i++] = ych;
 	    if(IS_HI_SURR(ych)) a[i++] = ys.charCodeAt(j++);
