@@ -326,7 +326,7 @@ function h$jsstringDrop(n, str) {
     while(n--) {
 	ch = str.charCodeAt(i++);
 	if(IS_HI_SURR(ch)) i++;
-	if(i >= l) return str;
+	if(i >= l) return '';
     }
     return str.substr(i);
 }
