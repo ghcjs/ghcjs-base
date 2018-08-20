@@ -710,9 +710,10 @@ function h$jsstringChunksOf1(n, s, x) {
     TRACE_JSSTRING("chunksOf1: " + n + " " + s + " '" + x + "'");
     var m = s, c = 0, l = x.length, ch;
     if(n <= 0 || l === 0 || s >= l) return -1
-    while(++m < l && ++c < n) {
-	ch = x.charCodeAt(m);
-	if(IS_HI_SURR(ch)) ++m;
+    while(++m < l) {
+        ch = x.charCodeAt(m - 1);
+        if(IS_HI_SURR(ch)) ++m;
+        if(++c >= n) break;
     }
     var r1 = (m >= l && s === c) ? x : x.substr(s,m-s);
     RETURN_UBX_TUP2(m, r1);
