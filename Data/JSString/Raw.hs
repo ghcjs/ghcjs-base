@@ -25,6 +25,7 @@ import           GHC.Exts
   , (+#), (-#), (>=#), (<#)
   , isTrue#, chr#)
 import qualified GHC.Exts as Exts
+import GHCJS.Prim (JSVal)
 
 import Unsafe.Coerce
 
@@ -38,11 +39,11 @@ rawLength x = I# (js_length x)
 rawHead :: JSString -> Char
 rawHead x
   | js_null x = emptyError "rawHead"
-  | otherwise = C# (chr# (js_charCodeAt 0# x))
+  | otherwise = C# (chr# (js_codePointAt 0# x))
 {-# INLINE rawHead #-}
 
 unsafeRawHead :: JSString -> Char
-unsafeRawHead x = C# (chr# (js_charCodeAt 0# x))
+unsafeRawHead x = C# (chr# (js_codePointAt 0# x))
 {-# INLINE unsafeRawHead #-}
 
 rawLast :: JSString -> Char
@@ -58,11 +59,11 @@ unsafeRawLast x = C# (chr# (js_charCodeAt (js_length x -# 1#) x))
 rawTail :: JSString -> JSString
 rawTail x
   | js_null x = emptyError "rawTail"
-  | otherwise = js_substr1 1# x
+  | otherwise = JSString $ js_tail x
 {-# INLINE rawTail #-}
 
 unsafeRawTail :: JSString -> JSString
-unsafeRawTail x = js_substr1 1# x
+unsafeRawTail x = JSString $ js_tail x
 {-# INLINE unsafeRawTail #-}
 
 rawInit :: JSString -> JSString
@@ -144,5 +145,9 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$2.charCodeAt($1)" js_charCodeAt :: Int# -> JSString -> Int#
 foreign import javascript unsafe
+  "$2.codePointAt($1)" js_codePointAt :: Int# -> JSString -> Int#
+foreign import javascript unsafe
   "$hsRawChunksOf" js_rawChunksOf :: Int# -> JSString -> Exts.Any -- [JSString]
+foreign import javascript unsafe
+  "h$jsstringTail" js_tail :: JSString -> JSVal -- null for empty string
 
