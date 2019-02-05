@@ -47,7 +47,6 @@ library
                     ScopedTypeVariables
                     TypeOperators
 
-  ghc-options:     -O
   exposed-modules: Data.JSString
                    Data.JSString.Int
                    Data.JSString.Raw
