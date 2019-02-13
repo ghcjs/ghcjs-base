@@ -59,7 +59,7 @@ import JavaScript.Web.Blob.Internal
 
 import JavaScript.Web.File
 
-data Method = GET | POST | PUT | DELETE
+data Method = GET | POST | PUT | PATCH | DELETE
   deriving (Show, Eq, Ord, Enum)
 
 data XHRError = XHRError String
@@ -72,6 +72,7 @@ methodJSString :: Method -> JSString
 methodJSString GET    = "GET"
 methodJSString POST   = "POST"
 methodJSString PUT    = "PUT"
+methodJSString PATCH  = "PATCH"
 methodJSString DELETE = "DELETE"
 
 type Header = (JSString, JSString)
