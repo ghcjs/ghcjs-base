@@ -93,7 +93,6 @@ import           Control.Exception (evaluate, Exception)
 import           Foreign.ForeignPtr.Safe
 import           Foreign.Ptr
 
-import           Data.Primitive.Addr (Addr(..))
 import           Data.Primitive.ByteArray
 import           Data.Typeable (Typeable)
 
