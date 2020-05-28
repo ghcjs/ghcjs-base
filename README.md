@@ -195,7 +195,7 @@ It's just a newtype wrapper around `JSVal`. There are currently two kinds of cal
 
 #### Asynchronous Callbacks
 
-Asynchronous callbacks are simpler than synchronous callbacks. If an synchronous callback is passed to a javascript function and the function calls the callback, the callback launches an asynchronous haskell thread. Let's look at the functions that generate asynchronous callbacks.
+Asynchronous callbacks are simpler than synchronous callbacks. If an asynchronous callback is passed to a javascript function and the function calls the callback, the callback launches an asynchronous haskell thread. Let's look at the functions that generate asynchronous callbacks.
 
 ```haskell
 asyncCallback :: IO () -> IO (Callback (IO ()))
