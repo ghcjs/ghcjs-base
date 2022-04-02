@@ -28,7 +28,12 @@ import qualified Data.Aeson as AE
 import           Data.Attoparsec.Number (Number(..))
 import           Data.Bits ((.&.))
 import           Data.Char (chr, ord)
+#if MIN_VERSION_aeson (2,0,0)
+import qualified Data.Aeson.Key as K
+import qualified Data.Aeson.KeyMap as KM
+#else
 import qualified Data.HashMap.Strict as H
+#endif
 import           Data.Int (Int8, Int16, Int32)
 import qualified Data.JSString as JSS
 import qualified Data.JSString.Text as JSS
@@ -170,7 +175,11 @@ instance FromJSVal AE.Value where
                     propVals <- forM props $ \p -> do
                         v <- MaybeT (fromJSVal =<< OI.getProp p (OI.Object r))
                         return (JSS.textFromJSString p, v)
+#if MIN_VERSION_aeson (2,0,0)
+                    return (AE.Object (KM.fromList (map (\(k, v) -> (K.fromText k, v)) propVals)))
+#else
                     return (AE.Object (H.fromList propVals))
+#endif
     {-# INLINE fromJSVal #-}
 instance (FromJSVal a, FromJSVal b) => FromJSVal (a,b) where
     fromJSVal r = runMaybeT $ (,) <$> jf r 0 <*> jf r 1
@@ -299,7 +308,12 @@ toJSVal_aeson x = cv (AE.toJSON x)
     convertValue (AE.Bool b)   = return (toJSBool b)
     convertValue (AE.Object o) = do
       obj@(OI.Object obj') <- OI.create
-      mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj) (H.toList o)
+      mapM_ (\(k,v) -> convertValue v >>= \v' -> OI.setProp (JSS.textToJSString k) v' obj)
+#if MIN_VERSION_aeson (2,0,0)
+        (map (\(k, v) -> (K.toText k, v)) (KM.toList o))
+#else
+        (H.toList o)
+#endif
       return obj'
 
 

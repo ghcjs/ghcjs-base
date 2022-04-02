@@ -1,2 +1,6 @@
 packages:
  ./.
+
+-- constraints: aeson >=2, hashable >=1.4, transformers >=0.6
+-- constraints: aeson <2, hashable <1.4, transformers <0.6
+
