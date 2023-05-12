@@ -1,4 +1,4 @@
-#include <ghcjs/rts.h>
+//#OPTIONS: CPP
 
 /*
  * Support code for the Data.JSString module. This code presents a JSString

@@ -16,7 +16,7 @@ import qualified GHC.Exts as Exts
 import           GHC.Exts (State#)
 
 import           GHCJS.Internal.Types
-import qualified GHCJS.Prim as Prim
+import qualified GHC.JS.Prim as Prim
 import           GHCJS.Types
 
 newtype SomeJSArray (m :: MutabilityType s) = SomeJSArray JSVal

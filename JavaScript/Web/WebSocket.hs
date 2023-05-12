@@ -27,7 +27,7 @@ module JavaScript.Web.WebSocket ( WebSocket
                                 ) where
 
 import           GHCJS.Concurrent
-import           GHCJS.Prim
+import           GHC.JS.Prim
 import           GHCJS.Foreign.Callback.Internal (Callback(..))
 import qualified GHCJS.Foreign.Callback          as CB
 

@@ -23,7 +23,7 @@ import           Data.Typeable
 
 import           GHC.Generics
 
-import qualified GHCJS.Prim                 as Prim
+import qualified GHC.JS.Prim                 as Prim
 import qualified GHCJS.Foreign              as F
 import           GHCJS.Types
 

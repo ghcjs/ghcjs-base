@@ -1,5 +1,5 @@
+//#OPTIONS: CPP
 // conversion between JavaScript string and Data.Text
-#include <ghcjs/rts.h>
 
 
 /*

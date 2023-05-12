@@ -167,8 +167,8 @@ import Data.Semigroup (Semigroup(..))
 
 import           Unsafe.Coerce
 
-import           GHCJS.Prim                           (JSVal)
-import qualified GHCJS.Prim                           as Prim
+import           GHC.JS.Prim                           (JSVal)
+import qualified GHC.JS.Prim                           as Prim
 
 import           Data.JSString.Internal.Type
 import           Data.JSString.Internal.Fusion        (stream, unstream)
@@ -300,10 +300,12 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
     unstream (S.map safe (S.streamList [a]))
       = singleton a #-}
 
+#ifdef MIN_VERSION_ghcjs_prim
 #if MIN_VERSION_ghcjs_prim(0,1,1)
 {-# RULES "JSSTRING literal prim" [0] forall a.
     unpackCString# a = JSString (Prim.unsafeUnpackJSStringUtf8# a)
   #-}
+#endif
 #endif
 
 -- | /O(1)/ Convert a character into a 'JSString'.  Subject to fusion.

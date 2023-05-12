@@ -25,7 +25,7 @@ import           GHC.Exts
   , (+#), (-#), (>=#), (<#)
   , isTrue#, chr#)
 import qualified GHC.Exts as Exts
-import GHCJS.Prim (JSVal)
+import GHC.JS.Prim (JSVal)
 
 import Unsafe.Coerce
 

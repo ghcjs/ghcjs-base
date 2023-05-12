@@ -16,14 +16,10 @@ import Data.Monoid
 
 import GHC.Int
 import GHC.Word
-import GHC.Exts ( ByteArray#
-                , Int(..), Int#, Int64#
-                , Word(..), Word#, Word64#
-                , (<#), (<=#), isTrue# )
-
-import GHC.Integer.GMP.Internals
+import GHC.Exts hiding (Any)
+import GHC.Num.Integer
 import Unsafe.Coerce
-import GHCJS.Prim
+import GHC.JS.Prim
 
 decimal :: Integral a => a -> JSString
 decimal i = decimal' i
@@ -56,15 +52,15 @@ decimalI (I# x) = js_decI x
 {-# INLINE decimalI #-}
 
 decimalI8 :: Int8 -> JSString
-decimalI8 (I8# x) = js_decI x
+decimalI8 (I8# x) = js_decI (int8ToInt# x)
 {-# INLINE decimalI8 #-}
 
 decimalI16 :: Int16 -> JSString
-decimalI16 (I16# x) = js_decI x
+decimalI16 (I16# x) = js_decI (int16ToInt# x)
 {-# INLINE decimalI16 #-}
 
 decimalI32 :: Int32 -> JSString
-decimalI32 (I32# x) = js_decI x
+decimalI32 (I32# x) = js_decI (int32ToInt# x)
 {-# INLINE decimalI32 #-}
 
 decimalI64 :: Int64 -> JSString
@@ -72,15 +68,15 @@ decimalI64 (I64# x) = js_decI64 x
 {-# INLINE decimalI64 #-}
 
 decimalW8 :: Word8 -> JSString
-decimalW8 (W8# x) = js_decW x
+decimalW8 (W8# x) = js_decW (word8ToWord# x)
 {-# INLINE decimalW8 #-}
 
 decimalW16 :: Word16 -> JSString
-decimalW16 (W16# x) = js_decW x
+decimalW16 (W16# x) = js_decW (word16ToWord# x)
 {-# INLINE decimalW16 #-}
 
 decimalW32 :: Word32 -> JSString
-decimalW32 (W32# x) = js_decW32 x
+decimalW32 (W32# x) = js_decW32 (word32ToWord# x)
 {-# INLINE decimalW32 #-}
 
 decimalW64 :: Word64 -> JSString
@@ -163,23 +159,23 @@ hexI (I# x) = if isTrue# (x <# 0#)
 
 hexI8 :: Int8 -> JSString
 hexI8 (I8# x) =
-  if isTrue# (x <# 0#)
+  if isTrue# (int8ToInt# x <# 0#)
   then error hexErrMsg
-  else js_hexI x
+  else js_hexI (int8ToInt# x)
 {-# INLINE hexI8 #-}
 
 hexI16 :: Int16 -> JSString
 hexI16 (I16# x) =
-  if isTrue# (x <# 0#)
+  if isTrue# (int16ToInt# x <# 0#)
   then error hexErrMsg
-  else js_hexI x
+  else js_hexI (int16ToInt# x)
 {-# INLINE hexI16 #-}
 
 hexI32 :: Int32 -> JSString
 hexI32 (I32# x) =
-  if isTrue# (x <# 0#)
+  if isTrue# (int32ToInt# x <# 0#)
   then error hexErrMsg
-  else js_hexI x
+  else js_hexI (int32ToInt# x)
 {-# INLINE hexI32 #-}
 
 hexI64 :: Int64 -> JSString
@@ -190,15 +186,15 @@ hexI64 i@(I64# x) =
 {-# INLINE hexI64 #-}
 
 hexW :: Word -> JSString
-hexW (W# x) = js_hexW32 x
+hexW (W# x) = js_hexW x
 {-# INLINE hexW #-}
 
 hexW8 :: Word8 -> JSString
-hexW8 (W8# x) = js_hexW x
+hexW8 (W8# x) = js_hexW (word8ToWord# x)
 {-# INLINE hexW8 #-}
 
 hexW16 :: Word16 -> JSString
-hexW16 (W16# x) = js_hexW x
+hexW16 (W16# x) = js_hexW (word16ToWord# x)
 {-# INLINE hexW16 #-}
 
 hexW32 :: Word32 -> JSString
@@ -246,7 +242,7 @@ foreign import javascript unsafe
   js_hexW       :: Word#    -> JSString
 foreign import javascript unsafe
   "(($1>=0)?$1:($1+4294967296)).toString(16)"
-  js_hexW32     :: Word#    -> JSString
+  js_hexW32     :: Word32#    -> JSString
 foreign import javascript unsafe
   "h$jsstringHexW64($1_1, $1_2)"
   js_hexW64     :: Word64#  -> JSString

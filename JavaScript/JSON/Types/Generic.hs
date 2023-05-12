@@ -28,7 +28,7 @@ import qualified Data.JSString as JSS
 import qualified JavaScript.JSON.Types.Internal as I
 import qualified JavaScript.Array as JSA
 import qualified JavaScript.Array.ST as JSAST
-import Data.Bits
+import Data.Bits hiding (And)
 
 import Data.DList (DList, toList, empty)
 

@@ -25,7 +25,7 @@ import           GHCJS.Concurrent
 import           GHCJS.Marshal
 import           GHCJS.Marshal.Pure
 import           GHCJS.Foreign.Callback.Internal
-import           GHCJS.Prim
+import           GHC.JS.Prim
 import           GHCJS.Types
 
 import qualified GHC.Exts as Exts

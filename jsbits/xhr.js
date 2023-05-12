@@ -1,3 +1,4 @@
+//#OPTIONS: CPP
 function h$sendXHR(xhr, d, cont) {
     xhr.addEventListener('error', function () {
 	cont(2);

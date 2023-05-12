@@ -13,7 +13,7 @@ import Unsafe.Coerce
 
 import Control.DeepSeq
 
-import GHCJS.Prim (JSVal)
+import GHC.JS.Prim (JSVal)
 
 instance NFData JSVal where
   rnf x = x `seq` ()

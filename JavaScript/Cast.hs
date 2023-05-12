@@ -5,7 +5,7 @@ module JavaScript.Cast ( Cast(..)
                        , unsafeCast
                        ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 cast :: forall a. Cast a => JSVal -> Maybe a
 cast x | js_checkCast x (instanceRef (undefined :: a)) = Just (unsafeWrap x)

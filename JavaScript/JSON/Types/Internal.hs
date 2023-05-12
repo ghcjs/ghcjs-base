@@ -72,7 +72,7 @@ import           GHC.Types (IO(..))
 import qualified GHCJS.Foreign     as F
 import           GHCJS.Internal.Types
 import           GHCJS.Types
-import qualified GHCJS.Prim.Internal.Build as IB
+import qualified GHC.JS.Prim.Internal.Build as IB
 
 import qualified JavaScript.Array          as A
 import qualified JavaScript.Array.Internal as AI

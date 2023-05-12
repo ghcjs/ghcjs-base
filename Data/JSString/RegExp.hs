@@ -18,7 +18,7 @@ module Data.JSString.RegExp ( RegExp
                             , execNext
                             ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHC.Exts (Any, Int#, Int(..))
 
 import Unsafe.Coerce (unsafeCoerce)

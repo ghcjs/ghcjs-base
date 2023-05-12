@@ -21,7 +21,7 @@ module JavaScript.Object.Internal
 import           Data.JSString
 import           Data.Typeable
 
-import qualified GHCJS.Prim                as Prim
+import qualified GHC.JS.Prim                as Prim
 import           GHCJS.Types
 
 import qualified JavaScript.Array          as JA

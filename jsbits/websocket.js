@@ -1,4 +1,4 @@
-#include <ghcjs/rts.h>
+//#OPTIONS: CPP
 
 function h$createWebSocket(url, protocols) {
   return new WebSocket(url, protocols);

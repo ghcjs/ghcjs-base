@@ -18,7 +18,7 @@ import Data.Word
 
 import GHC.Exts ( State# )
 
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Internal.Types
 
 import JavaScript.TypedArray.ArrayBuffer.Internal

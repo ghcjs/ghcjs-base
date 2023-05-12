@@ -6,7 +6,7 @@ module JavaScript.Web.Worker ( Worker
                              , terminate
                              ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import Data.JSString
 import Data.Typeable

@@ -33,7 +33,7 @@ module GHCJS.Concurrent ( isThreadSynchronous
                         , synchronously
                         ) where
 
-import           GHCJS.Prim
+import           GHC.JS.Prim
 
 import           Control.Applicative
 import           Control.Concurrent

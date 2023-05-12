@@ -48,10 +48,10 @@ elemSize a = js_elemSize a
 instance TypedArray IOInt8Array where
   index i a                  = IO (indexI8 i a)
   unsafeIndex i a            = IO (unsafeIndexI8 i a)
-  setIndex i (I8# x) a       = IO (setIndexI i x a)
-  unsafeSetIndex i (I8# x) a = IO (unsafeSetIndexI i x a)
-  indexOf s (I8# x) a        = IO (indexOfI s x a)
-  lastIndexOf s (I8# x) a    = IO (lastIndexOfI s x a)
+  setIndex i (I8# x) a       = IO (setIndexI i (int8ToInt# x) a)
+  unsafeSetIndex i (I8# x) a = IO (unsafeSetIndexI i (int8ToInt# x) a)
+  indexOf s (I8# x) a        = IO (indexOfI s (int8ToInt# x) a)
+  lastIndexOf s (I8# x) a    = IO (lastIndexOfI s (int8ToInt# x) a)
   create l                   = IO (js_createInt8Array l)
   fromArray a                = int8ArrayFrom a
   fromArrayBuffer b          = undefined
@@ -59,10 +59,10 @@ instance TypedArray IOInt8Array where
 instance TypedArray IOInt16Array where
   index i a                   = IO (indexI16 i a)
   unsafeIndex i a             = IO (unsafeIndexI16 i a)
-  setIndex i (I16# x) a       = IO (setIndexI i x a)
-  unsafeSetIndex i (I16# x) a = IO (unsafeSetIndexI i x a)
-  indexOf s (I16# x) a        = IO (indexOfI s x a)
-  lastIndexOf s (I16# x) a    = IO (lastIndexOfI s x a)
+  setIndex i (I16# x) a       = IO (setIndexI i (int16ToInt# x) a)
+  unsafeSetIndex i (I16# x) a = IO (unsafeSetIndexI i (int16ToInt# x) a)
+  indexOf s (I16# x) a        = IO (indexOfI s (int16ToInt# x) a)
+  lastIndexOf s (I16# x) a    = IO (lastIndexOfI s (int16ToInt# x) a)
   create l                    = IO (js_createInt16Array l)
   fromArray a                 = int16ArrayFrom a
   fromArrayBuffer b           = undefined
@@ -81,10 +81,10 @@ instance TypedArray IOInt32Array where
 instance TypedArray IOUint8ClampedArray where
   index i a                   = IO (indexW8 i a)
   unsafeIndex i a             = IO (unsafeIndexW8 i a)
-  setIndex i (W8# x) a        = IO (setIndexW i x a)
-  unsafeSetIndex i (W8# x) a  = IO (unsafeSetIndexW i x a)
-  indexOf s (W8# x) a         = IO (indexOfW s x a)
-  lastIndexOf s (W8# x) a     = IO (lastIndexOfW s x a)
+  setIndex i (W8# x) a        = IO (setIndexW i (word8ToWord# x) a)
+  unsafeSetIndex i (W8# x) a  = IO (unsafeSetIndexW i (word8ToWord# x) a)
+  indexOf s (W8# x) a         = IO (indexOfW s (word8ToWord# x) a)
+  lastIndexOf s (W8# x) a     = IO (lastIndexOfW s (word8ToWord# x) a)
   create l                    = IO (js_createUint8ClampedArray l)
   fromArray a                 = uint8ClampedArrayFrom a
   fromArrayBuffer b           = undefined
@@ -92,10 +92,10 @@ instance TypedArray IOUint8ClampedArray where
 instance TypedArray IOUint8Array where
   index i a                   = IO (indexW8 i a)
   unsafeIndex i a             = IO (unsafeIndexW8 i a)
-  setIndex i (W8# x) a        = IO (setIndexW i x a)
-  unsafeSetIndex i (W8# x) a  = IO (unsafeSetIndexW i x a)
-  indexOf s (W8# x) a         = IO (indexOfW s x a)
-  lastIndexOf s (W8# x) a     = IO (lastIndexOfW s x a)
+  setIndex i (W8# x) a        = IO (setIndexW i (word8ToWord# x) a)
+  unsafeSetIndex i (W8# x) a  = IO (unsafeSetIndexW i (word8ToWord# x) a)
+  indexOf s (W8# x) a         = IO (indexOfW s (word8ToWord# x) a)
+  lastIndexOf s (W8# x) a     = IO (lastIndexOfW s (word8ToWord# x) a)
   create l                    = IO (js_createUint8Array l)
   fromArray a                 = uint8ArrayFrom a
   fromArrayBuffer b           = undefined
@@ -103,10 +103,10 @@ instance TypedArray IOUint8Array where
 instance TypedArray IOUint16Array where
   index i a                   = IO (indexW16 i a)
   unsafeIndex i a             = IO (unsafeIndexW16 i a)
-  setIndex i (W16# x) a       = IO (setIndexW i x a)
-  unsafeSetIndex i (W16# x) a = IO (unsafeSetIndexW i x a)
-  indexOf s (W16# x) a        = IO (indexOfW s x a)
-  lastIndexOf s (W16# x) a    = IO (lastIndexOfW s x a)
+  setIndex i (W16# x) a       = IO (setIndexW i (word16ToWord# x) a)
+  unsafeSetIndex i (W16# x) a = IO (unsafeSetIndexW i (word16ToWord# x) a)
+  indexOf s (W16# x) a        = IO (indexOfW s (word16ToWord# x) a)
+  lastIndexOf s (W16# x) a    = IO (lastIndexOfW s (word16ToWord# x) a)
   create l                    = IO (js_createUint16Array l)
   fromArray a                 = uint16ArrayFrom a
   fromArrayBuffer b           = undefined
@@ -163,11 +163,11 @@ indexI a i = \s -> case js_indexI a i s of (# s', v #) -> (# s', I# v #)
 {-# INLINE indexI #-}
 
 indexI16 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Int16 #)
-indexI16 a i = \s -> case js_indexI a i s of (# s', v #) -> (# s', I16# v #)
+indexI16 a i = \s -> case js_indexI a i s of (# s', v #) -> (# s', I16# (intToInt16# v) #)
 {-# INLINE indexI16 #-}
 
 indexI8 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Int8 #)
-indexI8 a i = \s -> case js_indexI a i s of (# s', v #) -> (# s', I8# v #)
+indexI8 a i = \s -> case js_indexI a i s of (# s', v #) -> (# s', I8# (intToInt8# v) #)
 {-# INLINE indexI8 #-}
 
 indexW :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Word #)
@@ -175,11 +175,11 @@ indexW a i = \s -> case js_indexW a i s of (# s', v #) -> (# s', W# v #)
 {-# INLINE indexW #-}
 
 indexW16 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Word16 #)
-indexW16 a i = \s -> case js_indexW a i s of (# s', v #) -> (# s', W16# v #)
+indexW16 a i = \s -> case js_indexW a i s of (# s', v #) -> (# s', W16# (wordToWord16# v) #)
 {-# INLINE indexW16 #-}
 
 indexW8 :: Int -> SomeTypedArray e m -> State# s -> (# State# s,  Word8 #)
-indexW8 a i = \s -> case js_indexW a i s of (# s', v #) -> (# s', W8# v #)
+indexW8 a i = \s -> case js_indexW a i s of (# s', v #) -> (# s', W8# (wordToWord8# v) #)
 {-# INLINE indexW8 #-}
 
 indexD :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Double #)
@@ -193,11 +193,11 @@ unsafeIndexI a i = \s -> case js_unsafeIndexI a i s of (# s', v #) -> (# s', I# 
 {-# INLINE unsafeIndexI #-}
 
 unsafeIndexI16 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Int16 #)
-unsafeIndexI16 a i = \s -> case js_unsafeIndexI a i s of (# s', v #) -> (# s', I16# v #)
+unsafeIndexI16 a i = \s -> case js_unsafeIndexI a i s of (# s', v #) -> (# s', I16# (intToInt16# v) #)
 {-# INLINE unsafeIndexI16 #-}
 
 unsafeIndexI8 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Int8 #)
-unsafeIndexI8 a i = \s -> case js_unsafeIndexI a i s of (# s', v #) -> (# s', I8# v #)
+unsafeIndexI8 a i = \s -> case js_unsafeIndexI a i s of (# s', v #) -> (# s', I8# (intToInt8# v) #)
 {-# INLINE unsafeIndexI8 #-}
 
 unsafeIndexW :: Int -> SomeTypedArray e m -> State# s -> (# State# s,  Word #)
@@ -205,11 +205,11 @@ unsafeIndexW a i = \s -> case js_unsafeIndexW a i s of (# s', v #) -> (# s', W# 
 {-# INLINE unsafeIndexW #-}
 
 unsafeIndexW16 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Word16 #)
-unsafeIndexW16 a i = \s -> case js_unsafeIndexW a i s of (# s', v #) -> (# s', W16# v #)
+unsafeIndexW16 a i = \s -> case js_unsafeIndexW a i s of (# s', v #) -> (# s', W16# (wordToWord16# v) #)
 {-# INLINE unsafeIndexW16 #-}
 
 unsafeIndexW8 :: Int -> SomeTypedArray e m -> State# s -> (# State# s, Word8 #)
-unsafeIndexW8 a i = \s -> case js_unsafeIndexW a i s of (# s', v #) -> (# s', W8# v #)
+unsafeIndexW8 a i = \s -> case js_unsafeIndexW a i s of (# s', v #) -> (# s', W8# (wordToWord8# v) #)
 {-# INLINE unsafeIndexW8 #-}
 
 unsafeIndexD :: Int -> SomeTypedArray e m -> State# s -> (# State# s,  Double #)

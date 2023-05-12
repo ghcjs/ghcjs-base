@@ -27,7 +27,7 @@ import Data.Word
 import Unsafe.Coerce
 import qualified GHC.Exts as Exts
 
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Types
 
 newtype Export a = Export JSVal

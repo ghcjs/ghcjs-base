@@ -22,7 +22,7 @@ import Control.Exception
 import Control.Monad
 
 import GHCJS.Types
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Marshal
 import GHCJS.Marshal.Pure
 import GHCJS.Internal.Types

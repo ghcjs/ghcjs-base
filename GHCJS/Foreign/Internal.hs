@@ -80,7 +80,7 @@ module GHCJS.Foreign.Internal ( JSType(..)
                               ) where
 
 import           GHCJS.Types
-import qualified GHCJS.Prim as Prim
+import qualified GHC.JS.Prim as Prim
 
 import           GHC.Prim
 import           GHC.Exts
