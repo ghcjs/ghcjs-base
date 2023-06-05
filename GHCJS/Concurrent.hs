@@ -118,15 +118,13 @@ syncThreadState (ThreadId tid) = js_syncThreadState tid
 
 -- ----------------------------------------------------------------------------
 
-foreign import javascript unsafe "h$syncThreadState($1)"
+foreign import javascript unsafe "h$syncThreadState"
   js_syncThreadState :: ThreadId# -> IO Int
 
 foreign import javascript unsafe
-  "$r = h$currentThread.noPreemption;\
-  \h$currentThread.noPreemption = $1;"
+  "((x) => { var r = h$currentThread.noPreemption; h$currentThread.noPreemption = x; return r; })"
   js_setNoPreemption :: Bool -> IO Bool;
 
 foreign import javascript unsafe
-  "$r = h$currentThread.isSynchronous;\
-  \h$currentThread.isSynchronous = $1;"
+  "((x) => { var r = h$currentThread.isSynchronous; h$currentThread.isSynchronous = x; return r; })"
   js_setSynchronous :: Bool -> IO Bool

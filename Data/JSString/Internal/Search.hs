@@ -18,5 +18,5 @@ indices needle haystack = go 0#
              n   -> I# n : go (n +# 1#)
 
 foreign import javascript unsafe
-  "$3.indexOf($1,$2)"
+  "((x,y,z) => { return z.indexOf(x,y); })"
   js_indexOf :: JSString -> Int# -> JSString -> Int#

@@ -136,21 +136,21 @@ instance PToJSVal a => PToJSVal (Maybe a) where
     pToJSVal (Just a) = pToJSVal a
     {-# INLINE pToJSVal #-}
 
-foreign import javascript unsafe "$r = $1|0;"          jsvalToWord   :: JSVal -> Word#
-foreign import javascript unsafe "$r = $1&0xff;"       jsvalToWord8  :: JSVal -> Word8#
-foreign import javascript unsafe "$r = $1&0xffff;"     jsvalToWord16 :: JSVal -> Word16#
-foreign import javascript unsafe "$r = $1|0;"          jsvalToWord32 :: JSVal -> Word32#
-foreign import javascript unsafe "$r = $1|0;"          jsvalToInt    :: JSVal -> Int#
-foreign import javascript unsafe "$r = $1<<24>>24;"    jsvalToInt8   :: JSVal -> Int8#
-foreign import javascript unsafe "$r = $1<<16>>16;"    jsvalToInt16  :: JSVal -> Int16#
-foreign import javascript unsafe "$r = $1|0;"          jsvalToInt32  :: JSVal -> Int32#
-foreign import javascript unsafe "$r = +$1;"           jsvalToFloat  :: JSVal -> Float#
-foreign import javascript unsafe "$r = +$1;"           jsvalToDouble :: JSVal -> Double#
-foreign import javascript unsafe "$r = $1&0x7fffffff;" jsvalToChar   :: JSVal -> Char#
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToWord   :: JSVal -> Word#
+foreign import javascript unsafe "((x) => { return x&0xff; })"       jsvalToWord8  :: JSVal -> Word8#
+foreign import javascript unsafe "((x) => { return x&0xffff; })"     jsvalToWord16 :: JSVal -> Word16#
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToWord32 :: JSVal -> Word32#
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToInt    :: JSVal -> Int#
+foreign import javascript unsafe "((x) => { return x<<24>>24; })"    jsvalToInt8   :: JSVal -> Int8#
+foreign import javascript unsafe "((x) => { return x<<16>>16; })"    jsvalToInt16  :: JSVal -> Int16#
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToInt32  :: JSVal -> Int32#
+foreign import javascript unsafe "((x) => { return +x; })"           jsvalToFloat  :: JSVal -> Float#
+foreign import javascript unsafe "((x) => { return +x; })"           jsvalToDouble :: JSVal -> Double#
+foreign import javascript unsafe "((x) => { return x&0x7fffffff; })" jsvalToChar   :: JSVal -> Char#
 
-foreign import javascript unsafe "$r = $1;" wordToJSVal   :: Word#   -> JSVal
-foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
-foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
-foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
-foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" wordToJSVal   :: Word#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" intToJSVal    :: Int#    -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" doubleToJSVal :: Double# -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" floatToJSVal  :: Float#  -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" charToJSVal   :: Char#   -> JSVal
 

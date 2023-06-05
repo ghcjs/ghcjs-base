@@ -317,7 +317,7 @@ mutableByteArrayJSVal :: MutableByteArray# s -> JSVal a
 mutableByteArrayJSVal a = unsafeCoerce (MutableByteArray a)
 {-# INLINE mutableByteArrayJSVal #-}
 
-foreign import javascript safe "h$wrapBuffer($3, true, $1, $2)"
+foreign import javascript safe "((x,y,z) => { return h$wrapBuffer(z, true, x, y); })"
   js_wrapBuffer :: Int -> Int -> JSVal a -> IO (JSVal ())
 
 {- | Convert an ArrayBuffer to a strict 'ByteString'
@@ -368,15 +368,15 @@ unsafeMutableByteArrayByteString arr =
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$r = $1===true;"
+  "((x) => { return x===true; })"
   js_fromBool :: JSVal -> Bool
 foreign import javascript unsafe
-  "$1 ? true : false"
+  "((x) => { return x ? true : false; })"
   js_isTruthy :: JSVal -> Bool
-foreign import javascript unsafe "$r = true;"  js_true :: Int# -> Ref#
-foreign import javascript unsafe "$r = false;" js_false :: Int# -> Ref#
-foreign import javascript unsafe "$r = null;"  js_null :: Int# -> Ref#
-foreign import javascript unsafe "$r = undefined;"  js_undefined :: Int# -> Ref#
+foreign import javascript unsafe "((x) => { return true; })"  js_true :: Int# -> Ref#
+foreign import javascript unsafe "((x) => { return false; })" js_false :: Int# -> Ref#
+foreign import javascript unsafe "((x) => { return null; })"  js_null :: Int# -> Ref#
+foreign import javascript unsafe "((x) => { return undefined; })"  js_undefined :: Int# -> Ref#
 -- foreign import javascript unsafe "$r = [];" js_emptyArray :: IO (JSArray a)
 -- foreign import javascript unsafe "$r = {};" js_emptyObj :: IO (JSVal a)
 --foreign import javascript unsafe "$3[$1] = $2;"
@@ -390,17 +390,17 @@ foreign import javascript unsafe "$r = undefined;"  js_undefined :: Int# -> Ref#
 --  js_index :: Int -> JSArray a -> IO (JSVal a)
 --foreign import javascript unsafe "$2[$1]"
 --  js_unsafeIndex :: Int -> JSArray a -> IO (JSVal a)
-foreign import javascript unsafe "$2[$1]"
+foreign import javascript unsafe "((x,y) => { return y[x]; })"
   js_unsafeGetProp :: JSString -> JSVal -> IO JSVal
-foreign import javascript unsafe "$3[$1] = $2"
+foreign import javascript unsafe "((x,y,z) => { return z[x] = y; })"
   js_unsafeSetProp :: JSString -> JSVal -> JSVal -> IO ()
 {-
 foreign import javascript safe "h$listProps($1)"
   js_listProps :: JSVal a -> IO (JSArray JSString)
 -}
-foreign import javascript unsafe "h$jsTypeOf($1)"
+foreign import javascript unsafe "h$jsTypeOf"
   js_jsTypeOf :: JSVal -> Int#
-foreign import javascript unsafe "h$jsonTypeOf($1)"
+foreign import javascript unsafe "h$jsonTypeOf"
   js_jsonTypeOf :: JSVal -> Int#
 -- foreign import javascript unsafe "h$listToArray"
 --  js_toArray :: Any -> IO (JSArray a)

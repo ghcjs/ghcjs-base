@@ -27,5 +27,5 @@ now = js_performanceNow
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "performance.now()"
+foreign import javascript unsafe "(() => { return performance.now(); })"
   js_performanceNow :: IO Double

@@ -194,35 +194,35 @@ foreign import javascript unsafe
   "h$wrapBuffer($1.buf.slice($1.u8.byteOffset, $1.len))"
   js_clone :: SomeBuffer any1 -> IO (SomeBuffer any2)
 foreign import javascript unsafe
-  "$1.len" js_byteLength :: SomeBuffer any -> Int
+  "((x) => { return x.len; })" js_byteLength :: SomeBuffer any -> Int
 foreign import javascript unsafe
-  "$1.buf" js_getArrayBuffer    :: SomeBuffer any -> SomeArrayBuffer any
+  "((x) => { return x.buf; })" js_getArrayBuffer    :: SomeBuffer any -> SomeArrayBuffer any
 foreign import javascript unsafe
-  "$1.i3" js_getInt32Array      :: SomeBuffer any -> I.SomeInt32Array any
+  "((x) => { return x.i3; })" js_getInt32Array      :: SomeBuffer any -> I.SomeInt32Array any
 foreign import javascript unsafe
-  "$1.u8" js_getUint8Array      :: SomeBuffer any -> I.SomeUint8Array  any
+  "((x) => { return x.u8; })" js_getUint8Array      :: SomeBuffer any -> I.SomeUint8Array  any
 foreign import javascript unsafe
-  "$1.u1" js_getUint16Array     :: SomeBuffer any -> I.SomeUint16Array any
+  "((x) => { return x.u1; })" js_getUint16Array     :: SomeBuffer any -> I.SomeUint16Array any
 foreign import javascript unsafe
-  "$1.f3" js_getFloat32Array    :: SomeBuffer any -> I.SomeFloat32Array  any
+  "((x) => { return x.f3; })" js_getFloat32Array    :: SomeBuffer any -> I.SomeFloat32Array  any
 foreign import javascript unsafe
-  "$1.f6" js_getFloat64Array    :: SomeBuffer any -> I.SomeFloat64Array any
+  "((x) => { return x.f6; })" js_getFloat64Array    :: SomeBuffer any -> I.SomeFloat64Array any
 foreign import javascript unsafe
-  "$1.dv" js_getDataView        :: SomeBuffer any -> SomeDataView any
+  "((x) => { return x.dv; })" js_getDataView        :: SomeBuffer any -> SomeDataView any
 
 -- ----------------------------------------------------------------------------
 -- these things have the same representation (modulo boxing),
 -- conversion is free
 
 foreign import javascript unsafe  
-  "$r = $1;" js_toByteArray          :: SomeBuffer any      -> ByteArray#
+  "((x) => { return x; })" js_toByteArray          :: SomeBuffer any      -> ByteArray#
 foreign import javascript unsafe  
-  "$r = $1;" js_fromByteArray        :: ByteArray#          -> JSVal
+  "((x) => { return x; })" js_fromByteArray        :: ByteArray#          -> JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_fromMutableByteArray :: MutableByteArray# s -> JSVal
+  "((x) => { return x; })" js_fromMutableByteArray :: MutableByteArray# s -> JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_toMutableByteArray   :: JSVal               -> MutableByteArray# s
+  "((x) => { return x; })" js_toMutableByteArray   :: JSVal               -> MutableByteArray# s
 foreign import javascript unsafe
-  "$r1 = $1; $r2 = 0;"  js_toAddr    :: SomeBuffer any      -> Addr#
+  "((x,y) => { RETURN_UBX_TUP2(x,y); })"  js_toAddr    :: SomeBuffer any      -> Addr#
 foreign import javascript unsafe
-  "$r = $1;" js_fromAddr             :: Addr#               -> SomeBuffer any
+  "((x) => { return x; })" js_fromAddr             :: Addr#               -> SomeBuffer any

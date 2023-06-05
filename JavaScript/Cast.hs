@@ -23,4 +23,4 @@ class Cast a where
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe 
-  "$1 instanceof $2" js_checkCast :: JSVal -> JSVal -> Bool
+  "((x,y) => { return x instanceof y; })" js_checkCast :: JSVal -> JSVal -> Bool

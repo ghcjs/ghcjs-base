@@ -65,7 +65,7 @@ lazyTextFromJSVal = TL.fromStrict . textFromJSVal
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "h$textToString($1,$2,$3)"
+  "h$textToString"
   js_toString :: ByteArray# -> Int# -> Int# -> JSString
 foreign import javascript unsafe
   "h$textFromString"

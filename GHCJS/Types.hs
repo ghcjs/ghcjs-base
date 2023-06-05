@@ -50,13 +50,13 @@ fromPtr :: Ptr a -> JSVal
 fromPtr p = js_ptrVal p
 {-# INLINE fromPtr #-}
 
-foreign import javascript unsafe "$r = null;"
+foreign import javascript unsafe "((x) => { return null; })"
   js_nullRef :: JSVal
 
-foreign import javascript unsafe "$r = $1_1;"
+foreign import javascript unsafe "((x,y) => { return x; })"
   js_ptrVal  :: Ptr a -> JSVal
 
-foreign import javascript unsafe "$r1 = $1; $r2 = 0;"
+foreign import javascript unsafe "((x) => { RETURN_UBX_TUP2(x,0); })"
   js_mkPtr :: JSVal -> Ptr a
 
 -- | This is a deprecated copmatibility wrapper for the old JSRef type.

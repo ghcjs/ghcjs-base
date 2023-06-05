@@ -94,9 +94,9 @@ splitN (I# k) x r = unsafeCoerce (js_split k x r)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "new RegExp($1,$2)" js_createRE :: JSString -> JSString -> RegExp
+  "((x,y) => { return new RegExp(x,y); })" js_createRE :: JSString -> JSString -> RegExp
 foreign import javascript unsafe
-  "$2.test($1)" js_test :: JSString -> RegExp -> Bool
+  "((x,y) => { return y.test(x); })" js_test :: JSString -> RegExp -> Bool
 foreign import javascript unsafe
   "h$jsstringExecRE" js_exec
   :: Int# -> JSString -> RegExp -> (# Int#, JSString, Any {- [JSString] -} #)
@@ -105,9 +105,9 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringSplitRE" js_split :: Int# -> JSString -> RegExp -> Any -- [JSString]
 foreign import javascript unsafe
-  "$1.multiline" js_isMultiline :: RegExp -> Bool
+  "((x) => { return x.multiline; })" js_isMultiline :: RegExp -> Bool
 foreign import javascript unsafe
-  "$1.ignoreCase" js_isIgnoreCase :: RegExp -> Bool
+  "((x) => { return x.ignoreCase; })" js_isIgnoreCase :: RegExp -> Bool
 foreign import javascript unsafe
-  "$1.pattern" js_pattern :: RegExp -> JSString
+  "((x) => { return x.pattern; })" js_pattern :: RegExp -> JSString
 

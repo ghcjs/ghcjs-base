@@ -85,15 +85,15 @@ foreign import javascript unsafe
   js_floatToFixed :: Int# -> Float# -> JSString
 
 foreign import javascript unsafe
-  "h$jsstringDoubleToExponent($1,$2)"
+  "h$jsstringDoubleToExponent"
   js_doubleToExponent :: Int# -> Double# -> JSString
 foreign import javascript unsafe
-  "h$jsstringDoubleToExponent($1,$2)"
+  "h$jsstringDoubleToExponent"
   js_floatToExponent :: Int# -> Float# -> JSString
 foreign import javascript unsafe
-  "h$jsstringDoubleGeneric($1,$2)"
+  "h$jsstringDoubleGeneric"
   js_doubleGeneric :: Int# -> Double# -> JSString
 foreign import javascript unsafe
-  "h$jsstringDoubleGeneric($1,$2)"
+  "h$jsstringDoubleGeneric"
   js_floatGeneric :: Int# -> Float# -> JSString
                         

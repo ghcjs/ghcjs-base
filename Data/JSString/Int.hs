@@ -211,50 +211,50 @@ hexErrMsg = "Data.JSString.Int.hexadecimal: applied to negative number"
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "''+$1"
+  "((x) => { return '' + x; })"
   js_decI       :: Int#     -> JSString
 foreign import javascript unsafe
   "h$jsstringDecI64"
   js_decI64     :: Int64#   -> JSString
 foreign import javascript unsafe
-  "''+$1"
+  "((x) => { return '' + x; })"
   js_decW       :: Word#    -> JSString
 foreign import javascript unsafe
-  "''+(($1>=0)?$1:($1+4294967296))"
+  "((x) => { return ''+((x>=0)?x:(x+4294967296)); })"
   js_decW32     :: Word#    -> JSString
 foreign import javascript unsafe
-  "h$jsstringDecW64($1_1, $1_2)"
+  "h$jsstringDecW64"
   js_decW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "h$jsstringDecInteger($1)"
+  "h$jsstringDecInteger"
   js_decInteger :: Any -> JSString
 
 -- these are expected to be only applied to nonnegative integers
 foreign import javascript unsafe
-  "$1.toString(16)"
+  "((x) => { return x.toString(16); })"
   js_hexI       :: Int#    -> JSString
 foreign import javascript unsafe
   "h$jsstringHexI64"
   js_hexI64     :: Int64#   -> JSString
 
 foreign import javascript unsafe
-  "$1.toString(16)"
+  "((x) => { return x.toString(16); })"
   js_hexW       :: Word#    -> JSString
 foreign import javascript unsafe
-  "(($1>=0)?$1:($1+4294967296)).toString(16)"
+  "((x) => { return ((x>=0)?x:(x+4294967296)).toString(16); })"
   js_hexW32     :: Word32#    -> JSString
 foreign import javascript unsafe
-  "h$jsstringHexW64($1_1, $1_2)"
+  "h$jsstringHexW64"
   js_hexW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "h$jsstringHexInteger($1)"
+  "h$jsstringHexInteger)"
   js_hexInteger :: Any -> JSString
 
 foreign import javascript unsafe
-  "'-'+$1+(-$2)"
+  "((x,y) => { return '-'+x+(-y); })"
   js_minusDigit :: JSString -> Int# -> JSString
 foreign import javascript unsafe
-  "'-'+$1"
+  "((x) => { return '-'+x; })"
   js_minus :: JSString -> JSString
 
 --

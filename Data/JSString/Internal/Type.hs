@@ -47,7 +47,7 @@ instance IsJSVal JSString
 instance NFData JSString where rnf !x = ()
 
 foreign import javascript unsafe
-  "$r = '';" js_empty :: JSString
+  "(() => return ''; })" js_empty :: JSString
 
 -- | /O(1)/ The empty 'JSString'.
 empty :: JSString
