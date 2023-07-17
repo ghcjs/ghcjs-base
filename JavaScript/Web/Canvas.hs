@@ -410,7 +410,7 @@ foreign import javascript unsafe "(($1,$2,$3,$4) => { $4.fillText($1,$2,$3); })"
   js_fillText :: JSString -> Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "(($1,$2,$3,$4) => { $4.strokeText($1,$2,$3); })"
   js_strokeText :: JSString -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "((x,y) => { y.measureText(x); })"
+foreign import javascript unsafe "((x,y) => { return y.measureText(x); })"
   js_measureText :: JSString                    -> Context -> IO Object
 foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.fillRect($1,$2,$3,$4); })"
   js_fillRect :: Double -> Double -> Double -> Double -> Context -> IO ()

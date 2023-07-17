@@ -41,7 +41,7 @@ JSU "((x,y) => { return new DataView(y,x); })"
     js_unsafeDataView2 :: Int -> JSVal-> SomeDataView m
 JSS "((x,y,z) => { return new DataView(z,x,y); })"
     js_dataView :: Int -> Int -> JSVal -> SomeDataView m
-JSU "((x,y,z) => { return new DataView(z,x,y); })" 
+JSU "((x,y,z) => { return new DataView(z,x,y); })"
     js_unsafeDataView :: Int -> Int -> JSVal -> JSVal
 JSU "((x) => { return new DataView(x.buffer.slice(x.byteOffset, x.byteLength)); })"
     js_cloneDataView :: SomeDataView m -> IO (SomeDataView m1)

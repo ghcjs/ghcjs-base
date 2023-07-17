@@ -247,7 +247,7 @@ foreign import javascript unsafe
   "h$jsstringHexW64"
   js_hexW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "h$jsstringHexInteger)"
+  "h$jsstringHexInteger"
   js_hexInteger :: Any -> JSString
 
 foreign import javascript unsafe

@@ -185,9 +185,9 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
-  "((x) => { return [$1]; })" js_newSingletonArray :: Char -> IO JSVal
+  "((x) => { return [x]; })" js_newSingletonArray :: Char -> IO JSVal
 foreign import javascript unsafe
-  "((x,y,z) => z[y] = x; })" js_writeArray :: Char -> Int -> JSVal -> IO ()
+  "((x,y,z) => { z[y] = x; })" js_writeArray :: Char -> Int -> JSVal -> IO ()
 foreign import javascript unsafe
   "h$jsstringPackArray" js_packString :: JSVal -> IO JSString
 foreign import javascript unsafe

@@ -354,7 +354,7 @@ function h$jsstringTakeEnd(n, str) {
     if(n <= 0) return '';
     var l = str.length, i = l-1, ch;
     if(n >= l) return str;
-    while(n-- && i > 0) {
+    while(n-- && i >= 0) {
 	ch = str.charCodeAt(i--);
 	if(IS_LO_SURR(ch)) i--;
     }
@@ -366,7 +366,7 @@ function h$jsstringDropEnd(n, str) {
     if(n <= 0) return str;
     var l = str.length, i = l-1, ch;
     if(n >= l) return '';
-    while(n-- && i > 0) {
+    while(n-- && i >= 0) {
 	ch = str.charCodeAt(i--);
 	if(IS_LO_SURR(ch)) i--;
     }

@@ -201,7 +201,7 @@ xhrByteString = fmap
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "((x) => { return x.withCredentials = true; })"
+  "((x) => { x.withCredentials = true; })"
   js_setWithCredentials :: XHR -> IO ()
 
 foreign import javascript unsafe
@@ -250,8 +250,8 @@ foreign import javascript unsafe
 -- -----------------------------------------------------------------------------
 
 foreign import javascript interruptible
-  "h$sendXHR"
+  "((x,c) => { return h$sendXHR(x, null, c); })"
   js_send0 :: XHR -> IO Int
 foreign import javascript interruptible
-  "h$sendXHR"
+  "((x,y,c) => { return h$sendXHR(y, x, c); })"
   js_send1 :: JSVal -> XHR -> IO Int

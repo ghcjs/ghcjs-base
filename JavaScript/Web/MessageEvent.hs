@@ -40,5 +40,5 @@ getData me = case js_getData me of
 foreign import javascript unsafe
   "((x) => { var r2 = x.data;\
            \ var r1 = typeof r === 'string' ? 1 : (r instanceof ArrayBuffer ? 3 : 2);\
-           \ RETURN_UBX_TUP2(r1, r2); })"
+           \ h$ret1 = r2; return r1; })"
   js_getData :: MessageEvent -> (# Int#, JSVal #)

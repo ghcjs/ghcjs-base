@@ -181,7 +181,7 @@ foreign import javascript unsafe "((x) => { return x.shift(); })"
 foreign import javascript unsafe "((x) => { x.reverse(); })"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
-foreign import javascript unsafe "h$toHsListJSVal)"
+foreign import javascript unsafe "h$toHsListJSVal"
   js_fromJSArray :: SomeJSArray m -> State# s -> (# State# s, Exts.Any #)
 foreign import javascript unsafe "h$toHsListJSVal"
   js_fromJSArrayPure :: JSArray -> Exts.Any -- [JSVal]

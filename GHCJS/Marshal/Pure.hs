@@ -21,6 +21,8 @@
  -}
 module GHCJS.Marshal.Pure ( PFromJSVal(..)
                           , PToJSVal(..)
+			  , jsvalToChar
+			  , charToJSVal
                           ) where
 
 import           Data.Char (chr, ord)
@@ -85,7 +87,7 @@ instance PFromJSVal Word8  where pFromJSVal x = W8# (jsvalToWord8 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Word16 where pFromJSVal x = W16# (jsvalToWord16 x)
                                  {-# INLINE pFromJSVal #-}
-instance PFromJSVal Word32 where pFromJSVal x = W32# (jsvalToWord32 x)
+instance PFromJSVal Word32 where pFromJSVal x = (jsvalToWord32 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Float  where pFromJSVal x = F# (jsvalToFloat x)
                                  {-# INLINE pFromJSVal #-}
@@ -136,10 +138,10 @@ instance PToJSVal a => PToJSVal (Maybe a) where
     pToJSVal (Just a) = pToJSVal a
     {-# INLINE pToJSVal #-}
 
-foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToWord   :: JSVal -> Word#
+foreign import javascript unsafe "((x) => { return x>>>0; })"        jsvalToWord   :: JSVal -> Word#
 foreign import javascript unsafe "((x) => { return x&0xff; })"       jsvalToWord8  :: JSVal -> Word8#
 foreign import javascript unsafe "((x) => { return x&0xffff; })"     jsvalToWord16 :: JSVal -> Word16#
-foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToWord32 :: JSVal -> Word32#
+foreign import javascript unsafe "((x) => { return x>>>0; })"        jsvalToWord32 :: JSVal -> Word32
 foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToInt    :: JSVal -> Int#
 foreign import javascript unsafe "((x) => { return x<<24>>24; })"    jsvalToInt8   :: JSVal -> Int8#
 foreign import javascript unsafe "((x) => { return x<<16>>16; })"    jsvalToInt16  :: JSVal -> Int16#

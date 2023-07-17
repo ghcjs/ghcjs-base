@@ -146,13 +146,14 @@ toMutableByteArrayPrim (SomeBuffer buf) = js_toMutableByteArray buf
 -- as a reference for the purpose of determining when that finalizer
 -- should run.
 fromByteString :: ByteString -> (Buffer, Int, Int)
-fromByteString (BS.PS fp off len) =
+fromByteString (BS.BS fp len) =
   -- not super happy with this.  What if the bytestring's foreign ptr
   -- has a nontrivial finalizer attached to it?  I don't think there's
   -- a way to do that without someone else messing with the PS constructor
   -- directly though.
   let !(Ptr addr) = unsafeForeignPtrToPtr fp
-  in (js_fromAddr addr, off, len)
+      (ptr, off) = js_fromAddr addr
+  in (ptr, off, len)
 {-# INLINE fromByteString #-}
 
 -- | Wrap a 'Buffer' into a 'ByteString' using the given offset
@@ -223,6 +224,6 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "((x) => { return x; })" js_toMutableByteArray   :: JSVal               -> MutableByteArray# s
 foreign import javascript unsafe
-  "((x,y) => { RETURN_UBX_TUP2(x,y); })"  js_toAddr    :: SomeBuffer any      -> Addr#
+  "h$toAddr"               js_toAddr               :: SomeBuffer any      -> Addr#
 foreign import javascript unsafe
-  "((x) => { return x; })" js_fromAddr             :: Addr#               -> SomeBuffer any
+  "h$fromAddr"             js_fromAddr             :: Addr#               -> (SomeBuffer any, Int)

@@ -56,7 +56,7 @@ foreign import javascript unsafe "((x) => { return null; })"
 foreign import javascript unsafe "((x,y) => { return x; })"
   js_ptrVal  :: Ptr a -> JSVal
 
-foreign import javascript unsafe "((x) => { RETURN_UBX_TUP2(x,0); })"
+foreign import javascript unsafe "((x) => { h$ret1 = 0; return x; })"
   js_mkPtr :: JSVal -> Ptr a
 
 -- | This is a deprecated copmatibility wrapper for the old JSRef type.
