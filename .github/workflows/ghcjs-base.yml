@@ -1,0 +1,17 @@
+name: ghcjs-base
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mymindstorm/setup-emsdk@v11
+      - uses: haskell/actions/setup@v2
+
+      - name: Build
+        run: cabal build all
+
+      - name: Test
+        run: cabal test test:tests
