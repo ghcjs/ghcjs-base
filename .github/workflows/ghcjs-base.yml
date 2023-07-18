@@ -9,7 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: mymindstorm/setup-emsdk@v11
-      - uses: haskell/actions/setup@v2
+      - uses: cachix/install-nix-action@v22
+      # - uses: haskell/actions/setup@v2
+
+      - name: Install GHC
+        run: nix develop github:input-output-hk/devx#ghc962-js
 
       - name: Build
         run: cabal build all
