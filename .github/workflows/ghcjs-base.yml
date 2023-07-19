@@ -17,7 +17,7 @@ jobs:
       # - name: Install GHC
       #  run: nix develop github:input-output-hk/devx#ghc962-js
 
-      - name: Install GHC $${{ with.compiler-nix-name }}${{ with.target-platform }}
+      - name: Install GHC
         uses: input-output-hk/actions/devx@latest
         with:
           platform: x86_linux
