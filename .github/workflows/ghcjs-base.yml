@@ -9,8 +9,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: mymindstorm/setup-emsdk@v11
-      - uses: cachix/install-nix-action@v22
+      # - uses: mymindstorm/setup-emsdk@v11
+      # - uses: cachix/install-nix-action@v22
       # - uses: haskell/actions/setup@v2
 
       # - name: Install GHC
