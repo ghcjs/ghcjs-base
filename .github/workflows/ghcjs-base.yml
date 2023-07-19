@@ -19,6 +19,7 @@ jobs:
         with:
           platform: "x86_64-linux"
           target-platform: "-js"
+          minimal: false
           compiler-nix-name: "ghc962"
 
       - name: Build
