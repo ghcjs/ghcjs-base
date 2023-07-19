@@ -17,9 +17,9 @@ jobs:
 
       - uses: input-output-hk/actions/devx@latest
         with:
-          platform: 'x86_64-linux'
-          target-platform: 'javascript'
-          compiler-nix-name: 'ghc962'
+          platform: "x86_64-linux"
+          target-platform: "-js"
+          compiler-nix-name: "ghc962"
 
       - name: Build
         run: cabal build all
