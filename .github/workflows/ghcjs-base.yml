@@ -2,15 +2,12 @@ name: ghcjs-base
 
 on:
   pull_request:
-    inputs:
-      platform: x86_64-linux
-      target-platform: "-js"
-      minimal: true
-      compiler-nix-name: ghc962
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+
     steps:
       - uses: actions/checkout@v3
       - uses: mymindstorm/setup-emsdk@v11
@@ -20,13 +17,13 @@ jobs:
       # - name: Install GHC
       #  run: nix develop github:input-output-hk/devx#ghc962-js
 
-      - name: Install GHC $${{ inputs.compiler-nix-name }}${{ inputs.target-platform }}
+      - name: Install GHC $${{ with.compiler-nix-name }}${{ with.target-platform }}
         uses: input-output-hk/actions/devx@latest
         with:
-          platform: inputs.platform
-          target-platform: inputs.target-platform
-          minimal: inputs.minimal
-          compiler-nix-name: inputs.compiler-nix-name
+          platform: x86_linux
+          target-platform: "-js"
+          minimal: true
+          compiler-nix-name: ghc962
 
       - name: Info
         run: ghc --info
