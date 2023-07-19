@@ -19,7 +19,7 @@ jobs:
       - name: Install GHC
         uses: input-output-hk/actions/devx@latest
         with:
-          platform: x86_linux
+          platform: x86_64-linux
           target-platform: "-js"
           minimal: true
           compiler-nix-name: ghc962
