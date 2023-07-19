@@ -18,7 +18,7 @@ jobs:
       - uses: input-output-hk/actions/devx@latest
         with:
           platform: x86_64-linux
-          target-platform: "-js"
+          target-platform: "-windows"
           minimal: true
           compiler-nix-name: ghc962
 
