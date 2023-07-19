@@ -9,7 +9,7 @@ jobs:
 
     defaults:
       run:
-        shell: devx
+        shell: devx {0}
 
     steps:
       - uses: actions/checkout@v3
