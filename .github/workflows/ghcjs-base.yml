@@ -22,7 +22,9 @@ jobs:
           compiler-nix-name: "ghc962"
 
       - name: Build
-        run: cabal build all
+        run: |
+          cabal update
+          cabal build all
 
       - name: Test
         run: cabal test test:tests
