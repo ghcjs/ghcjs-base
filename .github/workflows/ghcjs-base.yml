@@ -7,6 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: devx
+
     steps:
       - uses: actions/checkout@v3
       # - uses: mymindstorm/setup-emsdk@v11
@@ -24,13 +28,16 @@ jobs:
           minimal: true
           compiler-nix-name: ghc962
 
+      - name: Cabal
+        run: file $(which cabal)
+
       - name: Info
         run: javascript-unknown-ghcjs-ghc --info
 
       - name: Build
         run: |
           cabal update
-          cabal build all --with-ghc=javascript-unknown-ghcjs-ghc --with-ghc-pkg=javascript-unknown-ghcjs-ghc-pkg --with-hsc2hs=javascript-unknown-ghcjs-hsc2hs
+          cabal build all
 
       - name: Test
         run: cabal test test:tests
