@@ -12,8 +12,14 @@ jobs:
       - uses: cachix/install-nix-action@v22
       # - uses: haskell/actions/setup@v2
 
-      - name: Install GHC
-        run: nix develop github:input-output-hk/devx#ghc962-js
+      # - name: Install GHC
+      #  run: nix develop github:input-output-hk/devx#ghc962-js
+
+      - uses: input-output-hk/actions/devx@latest
+        with:
+          platform: 'x86_64-linux'
+          target-platform: 'javascript'
+          compiler-nix-name: 'ghc962'
 
       - name: Build
         run: cabal build all
