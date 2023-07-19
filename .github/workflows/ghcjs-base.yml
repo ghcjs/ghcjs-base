@@ -25,12 +25,12 @@ jobs:
           compiler-nix-name: ghc962
 
       - name: Info
-        run: ghc --info
+        run: javascript-unknown-ghcjs-ghc --info
 
       - name: Build
         run: |
           cabal update
-          cabal build all
+          cabal build all --with-ghc=javascript-unknown-ghcjs-ghc --with-ghc-pkg=javascript-unknown-ghcjs-ghc-pkg --with-hsc2hs=javascript-unknown-ghcjs-hsc2hs
 
       - name: Test
         run: cabal test test:tests
