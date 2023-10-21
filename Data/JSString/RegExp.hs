@@ -105,9 +105,9 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringSplitRE" js_split :: Int# -> JSString -> RegExp -> Any -- [JSString]
 foreign import javascript unsafe
-  "$1.multiline" js_isMultiline :: RegExp -> Bool
+  "((x) => { return x.multiline; })" js_isMultiline :: RegExp -> Bool
 foreign import javascript unsafe
-  "$1.ignoreCase" js_isIgnoreCase :: RegExp -> Bool
+  "((x) => { return x.ignoreCase; })" js_isIgnoreCase :: RegExp -> Bool
 foreign import javascript unsafe
-  "$1.pattern" js_pattern :: RegExp -> JSString
+  "((x) => { return x.pattern; })" js_pattern :: RegExp -> JSString
 

@@ -231,14 +231,14 @@ foreign import javascript unsafe
 
 -- these are expected to be only applied to nonnegative integers
 foreign import javascript unsafe
-  "$1.toString(16)"
+  "((x) => { return x.toString(16); })"
   js_hexI       :: Int#    -> JSString
 foreign import javascript unsafe
   "h$jsstringHexI64"
   js_hexI64     :: Int64#   -> JSString
 
 foreign import javascript unsafe
-  "$1.toString(16)"
+  "((x) => { return x.toString(16); })"
   js_hexW       :: Word#    -> JSString
 foreign import javascript unsafe
   "(($1>=0)?$1:($1+4294967296)).toString(16)"

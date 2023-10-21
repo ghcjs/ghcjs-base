@@ -336,11 +336,11 @@ foreign import javascript unsafe "$r = document.createElement('canvas');\
                                  \$r.width = $1;\
                                  \$r.height = $2;"
   js_create :: Int -> Int -> IO Canvas
-foreign import javascript unsafe "$1.getContext('2d')"
+foreign import javascript unsafe "((x) => { return x.getContext('2d'); })"
   js_getContext :: Canvas -> IO Context
-foreign import javascript unsafe "$1.save()"
+foreign import javascript unsafe "((x) => { return x.save(); })"
   js_save :: Context -> IO ()
-foreign import javascript unsafe "$1.restore()"
+foreign import javascript unsafe "((x) => { return x.restore(); })"
   js_restore  :: Context -> IO ()
 foreign import javascript unsafe "$7.transform($1,$2,$3,$4,$5,$6)"
   js_transform :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
@@ -352,17 +352,17 @@ foreign import javascript unsafe "$3.translate($1,$2)"
   js_translate  :: Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "$2.rotate($1)"
   js_rotate :: Double -> Context -> IO ()
-foreign import javascript unsafe "$1.fill()"
+foreign import javascript unsafe "((x) => { return x.fill(); })"
   js_fill :: Context -> IO ()
 foreign import javascript unsafe "$2.fill($1)"
   js_fill_rule  :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$1.stroke()"
+foreign import javascript unsafe "((x) => { return x.stroke(); })"
   js_stroke :: Context -> IO ()
-foreign import javascript unsafe "$1.beginPath()"
+foreign import javascript unsafe "((x) => { return x.beginPath(); })"
   js_beginPath :: Context -> IO ()
-foreign import javascript unsafe "$1.closePath()"
+foreign import javascript unsafe "((x) => { return x.closePath(); })"
   js_closePath :: Context -> IO ()
-foreign import javascript unsafe "$1.clip()"
+foreign import javascript unsafe "((x) => { return x.clip(); })"
   js_clip  :: Context -> IO ()
 foreign import javascript unsafe "$3.moveTo($1,$2)"
   js_moveTo :: Double -> Double -> Context -> IO ()
@@ -423,9 +423,9 @@ foreign import javascript unsafe "$6.drawImage($1,$2,$3,$4,$5)"
   js_drawImage :: Image -> Int -> Int -> Int -> Int -> Context -> IO () 
 foreign import javascript unsafe "$3.createPattern($1,$2)"
   js_createPattern :: Image -> JSString -> Context -> IO Pattern
-foreign import javascript unsafe "$1.width"
+foreign import javascript unsafe "((x) => { return x.width; })"
   js_width :: Canvas -> IO Int
-foreign import javascript unsafe "$1.height"
+foreign import javascript unsafe "((x) => { return x.height; })"
   js_height :: Canvas -> IO Int
 foreign import javascript unsafe "$2.width = $1;"
   js_setWidth :: Int -> Canvas -> IO ()

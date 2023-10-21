@@ -385,7 +385,7 @@ foreign import javascript unsafe "$r = undefined;"  js_undefined :: Int# -> Ref#
 --  js_fromArray :: JSArray a -> IO Ref# -- [a]
 --foreign import javascript safe "$2.push($1)"
 --  js_push :: JSVal a -> JSArray a -> IO ()
---foreign import javascript safe "$1.length" js_length :: JSArray a -> IO Int
+--foreign import javascript safe "((x) => { return x.length; })" js_length :: JSArray a -> IO Int
 --foreign import javascript safe "$2[$1]"
 --  js_index :: Int -> JSArray a -> IO (JSVal a)
 --foreign import javascript unsafe "$2[$1]"

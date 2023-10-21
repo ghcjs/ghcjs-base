@@ -144,17 +144,17 @@ replace = js_assign
 
 foreign import javascript safe "window.location" js_getWindowLocation :: IO Location
 
-foreign import javascript unsafe "$1.href"     js_getHref     :: Location -> IO JSString
-foreign import javascript unsafe "$1.protocol" js_getProtocol :: Location -> IO JSString
-foreign import javascript unsafe "$1.host"     js_getHost     :: Location -> IO JSString
-foreign import javascript unsafe "$1.hostname" js_getHostname :: Location -> IO JSString
-foreign import javascript unsafe "$1.port"     js_getPort     :: Location -> IO JSString
-foreign import javascript unsafe "$1.pathname" js_getPathname :: Location -> IO JSString
-foreign import javascript unsafe "$1.search"   js_getSearch   :: Location -> IO JSString
-foreign import javascript unsafe "$1.hash"     js_getHash     :: Location -> IO JSString
-foreign import javascript unsafe "$1.username" js_getUsername :: Location -> IO JSString
-foreign import javascript unsafe "$1.password" js_getPassword :: Location -> IO JSString
-foreign import javascript unsafe "$1.origin"   js_getOrigin   :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.href; })"     js_getHref     :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.protocol; })" js_getProtocol :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.host; })"     js_getHost     :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.hostname; })" js_getHostname :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.port; })"     js_getPort     :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.pathname; })" js_getPathname :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.search; })"   js_getSearch   :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.hash; })"     js_getHash     :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.username; })" js_getUsername :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.password; })" js_getPassword :: Location -> IO JSString
+foreign import javascript unsafe "((x) => { return x.origin; })"   js_getOrigin   :: Location -> IO JSString
 
 foreign import javascript safe "$2.href = $1;"     js_setHref     :: JSString -> Location -> IO ()
 foreign import javascript safe "$2.protocol = $1;" js_setProtocol :: JSString -> Location -> IO ()

@@ -68,7 +68,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$1===$2" js_eq :: JSString -> JSString -> Bool
 foreign import javascript unsafe
-  "$1.localeCompare($2)" js_compare :: JSString -> JSString -> Exts.Int#
+  "((x, y) => { return x.localeCompare(y); })" js_compare :: JSString -> JSString -> Exts.Int#
 foreign import javascript unsafe
   "h$jsstringConcat" js_concat :: Exts.Any -> JSString
 -}

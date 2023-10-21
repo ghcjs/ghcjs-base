@@ -268,7 +268,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$r = {};" js_emptyObject :: Object
 foreign import javascript unsafe
-  "$1.length === 0" js_isEmptyArray :: Value -> Bool
+  "((x) => { return x.length === 0; })" js_isEmptyArray :: Value -> Bool
 
 foreign import javascript unsafe
   "$r = true;" js_trueValue :: Value

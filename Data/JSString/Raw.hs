@@ -129,7 +129,7 @@ overflowError fun = error $ "Data.JSString.Raw." ++ fun ++ ": size overflow"
 foreign import javascript unsafe
   "$1===''" js_null :: JSString -> Bool
 foreign import javascript unsafe
-  "$1.length" js_length :: JSString -> Int#
+  "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
   "$3.substr($1,$2)" js_substr :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe

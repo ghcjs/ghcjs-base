@@ -38,7 +38,7 @@ instance PFromJSVal MutableArrayBuffer where
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.byteLength" js_byteLength :: SomeArrayBuffer any -> Int
+  "((x) => { return x.byteLength; })" js_byteLength :: SomeArrayBuffer any -> Int
 foreign import javascript unsafe
   "new ArrayBuffer($1)" js_create :: Int -> State# s -> (# State# s, JSVal #)
 foreign import javascript unsafe

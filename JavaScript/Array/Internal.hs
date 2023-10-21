@@ -143,14 +143,14 @@ unsafeThaw (SomeJSArray x) = pure (SomeJSArray x)
 foreign import javascript unsafe "$r = [];"
   js_create   :: State# s -> (# State# s, SomeJSArray m #)
 
-foreign import javascript unsafe "$1.length"
+foreign import javascript unsafe "((x) => { return x.length; })"
   js_length     :: SomeJSArray m -> State# s -> (# State# s, Int #)
 foreign import javascript unsafe "$2[$1]"
   js_index     :: Int -> SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
 foreign import javascript unsafe "$2[$1]"
   js_indexPure :: Int -> JSArray -> JSVal
-foreign import javascript unsafe "$1.length"
+foreign import javascript unsafe "((x) => { return x.length; })"
   js_lengthPure :: JSArray -> Int
 
 foreign import javascript unsafe "$3[$1] = $2"
@@ -166,19 +166,19 @@ foreign import javascript unsafe "$3.slice($1,2)"
 foreign import javascript unsafe "$2.slice($1)"
   js_slice1Pure :: Int -> JSArray -> JSArray
 
-foreign import javascript unsafe "$1.concat($2)"
+foreign import javascript unsafe "((x, y) => { return x.concat(y); })"
   js_append   :: SomeJSArray m0 -> SomeJSArray m1 -> State# s ->  (# State# s, SomeJSArray m2 #)
 
 foreign import javascript unsafe "$2.push($1)"
   js_push     :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
-foreign import javascript unsafe "$1.pop()"
+foreign import javascript unsafe "((x) => { return x.pop(); })"
   js_pop      :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 foreign import javascript unsafe "$2.unshift($1)"
   js_unshift  :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
-foreign import javascript unsafe "$1.shift()"
+foreign import javascript unsafe "((x) => { return x.shift(); })"
   js_shift    :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
-foreign import javascript unsafe "$1.reverse()"
+foreign import javascript unsafe "((x) => { return x.reverse(); })"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
 foreign import javascript unsafe "h$toHsListJSVal($1)"

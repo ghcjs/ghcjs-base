@@ -351,13 +351,13 @@ unsafeSet offset src dest = IO (js_unsafeSet offset src dest)
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.length" js_length :: SomeTypedArray e m -> Int
+  "((x) => { return x.length; })" js_length :: SomeTypedArray e m -> Int
 foreign import javascript unsafe
-  "$1.byteLength" js_byteLength :: SomeTypedArray e m -> Int
+  "((x) => { return x.byteLength; })" js_byteLength :: SomeTypedArray e m -> Int
 foreign import javascript unsafe
-  "$1.byteOffset" js_byteOffset :: SomeTypedArray e m -> Int
+  "((x) => { return x.byteOffset; })" js_byteOffset :: SomeTypedArray e m -> Int
 foreign import javascript unsafe
-  "$1.buffer" js_buffer :: SomeTypedArray e m -> SomeArrayBuffer m
+  "((x) => { return x.buffer; })" js_buffer :: SomeTypedArray e m -> SomeArrayBuffer m
 foreign import javascript unsafe
   "$3.subarray($1,$2)"
   js_subarray :: Int -> Int -> SomeTypedArray e m -> SomeTypedArray e m
@@ -368,7 +368,7 @@ foreign import javascript unsafe
   "$3.set($1,$2)"
   js_unsafeSet :: Int -> SomeTypedArray e m -> SomeTypedArray e1 m1 -> State# s -> (# State# s, () #)
 foreign import javascript unsafe
-  "$1.BYTES_PER_ELEMENT"
+  "((x) => { return x.BYTES_PER_ELEMENT; })"
   js_elemSize :: SomeTypedArray e m -> Int
 
 -- -----------------------------------------------------------------------------

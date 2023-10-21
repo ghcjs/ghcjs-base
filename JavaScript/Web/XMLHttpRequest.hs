@@ -201,7 +201,7 @@ xhrByteString = fmap
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.withCredentials = true;"
+  "((x) => { return x.withCredentials = true; })"
   js_setWithCredentials :: XHR -> IO ()
 
 foreign import javascript unsafe
@@ -211,7 +211,7 @@ foreign import javascript unsafe
   "$2.responseType = $1;"
   js_setResponseType :: JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "$1.abort();"
+  "((x) => { return x.abort(); })"
   js_abort :: XHR -> IO ()
 foreign import javascript unsafe
   "$3.setRequestHeader($1,$2);"
@@ -232,16 +232,16 @@ foreign import javascript unsafe
   "$4.append($1,$2,$3)"
   js_appendFormData3 :: JSString -> JSVal -> JSString -> JSFormData -> IO ()
 foreign import javascript unsafe
-  "$1.status"
+  "((x) => { return x.status; })"
   js_getStatus :: XHR -> IO Int
 foreign import javascript unsafe
-  "$1.response"
+  "((x) => { return x.response; })"
   js_getResponse :: XHR -> IO JSVal
 foreign import javascript unsafe
-  "$1.response ? true : false"
+  "((x) => { return x.response ? true : false; })"
   js_hasResponse :: XHR -> IO Bool
 foreign import javascript unsafe
-  "$1.getAllResponseHeaders()"
+  "((x) => { return x.getAllResponseHeaders(); })"
   js_getAllResponseHeaders :: XHR -> IO JSString
 foreign import javascript unsafe
   "$2.getResponseHeader($1)"

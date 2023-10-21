@@ -32,4 +32,4 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$2.postMessage($1)" js_postMessage  :: JSVal -> Worker -> IO ()
 foreign import javascript unsafe
-  "$1.terminate()" js_terminate :: Worker -> IO ()
+  "((x) => { return x.terminate(); })" js_terminate :: Worker -> IO ()

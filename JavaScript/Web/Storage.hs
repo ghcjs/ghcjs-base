@@ -61,7 +61,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "window.sessionStorage" js_sessionStorage :: Storage
 foreign import javascript unsafe
-  "$1.length"             js_getLength      :: Storage -> IO Int
+  "((x) => { return x.length; })"             js_getLength      :: Storage -> IO Int
 foreign import javascript unsafe
   "$2.key($1)"            js_getIndex       :: Int -> Storage -> IO JSVal
 foreign import javascript unsafe
@@ -71,4 +71,4 @@ foreign import javascript safe
 foreign import javascript unsafe
   "$2.removeItem($1)"     js_removeItem     :: JSString -> Storage -> IO ()
 foreign import javascript unsafe
-  "$1.clear();"           js_clear          :: Storage -> IO ()
+  "((x) => { return x.clear(); })"            js_clear          :: Storage -> IO ()

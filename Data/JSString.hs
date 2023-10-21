@@ -1847,7 +1847,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "$3.substring($1,$2)" js_substring :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$1.length" js_length :: JSString -> Int#
+  "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
   "(($2.charCodeAt($1)|1023)===0xDBFF)?2:1" js_charWidthAt
   :: Int# -> JSString -> Int#
@@ -1960,6 +1960,6 @@ foreign import javascript unsafe
   "h$jsstringIntercalate"
   js_intercalate :: JSString -> Exts.Any {- [JSString] -} -> JSString
 foreign import javascript unsafe
-  "$1.toUpperCase()" js_toUpper :: JSString -> JSString
+  "((x) => { return x.toUpperCase(); })" js_toUpper :: JSString -> JSString
 foreign import javascript unsafe
-  "$1.toLowerCase()" js_toLower :: JSString -> JSString
+  "((x) => { return x.toLowerCase(); })" js_toLower :: JSString -> JSString
