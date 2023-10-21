@@ -279,9 +279,9 @@ foreign import javascript unsafe
 -- types must be checked before using these conversions
 
 foreign import javascript unsafe
-  "$r = $1;" js_jsvalToDouble :: JSVal -> Double
+  "((x) => { return x; })" js_jsvalToDouble :: JSVal -> Double
 foreign import javascript unsafe
-  "$r = $1;" js_jsvalToBool   :: JSVal -> Bool
+  "((x) => { return x; })" js_jsvalToBool   :: JSVal -> Bool
 
 -- -----------------------------------------------------------------------------
 -- various lookups
@@ -300,7 +300,7 @@ foreign import javascript unsafe
   "h$isArray($2) ? $2[$1] : undefined"
   js_lookupArrayPureSafe :: Int -> Value -> JSVal
 foreign import javascript unsafe
-  "$r = $1;"
+  "((x) => { return x; })"
   js_doubleToJSVal :: Double -> JSVal
 
 foreign import javascript unsafe

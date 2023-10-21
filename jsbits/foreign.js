@@ -7,3 +7,7 @@ function h$foreignListProps(o) {
 
     } */
 }
+
+function h$splitmix_init() {
+    return Math.floor(Math.random()*0x100000000);
+}

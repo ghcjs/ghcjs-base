@@ -148,9 +148,9 @@ foreign import javascript unsafe "$r = +$1;"           jsvalToFloat  :: JSVal ->
 foreign import javascript unsafe "$r = +$1;"           jsvalToDouble :: JSVal -> Double#
 foreign import javascript unsafe "$r = $1&0x7fffffff;" jsvalToChar   :: JSVal -> Char#
 
-foreign import javascript unsafe "$r = $1;" wordToJSVal   :: Word#   -> JSVal
-foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
-foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
-foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
-foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" wordToJSVal   :: Word#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" intToJSVal    :: Int#    -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" doubleToJSVal :: Double# -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" floatToJSVal  :: Float#  -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" charToJSVal   :: Char#   -> JSVal
 

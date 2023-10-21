@@ -215,14 +215,14 @@ foreign import javascript unsafe
 -- conversion is free
 
 foreign import javascript unsafe  
-  "$r = $1;" js_toByteArray          :: SomeBuffer any      -> ByteArray#
+  "((x) => { return x; })" js_toByteArray          :: SomeBuffer any      -> ByteArray#
 foreign import javascript unsafe  
-  "$r = $1;" js_fromByteArray        :: ByteArray#          -> JSVal
+  "((x) => { return x; })" js_fromByteArray        :: ByteArray#          -> JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_fromMutableByteArray :: MutableByteArray# s -> JSVal
+  "((x) => { return x; })" js_fromMutableByteArray :: MutableByteArray# s -> JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_toMutableByteArray   :: JSVal               -> MutableByteArray# s
+  "((x) => { return x; })" js_toMutableByteArray   :: JSVal               -> MutableByteArray# s
 foreign import javascript unsafe
   "$r1 = $1; $r2 = 0;"  js_toAddr    :: SomeBuffer any      -> Addr#
 foreign import javascript unsafe
-  "$r = $1;" js_fromAddr             :: Addr#               -> SomeBuffer any
+  "((x) => { return x; })" js_fromAddr             :: Addr#               -> SomeBuffer any
