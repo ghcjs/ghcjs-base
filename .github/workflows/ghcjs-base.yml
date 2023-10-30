@@ -26,7 +26,7 @@ jobs:
           platform: x86_64-linux
           target-platform: "-js"
           minimal: true
-          compiler-nix-name: ghc980
+          compiler-nix-name: ghc98
 
       - name: Cabal
         run: file $(which cabal)
