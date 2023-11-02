@@ -173,7 +173,7 @@ test-suite tests
                   Tests.Utils
                   Tests.Buffer
   ghc-options:
-    -Wall -rtsopts
+    -Wall -rtsopts tests/compat.js
   build-depends:
     HUnit >= 1.2,
     QuickCheck >= 2.7,
