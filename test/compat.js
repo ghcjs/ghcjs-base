@@ -1,4 +1,4 @@
-function h$_hs_test_measure_off() {
+function h$_hs_text_measure_off() {
   return 0;
 }
 
