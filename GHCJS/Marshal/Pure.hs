@@ -21,8 +21,8 @@
  -}
 module GHCJS.Marshal.Pure ( PFromJSVal(..)
                           , PToJSVal(..)
-			  , jsvalToChar
-			  , charToJSVal
+                          , jsvalToChar
+                          , charToJSVal
                           ) where
 
 import           Data.Char (chr, ord)

@@ -26,8 +26,6 @@ realFloat :: (RealFloat a) => a -> JSString
 realFloat = error "Data.JSString.RealFloat.realFloat not yet implemented"
 {-# RULES "realFloat/Double" realFloat = genericDouble #-}
 {-# RULES "realFoat/Float"   realFloat = genericFloat  #-}
-{-# SPECIALIZE realFloat :: Double -> JSString #-}
-{-# SPECIALIZE realFloat :: Float -> JSString #-}
 {-# NOINLINE realFloat #-}
 
 formatRealFloat :: (RealFloat a)
@@ -38,8 +36,6 @@ formatRealFloat :: (RealFloat a)
 formatRealFloat = error "Data.JSString.RealFloat.formatRealFloat not yet implemented"
 {-# RULES "formatRealFloat/Double" formatRealFloat = formatDouble #-}
 {-# RULES "formatRealFloat/Float"  formatRealFloat = formatFloat  #-}
-{-# SPECIALIZE formatRealFloat :: FPFormat -> Maybe Int -> Double -> JSString #-}
-{-# SPECIALIZE formatRealFloat :: FPFormat -> Maybe Int -> Float -> JSString #-}
 {-# NOINLINE formatRealFloat #-}
 
 genericDouble :: Double -> JSString

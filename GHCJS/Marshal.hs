@@ -25,7 +25,6 @@ import           Control.Monad
 import           Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 
 import qualified Data.Aeson as AE
-import           Data.Attoparsec.Number (Number(..))
 import           Data.Bits ((.&.))
 import           Data.Char (chr, ord)
 #if MIN_VERSION_aeson (2,0,0)

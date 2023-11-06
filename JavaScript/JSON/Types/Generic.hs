@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DefaultSignatures, EmptyDataDecls, FlexibleInstances,
-    FunctionalDependencies, KindSignatures, OverlappingInstances,
+    FunctionalDependencies, KindSignatures, MonoLocalBinds,
     ScopedTypeVariables, TypeOperators, UndecidableInstances,
     ViewPatterns, NamedFieldPuns, FlexibleContexts, PatternGuards,
     RecordWildCards, DataKinds #-}
@@ -39,6 +39,7 @@ import Data.Monoid (mappend)
 -- import Data.Text (Text, pack, unpack)
 
 import GHC.Generics
+import Data.Kind
 
 {-
 import qualified Data.HashMap.Strict as H
@@ -63,7 +64,7 @@ instance GToJSON U1 where
     gToJSON _opts _ = emptyArray
     {-# INLINE gToJSON #-}
 
-instance (ConsToJSON a) => GToJSON (C1 c a) where
+instance {-# OVERLAPS #-} (ConsToJSON a) => GToJSON (C1 c a) where
     -- Constructors need to be encoded differently depending on whether they're
     -- a record or not. This distinction is made by 'constToJSON':
     gToJSON opts = consToJSON opts . unM1
@@ -265,7 +266,7 @@ instance ( WriteProduct a
           ixR  = ix  + lenL
     {-# INLINE writeProduct #-}
 
-instance (GToJSON a) => WriteProduct a where
+instance {-# OVERLAPPABLE #-} (GToJSON a) => WriteProduct a where
     writeProduct opts mv ix _ = (\(SomeValue v) -> JSAST.write ix v mv) . gToJSON opts
     {-# INLINE writeProduct #-}
 
@@ -309,7 +310,7 @@ instance GFromJSON U1 where
         | otherwise      = typeMismatch "unit constructor (U1)" v
     {-# INLINE gParseJSON #-}
 
-instance (ConsFromJSON a) => GFromJSON (C1 c a) where
+instance {-# OVERLAPS #-} (ConsFromJSON a) => GFromJSON (C1 c a) where
     -- Constructors need to be decoded differently depending on whether they're
     -- a record or not. This distinction is made by consParseJSON:
     gParseJSON opts = fmap M1 . consParseJSON opts
@@ -568,7 +569,7 @@ instance (Constructor c, GFromJSON a, ConsFromJSON a) => FromPair (C1 c a) where
 
 --------------------------------------------------------------------------------
 
-class IsRecord (f :: * -> *) isRecord | f -> isRecord
+class IsRecord (f :: Type -> Type) isRecord | f -> isRecord
 
 instance (IsRecord f isRecord) => IsRecord (f :*: g) isRecord
 #if MIN_VERSION_base(4,9,0)
@@ -582,7 +583,7 @@ instance IsRecord U1 False
 
 --------------------------------------------------------------------------------
 
-class AllNullary (f :: * -> *) allNullary | f -> allNullary
+class AllNullary (f :: Type -> Type) allNullary | f -> allNullary
 
 instance ( AllNullary a allNullaryL
          , AllNullary b allNullaryR
@@ -609,7 +610,7 @@ instance And True  False False
 
 newtype Tagged s b = Tagged {unTagged :: b}
 
-newtype Tagged2 (s :: * -> *) b = Tagged2 {unTagged2 :: b}
+newtype Tagged2 (s :: Type -> Type) b = Tagged2 {unTagged2 :: b}
 
 --------------------------------------------------------------------------------
 

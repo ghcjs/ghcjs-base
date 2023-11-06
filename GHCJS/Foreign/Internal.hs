@@ -90,7 +90,7 @@ import           Control.Concurrent.MVar
 import           Control.DeepSeq (force)
 import           Control.Exception (evaluate, Exception)
 
-import           Foreign.ForeignPtr.Safe
+import           Foreign.ForeignPtr
 import           Foreign.Ptr
 
 import           Data.Primitive.ByteArray

@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts, FlexibleInstances,
-    GeneralizedNewtypeDeriving, IncoherentInstances, OverlappingInstances,
+    GeneralizedNewtypeDeriving, IncoherentInstances,
     OverloadedStrings, UndecidableInstances, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -68,7 +68,6 @@ import qualified JavaScript.JSON.Types.Internal as I
 
 import Data.Scientific (Scientific)
 import qualified Data.Scientific as Scientific (coefficient, base10Exponent, fromFloatDigits, toRealFloat)
-import Data.Attoparsec.Number (Number(..))
 import Data.Fixed
 import Data.Hashable (Hashable(..))
 import Data.Int (Int8, Int16, Int32, Int64)
@@ -1063,15 +1062,6 @@ realFloatToJSON d
     | isNaN d || isInfinite d = nullValue
     | otherwise               = doubleValue (realToFrac d)
 {-# INLINE realFloatToJSON #-}
-
-scientificToNumber :: Scientific -> Number
-scientificToNumber s
-    | e < 0     = D $ Scientific.toRealFloat s
-    | otherwise = I $ c * 10 ^ e
-  where
-    e = Scientific.base10Exponent s
-    c = Scientific.coefficient s
-{-# INLINE scientificToNumber #-}
 
 parseRealFloat :: RealFloat a => String -> Value -> Parser a
 parseRealFloat _        (match -> Number d) = pure $ realToFrac d

@@ -2,7 +2,8 @@
              ForeignFunctionInterface, JavaScriptFFI, EmptyDataDecls,
              TypeFamilies, DataKinds, ScopedTypeVariables,
              FlexibleContexts, FlexibleInstances, TypeSynonymInstances,
-             LambdaCase, MultiParamTypeClasses, DeriveGeneric #-}
+             LambdaCase, MultiParamTypeClasses, DeriveGeneric,
+	     TypeOperators #-}
 
 module JavaScript.Web.XMLHttpRequest ( xhr
                                      , xhrByteString
