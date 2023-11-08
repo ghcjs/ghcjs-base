@@ -798,29 +798,11 @@ function h$jsstringUnpack(str) {
     return r;
 }
 
-
-
-#if __GLASGOW_HASKELL__ >= 800
-function h$jsstringDecInteger(val) {
-  TRACE_JSSTRING("decInteger");
-  if(IS_INTEGER_S(val)) {
-    return '' + INTEGER_S_DATA(val);
-  } else if(IS_INTEGER_Jp(val)) {
-    return h$ghcjsbn_showBase(INTEGER_J_DATA(val), 10);
-  } else {
-    return '-' + h$ghcjsbn_showBase(INTEGER_J_DATA(val), 10);
-  }
+function h$jsstringDecBigNat(positive,x) {
+  TRACE_JSSTRING("decBigNat");
+  const y = BigInt("0x" + h$jsstringHexBigNat(positive,x)).toString();
+  return positive ? y : "-"+y;
 }
-#else
-function h$jsstringDecInteger(val) {
-  TRACE_JSSTRING("decInteger");
-  if(IS_INTEGER_S(val)) {
-    return '' + INTEGER_S_DATA(val);
-  } else {
-    return INTEGER_J_DATA(val).toString();
-  }
-}
-#endif
 
 function h$jsstringDecI64(hi,lo) {
     TRACE_JSSTRING("decI64: " + hi + " " + lo);
@@ -853,37 +835,39 @@ function h$jsstringDecW64(hi,lo) {
     return '' + x2 + h$jsstringDecIPadded6(x1);
 }
 
-#if __GLASGOW_HASKELL__ >= 800
-function h$jsstringHexInteger(val) {
-  TRACE_JSSTRING("hexInteger");
-  if(IS_INTEGER_S(val)) {
-    return '' + INTEGER_S_DATA(val);
-  } else {
-    // we assume it's nonnegative. this condition is checked by the Haskell code
-    return h$ghcjsbn_showBase(INTEGER_J_DATA(val), 16);
+function h$jsstringHexBigNat(positive,x) {
+  TRACE_JSSTRING("hexBigNat");
+  var v = "";
+  var i = x.u1.length - 1;
+  while (i >= 0) {
+    if (x.u1[i] !== 0) {
+      break;
+    } else {
+      i--;
+    }
   }
-}
-#else
-function h$jsstringHexInteger(val) {
-  TRACE_JSSTRING("hexInteger");
-  if(IS_INTEGER_S(val)) {
-    return '' + INTEGER_S_DATA(val);
-  } else {
-    return INTEGER_J_DATA(val).toRadix(16);
+  if (i >= 0) {
+    v += x.u1[i].toString(16);
+    i--;
   }
+  for (; i >= 0; i--) {
+    v += x.u1[i].toString(16).padStart(4, '0');
+  }
+  return positive ? v : "-"+v;
 }
-#endif
 
 function h$jsstringHexI64(hi,lo) {
-    var lo0 = lo<0 ? lo+4294967296 : lo;
-    if(hi === 0) return lo0.toString(16);
-    return ((hi<0)?hi+4294967296:hi).toString(16) + h$jsstringHexIPadded8(lo0);
+    TRACE_JSSTRING("hexI64: " + hi + " " + lo);
+    var sign = (hi >>> 31) ? '-' : '';
+    var lo0 = sign ? ~(lo - 1) >>> 0 : lo;
+    if(hi === 0 || hi === -1) return sign + lo0.toString(16);
+    var hi0 = sign ? ~hi >>> 0 : hi;
+    return sign + hi0.toString(16) + lo0.toString(16).padStart(8, '0');
 }
 
 function h$jsstringHexW64(hi,lo) {
-    var lo0 = lo<0 ? lo+4294967296 : lo;
-    if(hi === 0) return lo0.toString(16);
-    return ((hi<0)?hi+4294967296:hi).toString(16) + h$jsstringHexIPadded8(lo0);
+    if (hi === 0) return lo.toString(16);
+    return hi.toString(16) + lo.toString(16).padStart(8, '0');
 }
 
 // n in [0, 1000000000)
