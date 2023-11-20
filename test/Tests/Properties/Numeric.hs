@@ -40,7 +40,10 @@ j_decimal_word_big (BigBounded (a::Word)) = j_decimal a
 j_decimal_word64_big (BigBounded (a::Word64)) = j_decimal a
 
 j_hex :: (Integral a, Show a) => a -> Bool
-j_hex = flip showHex "" `eq` (J.unpack . JI.hexadecimal)
+j_hex = hex `eq` (J.unpack . JI.hexadecimal)
+  where
+    hex n | n < 0     = '-' : showHex (-n) ""
+          | otherwise =       showHex   n  ""
 
 j_hexadecimal_integer (a::Integer) = j_hex a
 j_hexadecimal_int (a::Int) = j_hex a

@@ -4,6 +4,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE GHCForeignImportPrim #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Data.JSString.Int
     ( decimal
@@ -18,6 +19,7 @@ import GHC.Int
 import GHC.Word
 import GHC.Exts hiding (Any)
 import GHC.Num.Integer
+import GHC.Num.Natural
 import Unsafe.Coerce
 import GHC.JS.Prim
 
@@ -34,7 +36,9 @@ decimal i = decimal' i
 {-# RULES "decimal/Word32"  decimal = decimalW32     :: Word32  -> JSString #-}
 {-# RULES "decimal/Word64"  decimal = decimalW64     :: Word64  -> JSString #-}
 {-# RULES "decimal/Integer" decimal = decimalInteger :: Integer -> JSString #-}
+{-# RULES "decimal/Natural" decimal = decimalNatural :: Natural -> JSString #-}
 {-# SPECIALIZE decimal :: Integer -> JSString #-}
+{-# SPECIALIZE decimal :: Natural -> JSString #-}
 {-# SPECIALIZE decimal :: Int    -> JSString #-}
 {-# SPECIALIZE decimal :: Int8   -> JSString #-}
 {-# SPECIALIZE decimal :: Int16  -> JSString #-}
@@ -76,7 +80,7 @@ decimalW16 (W16# x) = js_decW (word16ToWord# x)
 {-# INLINE decimalW16 #-}
 
 decimalW32 :: Word32 -> JSString
-decimalW32 (W32# x) = js_decW32 (word32ToWord# x)
+decimalW32 (W32# x) = js_decW32 x
 {-# INLINE decimalW32 #-}
 
 decimalW64 :: Word64 -> JSString
@@ -84,15 +88,24 @@ decimalW64 (W64# x) = js_decW64 x
 {-# INLINE decimalW64 #-}
 
 decimalW :: Word -> JSString
-decimalW (W# x) = js_decW32 x
+decimalW (W# x) = js_decW x
 {-# INLINE decimalW #-}
 
 -- hack warning, we should really expose J# somehow
 data MyI = MyS Int# | MyJ Int# ByteArray#
 
 decimalInteger :: Integer -> JSString
-decimalInteger !i = js_decInteger (unsafeCoerce i)
+decimalInteger = \case
+  IS x -> js_decI x
+  IP x -> js_decBigNat True x
+  IN x -> js_decBigNat False x
 {-# INLINE decimalInteger #-}
+
+decimalNatural :: Natural -> JSString
+decimalNatural = \case
+  NS x -> js_decW x
+  NB x -> js_decBigNat True x
+{-# INLINE decimalNatural #-}
 
 decimal' :: Integral a => a -> JSString
 decimal' i = decimalInteger (toInteger i)
@@ -126,7 +139,9 @@ hexadecimal i = hexadecimal' i
 {-# RULES "hexadecimal/Word32"  hexadecimal = hexW32     :: Word32  -> JSString #-}
 {-# RULES "hexadecimal/Word64"  hexadecimal = hexW64     :: Word64  -> JSString #-}
 {-# RULES "hexadecimal/Integer" hexadecimal = hexInteger :: Integer -> JSString #-}
+{-# RULES "hexadecimal/Natural" hexadecimal = hexNatural :: Natural -> JSString #-}
 {-# SPECIALIZE hexadecimal :: Integer -> JSString #-}
+{-# SPECIALIZE hexadecimal :: Natural -> JSString #-}
 {-# SPECIALIZE hexadecimal :: Int    -> JSString #-}
 {-# SPECIALIZE hexadecimal :: Int8   -> JSString #-}
 {-# SPECIALIZE hexadecimal :: Int16  -> JSString #-}
@@ -146,43 +161,36 @@ hexadecimal' i
 {-# NOINLINE hexadecimal' #-}
 
 hexInteger :: Integer -> JSString
-hexInteger !i
-  | i < 0     = error hexErrMsg
-  | otherwise = js_hexInteger (unsafeCoerce i)
+hexInteger = \case
+  IS x -> js_hexI x
+  IP x -> js_hexBigNat True x
+  IN x -> js_hexBigNat False x
 {-# INLINE hexInteger #-}
 
+hexNatural :: Natural -> JSString
+hexNatural = \case
+  NS x -> js_hexW x
+  NB x -> js_hexBigNat True x
+{-# INLINE hexNatural #-}
+
 hexI :: Int -> JSString
-hexI (I# x) = if isTrue# (x <# 0#)
-              then error hexErrMsg
-              else js_hexI x
+hexI (I# x) = js_hexI x
 {-# INLINE hexI #-}
 
 hexI8 :: Int8 -> JSString
-hexI8 (I8# x) =
-  if isTrue# (int8ToInt# x <# 0#)
-  then error hexErrMsg
-  else js_hexI (int8ToInt# x)
+hexI8 (I8# x) = js_hexI (int8ToInt# x)
 {-# INLINE hexI8 #-}
 
 hexI16 :: Int16 -> JSString
-hexI16 (I16# x) =
-  if isTrue# (int16ToInt# x <# 0#)
-  then error hexErrMsg
-  else js_hexI (int16ToInt# x)
+hexI16 (I16# x) = js_hexI (int16ToInt# x)
 {-# INLINE hexI16 #-}
 
 hexI32 :: Int32 -> JSString
-hexI32 (I32# x) =
-  if isTrue# (int32ToInt# x <# 0#)
-  then error hexErrMsg
-  else js_hexI (int32ToInt# x)
+hexI32 (I32# x) = js_hexI (int32ToInt# x)
 {-# INLINE hexI32 #-}
 
 hexI64 :: Int64 -> JSString
-hexI64 i@(I64# x) =
-  if i < 0
-  then error hexErrMsg
-  else js_hexI64 x
+hexI64 i@(I64# x) = js_hexI64 x
 {-# INLINE hexI64 #-}
 
 hexW :: Word -> JSString
@@ -220,14 +228,14 @@ foreign import javascript unsafe
   "((x) => { return '' + x; })"
   js_decW       :: Word#    -> JSString
 foreign import javascript unsafe
-  "((x) => { return ''+((x>=0)?x:(x+4294967296)); })"
-  js_decW32     :: Word#    -> JSString
+  "((x) => { return '' + x; })"
+  js_decW32     :: Word32#  -> JSString
 foreign import javascript unsafe
   "h$jsstringDecW64"
   js_decW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "h$jsstringDecInteger"
-  js_decInteger :: Any -> JSString
+  "h$jsstringDecBigNat"
+  js_decBigNat :: Bool -> ByteArray# -> JSString
 
 -- these are expected to be only applied to nonnegative integers
 foreign import javascript unsafe
@@ -241,14 +249,14 @@ foreign import javascript unsafe
   "((x) => { return x.toString(16); })"
   js_hexW       :: Word#    -> JSString
 foreign import javascript unsafe
-  "((x) => { return ((x>=0)?x:(x+4294967296)).toString(16); })"
-  js_hexW32     :: Word32#    -> JSString
+  "((x) => { return x.toString(16); })"
+  js_hexW32     :: Word32#  -> JSString
 foreign import javascript unsafe
   "h$jsstringHexW64"
   js_hexW64     :: Word64#  -> JSString
 foreign import javascript unsafe
-  "h$jsstringHexInteger"
-  js_hexInteger :: Any -> JSString
+  "h$jsstringHexBigNat"
+  js_hexBigNat :: Bool -> ByteArray# -> JSString
 
 foreign import javascript unsafe
   "((x,y) => { return '-'+x+(-y); })"

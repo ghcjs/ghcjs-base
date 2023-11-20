@@ -1163,3 +1163,17 @@ function h$jsstringSplitRE(limit, re, str) {
     while(--i>=0) r = MK_CONS(MK_JSVAL(a[i]), r);
     return r;
 }
+
+function h$jsstringIndices(needle, startN, startI, haystack) {
+    var endI = haystack.indexOf(needle, startI);
+    if (endI === -1) {
+        RETURN_UBX_TUP2(-1, -1);
+    }
+    var n = startN;
+    for (var i = startI; i < endI; i++) {
+        if (!IS_LO_SURR(haystack.charCodeAt(i))) {
+	    n++;
+	}
+    }
+    RETURN_UBX_TUP2(n, endI);
+}
