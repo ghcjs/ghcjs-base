@@ -141,19 +141,19 @@ asyncCallback3 x = js_asyncCallbackApply 3 (unsafeCoerce x)
 
 -- ----------------------------------------------------------------------------
 
-foreign import javascript unsafe "h$makeCallback(h$runSync, [$1], $2)"
+foreign import javascript unsafe "(($1,$2) => { return h$makeCallback(h$runSync, [$1], $2)); })"
   js_syncCallback :: Bool -> Exts.Any -> IO (Callback (IO b))
-foreign import javascript unsafe "h$makeCallback(h$run, [], $1)"
+foreign import javascript unsafe "(($1) => { return h$makeCallback(h$run, [], $1); })"
   js_asyncCallback :: Exts.Any -> IO (Callback (IO b))
-foreign import javascript unsafe "h$makeCallback(h$runSyncReturn, [false], $1)"
+foreign import javascript unsafe "(($1) => { return h$makeCallback(h$runSyncReturn, [false], $1); })"
   js_syncCallbackReturn :: Exts.Any -> IO (Callback (IO JSVal))
 
-foreign import javascript unsafe "h$makeCallbackApply($2, h$runSync, [$1], $3)"
+foreign import javascript unsafe "(($1,$2,$3) => { return h$makeCallbackApply($2, h$runSync, [$1], $3); })"
   js_syncCallbackApply :: Bool -> Int -> Exts.Any -> IO (Callback b)
-foreign import javascript unsafe "h$makeCallbackApply($1, h$run, [], $2)"
+foreign import javascript unsafe "(($1,$2) => { return h$makeCallbackApply($1, h$run, [], $2); })"
   js_asyncCallbackApply :: Int -> Exts.Any -> IO (Callback b)
 foreign import javascript unsafe
-  "h$makeCallbackApply($1, h$runSyncReturn, [false], $2)"
+  "(($1,$2) => { return h$makeCallbackApply($1, h$runSyncReturn, [false], $2); })"
   js_syncCallbackApplyReturn :: Int -> Exts.Any -> IO (Callback b)
 
 foreign import javascript unsafe "h$release"
