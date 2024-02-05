@@ -68,8 +68,6 @@ library
                    GHCJS.Buffer.Types
                    GHCJS.Concurrent
                    GHCJS.Foreign
-                   GHCJS.Foreign.Callback
-                   GHCJS.Foreign.Callback.Internal
                    GHCJS.Foreign.Export
                    GHCJS.Foreign.Internal
                    GHCJS.Marshal
