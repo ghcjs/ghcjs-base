@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghcjs-base
-version:             0.2.1.0
+version:             1.0.0.0
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
@@ -15,33 +15,20 @@ source-repository head
   location: https://github.com/ghcjs/ghcjs-base
 
 library
-  if impl(ghc >= 8.10.1)
-    js-sources:    jsbits/array.js
-                   jsbits/animationFrame.js
-                   jsbits/buffer.js
-                   jsbits/export.js
-                   jsbits/jsstring.js
-                   jsbits/jsstringRaw.js
-                   jsbits/foreign.js
-                   jsbits/text.js
-                   jsbits/utils.js
-                   jsbits/xhr.js
-                   jsbits/websocket.js
-  else
-    js-sources:    jsbits-old/array.js
-                   jsbits-old/animationFrame.js
-                   jsbits-old/export.js
-                   jsbits-old/jsstring.js
-                   jsbits-old/jsstringRaw.js
-                   jsbits-old/foreign.js
-                   jsbits-old/text.js
-                   jsbits-old/utils.js
-                   jsbits-old/xhr.js
-                   jsbits-old/websocket.js
+  js-sources:    jsbits/array.js
+                 jsbits/animationFrame.js
+                 jsbits/buffer.js
+                 jsbits/export.js
+                 jsbits/jsstring.js
+                 jsbits/jsstringRaw.js
+                 jsbits/foreign.js
+                 jsbits/text.js
+                 jsbits/utils.js
+                 jsbits/xhr.js
+                 jsbits/websocket.js
   other-extensions: DeriveDataTypeable
                     DeriveGeneric
                     ForeignFunctionInterface
---                    JavaScriptFFI
                     GHCForeignImportPrim
                     MagicHash
                     UnboxedTuples
@@ -139,7 +126,7 @@ library
                    JavaScript.TypedArray.Internal.Types
                    JavaScript.TypedArray.ArrayBuffer.Internal
                    JavaScript.TypedArray.DataView.Internal
-  build-depends:   base                 >= 4.7  && < 5,
+  build-depends:   base                 >= 4.18 && < 5,
                    ghc-prim,
                    binary               >= 0.8  && < 0.11,
                    bytestring           >= 0.10 && < 0.13,
