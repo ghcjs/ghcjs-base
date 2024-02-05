@@ -34,6 +34,7 @@ module GHCJS.Concurrent ( isThreadSynchronous
                         ) where
 
 import           GHC.JS.Prim
+import           GHC.JS.Foreign.Callback (OnBlocked(..))
 
 import           Control.Applicative
 import           Control.Concurrent
@@ -47,18 +48,6 @@ import           Data.Data
 import           Data.Typeable
 
 import           Unsafe.Coerce
-
-{- |
-     The runtime tries to run synchronous threads to completion. Sometimes it's
-     not possible to continue running a thread, for example when the thread
-     tries to take an empty 'MVar'. The runtime can then either throw a
-     'WouldBlockException', aborting the blocking action, or continue the
-     thread asynchronously.
- -}
-
-data OnBlocked = ContinueAsync -- ^ continue the thread asynchronously if blocked
-               | ThrowWouldBlock -- ^ throw 'WouldBlockException' if blocked
-               deriving (Data, Typeable, Enum, Show, Eq, Ord)
 
 {- |
      Run the action without the scheduler preempting the thread. When a blocking
