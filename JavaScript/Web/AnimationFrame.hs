@@ -21,7 +21,7 @@ module JavaScript.Web.AnimationFrame
     , AnimationFrameHandle
     ) where
 
-import GHCJS.Foreign.Callback
+import GHC.JS.Foreign.Callback
 import GHCJS.Marshal.Pure
 import GHCJS.Types
 

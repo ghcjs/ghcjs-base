@@ -14,6 +14,7 @@ import Unsafe.Coerce
 import Control.DeepSeq
 
 import GHC.JS.Prim (JSVal)
+import GHC.JS.Foreign.Callback (Callback)
 
 instance NFData JSVal where
   rnf x = x `seq` ()
@@ -24,6 +25,9 @@ class IsJSVal a where
   default jsval_ :: Coercible a JSVal => a -> JSVal
   jsval_ = coerce
   {-# INLINE jsval_ #-}
+
+instance IsJSVal (Callback a) where
+  jsval_ = unsafeCoerce
 
 jsval :: IsJSVal a => a -> JSVal
 jsval = jsval_

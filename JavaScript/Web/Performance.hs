@@ -7,7 +7,7 @@ module JavaScript.Web.Performance
     ( now
     ) where
 
-import GHCJS.Foreign.Callback
+import GHC.JS.Foreign.Callback
 import GHCJS.Marshal.Pure
 import GHCJS.Types
 

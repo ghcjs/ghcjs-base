@@ -27,9 +27,10 @@ module JavaScript.Web.WebSocket ( WebSocket
                                 ) where
 
 import           GHCJS.Concurrent
+import           GHCJS.Types
 import           GHC.JS.Prim
-import           GHCJS.Foreign.Callback.Internal (Callback(..))
-import qualified GHCJS.Foreign.Callback          as CB
+import           GHC.JS.Foreign.Callback (Callback)
+import qualified GHC.JS.Foreign.Callback          as CB
 
 import           GHC.Exts
 
@@ -88,8 +89,8 @@ connect req = do
 maybeCallback :: (JSVal -> a) -> Maybe (a -> IO ()) -> IO JSVal
 maybeCallback _ Nothing = return jsNull
 maybeCallback f (Just g) = do
-  Callback cb <- CB.syncCallback1 CB.ContinueAsync (g . f)
-  return cb
+  cb <- CB.syncCallback1 CB.ContinueAsync (g . f)
+  return (jsval cb)
 
 handleOpenErr :: JSVal -> IO ()
 handleOpenErr r
