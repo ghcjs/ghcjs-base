@@ -271,19 +271,6 @@ instance Arbitrary Encoding where
       , E "32le" IO.utf32le, E "32be" IO.utf32be
       ]
 
-windowsNewlineMode :: IO.NewlineMode
-windowsNewlineMode = IO.NewlineMode
-    { IO.inputNL = IO.CRLF, IO.outputNL = IO.CRLF
-    }
-
-{-
-instance Arbitrary IO.NewlineMode where
-    arbitrary = oneof . map return $
-      [ IO.noNewlineTranslation, IO.universalNewlineMode, IO.nativeNewlineMode
-      , windowsNewlineMode
-      ]
--}
-
 instance Arbitrary IO.BufferMode where
     arbitrary = oneof [ return IO.NoBuffering,
                         return IO.LineBuffering,
