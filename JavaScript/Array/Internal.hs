@@ -150,7 +150,7 @@ foreign import javascript unsafe "((x,y) => { return y[x]; })"
 
 foreign import javascript unsafe "((x,y) => { return y[x]; })"
   js_indexPure :: Int -> JSArray -> JSVal
-foreign import javascript unsafe "((x) => { x.length; })"
+foreign import javascript unsafe "((x) => { return x.length; })"
   js_lengthPure :: JSArray -> Int
 
 foreign import javascript unsafe "((x,y,z) => { z[x] = y; })"
@@ -178,7 +178,7 @@ foreign import javascript unsafe "((x,y) => { y.unshift(x); })"
 foreign import javascript unsafe "((x) => { return x.shift(); })"
   js_shift    :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
-foreign import javascript unsafe "((x) => { x.reverse(); })"
+foreign import javascript unsafe "((x) => { return x.reverse(); })"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
 foreign import javascript unsafe "h$toHsListJSVal"
