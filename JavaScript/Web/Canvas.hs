@@ -335,7 +335,7 @@ height c = js_height c
 foreign import javascript unsafe
   "((x,y) => { var r = document.createElement('canvas'); r.width = x; r.height = y; return r; })"
   js_create :: Int -> Int -> IO Canvas
-foreign import javascript unsafe "((x) => { x.getContext('2d'); })"
+foreign import javascript unsafe "((x) => { return x.getContext('2d'); })"
   js_getContext :: Canvas -> IO Context
 foreign import javascript unsafe "((x) => { x.save(); })"
   js_save :: Context -> IO ()
