@@ -521,7 +521,7 @@ tests =
       testProperty "sf_cons" sf_cons,
       testProperty "j_cons" j_cons,
       testProperty "s_snoc" s_snoc,
---      testProperty "j_snoc" j_snoc, -- property `.f`
+      testProperty "j_snoc" j_snoc,
       testProperty "s_append" s_append,
       testProperty "s_append_s" s_append_s,
       testProperty "sf_append" sf_append,
@@ -752,7 +752,7 @@ tests =
 
     testGroup "numeric conversion" [
       testGroup "integral" [
-        testProperty "j_decimal_integer"     j_decimal_integer, -- IS_INTEGER_S
+        testProperty "j_decimal_integer"     j_decimal_integer,
         testProperty "j_decimal_int"         j_decimal_int,
         testProperty "j_decimal_int8"        j_decimal_int8,
         testProperty "j_decimal_int16"       j_decimal_int16,
@@ -765,13 +765,13 @@ tests =
         testProperty "j_decimal_word32"      j_decimal_word32,
         testProperty "j_decimal_word64"      j_decimal_word64,
 
-        testProperty "j_decimal_integer_big" j_decimal_integer_big, -- IS_INTEGER_S
+        testProperty "j_decimal_integer_big" j_decimal_integer_big,
         testProperty "j_decimal_int_big"     j_decimal_int_big,
         testProperty "j_decimal_int64_big"   j_decimal_int64_big,
         testProperty "j_decimal_word_big"    j_decimal_word_big,
         testProperty "j_decimal_word64_big"  j_decimal_word64_big,
 
-        testProperty "j_hexadecimal_integer" j_hexadecimal_integer, -- IS_INTEGER_S
+        testProperty "j_hexadecimal_integer" j_hexadecimal_integer,
         testProperty "j_hexadecimal_int"     j_hexadecimal_int,
         testProperty "j_hexadecimal_int8"    j_hexadecimal_int8,
         testProperty "j_hexadecimal_int16"   j_hexadecimal_int16,
