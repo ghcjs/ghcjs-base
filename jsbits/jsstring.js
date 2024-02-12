@@ -859,6 +859,7 @@ function h$jsstringHexBigNat(positive,x) {
 function h$jsstringHexI64(hi,lo) {
     TRACE_JSSTRING("hexI64: " + hi + " " + lo);
     var sign = (hi >>> 31) ? '-' : '';
+    // unsigned right bitshift by zero to convert to UInt32
     var lo0 = sign ? ~(lo - 1) >>> 0 : lo;
     if(hi === 0 || hi === -1) return sign + lo0.toString(16);
     var hi0 = sign ? ~hi >>> 0 : hi;
