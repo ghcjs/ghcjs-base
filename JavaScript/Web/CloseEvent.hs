@@ -25,8 +25,8 @@ wasClean c = js_wasClean c
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.code"     js_getCode   :: CloseEvent -> Int
+  "((x) => { return x.code; })"     js_getCode   :: CloseEvent -> Int
 foreign import javascript unsafe
-  "$1.reason"   js_getReason :: CloseEvent -> JSString
+  "((x) => { return x.reason; })"   js_getReason :: CloseEvent -> JSString
 foreign import javascript unsafe
-  "$1.wasClean" js_wasClean  :: CloseEvent -> Bool
+  "((x) => { return x.wasClean; })" js_wasClean  :: CloseEvent -> Bool

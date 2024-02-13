@@ -332,102 +332,101 @@ height c = js_height c
 
 -- ----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$r = document.createElement('canvas');\
-                                 \$r.width = $1;\
-                                 \$r.height = $2;"
+foreign import javascript unsafe
+  "((x,y) => { var r = document.createElement('canvas'); r.width = x; r.height = y; return r; })"
   js_create :: Int -> Int -> IO Canvas
-foreign import javascript unsafe "$1.getContext('2d')"
+foreign import javascript unsafe "((x) => { return x.getContext('2d'); })"
   js_getContext :: Canvas -> IO Context
-foreign import javascript unsafe "$1.save()"
+foreign import javascript unsafe "((x) => { x.save(); })"
   js_save :: Context -> IO ()
-foreign import javascript unsafe "$1.restore()"
+foreign import javascript unsafe "((x) => { x.restore(); })"
   js_restore  :: Context -> IO ()
-foreign import javascript unsafe "$7.transform($1,$2,$3,$4,$5,$6)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.transform($1,$2,$3,$4,$5,$6); })"
   js_transform :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$7.setTransform($1,$2,$3,$4,$5,$6)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.setTransform($1,$2,$3,$4,$5,$6); })"
   js_setTransform :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$3.scale($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { x.scale(x,y); })"
   js_scale :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$3.translate($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { x.translate(x,y); })"
   js_translate  :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$2.rotate($1)"
+foreign import javascript unsafe "((x,y) => { y.rotate(x); })"
   js_rotate :: Double -> Context -> IO ()
-foreign import javascript unsafe "$1.fill()"
+foreign import javascript unsafe "((x) => { x.fill(); })"
   js_fill :: Context -> IO ()
-foreign import javascript unsafe "$2.fill($1)"
+foreign import javascript unsafe "((x,y) => { y.fill(x); })"
   js_fill_rule  :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$1.stroke()"
+foreign import javascript unsafe "((x) => { x.stroke(); })"
   js_stroke :: Context -> IO ()
-foreign import javascript unsafe "$1.beginPath()"
+foreign import javascript unsafe "((x) => { x.beginPath(); })"
   js_beginPath :: Context -> IO ()
-foreign import javascript unsafe "$1.closePath()"
+foreign import javascript unsafe "((x) => { x.closePath(); })"
   js_closePath :: Context -> IO ()
-foreign import javascript unsafe "$1.clip()"
+foreign import javascript unsafe "((x) => { x.clip(); })"
   js_clip  :: Context -> IO ()
-foreign import javascript unsafe "$3.moveTo($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { x.moveTo(x,y); })"
   js_moveTo :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$3.lineTo($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { x.lineTo(x,y); })"
   js_lineTo :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$5.quadraticCurveTo($1,$2,$3,$4)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.quadraticCurveTo($1,$2,$3,$4); })"
   js_quadraticCurveTo :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$7.bezierCurveTo($1,$2,$3,$4,$5,$6)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.bezierCurveTo($1,$2,$3,$4,$5,$6); })"
   js_bezierCurveTo :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$7.arc($1,$2,$3,$4,$5,$6)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.arc($1,$2,$3,$4,$5,$6); })"
   js_arc :: Double -> Double -> Double -> Double -> Double -> Bool -> Context -> IO ()
-foreign import javascript unsafe "$6.arcTo($1,$2,$3,$4,$5)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6) => { $6.arcTo($1,$2,$3,$4,$5); })"
   js_arcTo :: Double -> Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$5.rect($1,$2,$3,$4)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.rect($1,$2,$3,$4); })"
   js_rect :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$3.isPointInPath($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { x.isPointInPath(x,y); })"
   js_isPointInPath :: Double -> Double -> Context -> IO ()
 foreign import javascript unsafe
-  "$5.fillStyle = 'rgba(' + $1 + ',' + $2 + ',' + $3 + ',' + $4 + ')'"
+  "(($1,$2,$3,$4,$5) => { $5.fillStyle = 'rgba(' + $1 + ',' + $2 + ',' + $3 + ',' + $4 + ')'; })"
   js_fillStyle :: Int -> Int -> Int -> Double -> Context -> IO ()
 foreign import javascript unsafe
-  "$5.strokeStyle = 'rgba(' + $1 + ',' + $2 + ',' + $3 + ',' + $4 + ')'"
+  "(($1,$2,$3,$4,$5) => { $5.strokeStyle = 'rgba(' + $1 + ',' + $2 + ',' + $3 + ',' + $4 + ')'; })"
   js_strokeStyle :: Int -> Int -> Int -> Double -> Context -> IO ()
-foreign import javascript unsafe "$2.globalAlpha = $1"
+foreign import javascript unsafe "((x,y) => { y.globalAlpha = x; })"
   js_globalAlpha :: Double           -> Context -> IO ()
 foreign import javascript unsafe
-  "$2.lineJoin = $1"
+  "((x,y) => { y.lineJoin = x; })"
   js_lineJoin :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$2.lineCap = $1"
+foreign import javascript unsafe "((x,y) => { y.lineCap = x; })"
   js_lineCap :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$2.miterLimit = $1"
+foreign import javascript unsafe "((x,y) => { y.miterLimit = x; })"
   js_miterLimit :: Double -> Context -> IO ()
-foreign import javascript unsafe "$2.setLineDash($1)"
+foreign import javascript unsafe "((x,y) => { y.setLineDash(x); })"
   js_setLineDash :: JSArray -> Context -> IO ()
-foreign import javascript unsafe "$2.lineDashOffset = $1"
+foreign import javascript unsafe "((x,y) => { y.lineDashOffset = x; })"
   js_lineDashOffset :: Double -> Context -> IO ()
-foreign import javascript unsafe "$2.font = $1"
+foreign import javascript unsafe "((x,y) => { y.font = x; })"
   js_font :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$2.textAlign = $1"
+foreign import javascript unsafe "((x,y) => { y.textAlign = x; })"
   js_textAlign :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$2.textBaseline = $1"
+foreign import javascript unsafe "((x,y) => { y.textBaseline = x; })"
   js_textBaseline :: JSString -> Context -> IO ()
-foreign import javascript unsafe "$2.lineWidth = $1"
+foreign import javascript unsafe "((x,y) => { y.lineWidth = x; })"
   js_lineWidth :: Double -> Context -> IO ()
-foreign import javascript unsafe "$4.fillText($1,$2,$3)"
+foreign import javascript unsafe "(($1,$2,$3,$4) => { $4.fillText($1,$2,$3); })"
   js_fillText :: JSString -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$4.strokeText($1,$2,$3)"
+foreign import javascript unsafe "(($1,$2,$3,$4) => { $4.strokeText($1,$2,$3); })"
   js_strokeText :: JSString -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$2.measureText($1)"
+foreign import javascript unsafe "((x,y) => { return y.measureText(x); })"
   js_measureText :: JSString                    -> Context -> IO Object
-foreign import javascript unsafe "$5.fillRect($1,$2,$3,$4)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.fillRect($1,$2,$3,$4); })"
   js_fillRect :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$5.clearRect($1,$2,$3,$4)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.clearRect($1,$2,$3,$4); })"
   js_clearRect :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$5.strokeRect($1,$2,$3,$4)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.strokeRect($1,$2,$3,$4); })"
   js_strokeRect :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "$6.drawImage($1,$2,$3,$4,$5)"
+foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6) => { $6.drawImage($1,$2,$3,$4,$5); })"
   js_drawImage :: Image -> Int -> Int -> Int -> Int -> Context -> IO () 
-foreign import javascript unsafe "$3.createPattern($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { return x.createPattern(x,y); })"
   js_createPattern :: Image -> JSString -> Context -> IO Pattern
-foreign import javascript unsafe "$1.width"
+foreign import javascript unsafe "((x) => { return x.width; })"
   js_width :: Canvas -> IO Int
-foreign import javascript unsafe "$1.height"
+foreign import javascript unsafe "((x) => { return x.height; })"
   js_height :: Canvas -> IO Int
-foreign import javascript unsafe "$2.width = $1;"
+foreign import javascript unsafe "((x,y) => { return y.width = x;; })"
   js_setWidth :: Int -> Canvas -> IO ()
-foreign import javascript unsafe "$2.height = $1;"
+foreign import javascript unsafe "((x,y) => { return y.height = x;; })"
   js_setHeight :: Int -> Canvas -> IO ()

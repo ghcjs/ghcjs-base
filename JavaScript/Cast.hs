@@ -5,7 +5,7 @@ module JavaScript.Cast ( Cast(..)
                        , unsafeCast
                        ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 cast :: forall a. Cast a => JSVal -> Maybe a
 cast x | js_checkCast x (instanceRef (undefined :: a)) = Just (unsafeWrap x)
@@ -23,4 +23,4 @@ class Cast a where
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe 
-  "$1 instanceof $2" js_checkCast :: JSVal -> JSVal -> Bool
+  "((x,y) => { return x instanceof y; })" js_checkCast :: JSVal -> JSVal -> Bool

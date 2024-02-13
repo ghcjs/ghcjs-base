@@ -1,0 +1,43 @@
+name: ghcjs-base
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: devx {0}
+
+    steps:
+      - uses: actions/checkout@v3
+      # - uses: mymindstorm/setup-emsdk@v11
+      # - uses: cachix/install-nix-action@v22
+      # - uses: haskell/actions/setup@v2
+
+      # - name: Install GHC
+      #  run: nix develop github:input-output-hk/devx#ghc962-js
+
+      - name: Install GHC
+        uses: input-output-hk/actions/devx@latest
+        with:
+          platform: x86_64-linux
+          target-platform: "-js"
+          minimal: true
+          compiler-nix-name: ghc98
+
+      - name: Cabal
+        run: file $(which cabal)
+
+      - name: Info
+        run: javascript-unknown-ghcjs-ghc --info
+
+      - name: Build
+        run: |
+          cabal update
+          cabal build all
+
+      - name: Test
+        run: cabal test test:tests

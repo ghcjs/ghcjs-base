@@ -24,7 +24,7 @@ module GHCJS.Types ( JSVal
 import Data.JSString.Internal.Type (JSString)
 import GHCJS.Internal.Types
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import GHC.Int
 import GHC.Types
@@ -50,13 +50,13 @@ fromPtr :: Ptr a -> JSVal
 fromPtr p = js_ptrVal p
 {-# INLINE fromPtr #-}
 
-foreign import javascript unsafe "$r = null;"
+foreign import javascript unsafe "((x) => { return null; })"
   js_nullRef :: JSVal
 
-foreign import javascript unsafe "$r = $1_1;"
+foreign import javascript unsafe "((x,y) => { return x; })"
   js_ptrVal  :: Ptr a -> JSVal
 
-foreign import javascript unsafe "$r1 = $1; $r2 = 0;"
+foreign import javascript unsafe "((x) => { h$ret1 = 0; return x; })"
   js_mkPtr :: JSVal -> Ptr a
 
 -- | This is a deprecated copmatibility wrapper for the old JSRef type.

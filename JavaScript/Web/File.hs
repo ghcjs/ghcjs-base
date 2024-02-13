@@ -26,6 +26,6 @@ lastModified b = js_lastModified b
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$1.name"         js_name         :: File -> JSString
-foreign import javascript unsafe "$1.lastModified" js_lastModified :: File -> Double
+foreign import javascript unsafe "((x) => { return x.name; })"         js_name         :: File -> JSString
+foreign import javascript unsafe "((x) => { return x.lastModified; })" js_lastModified :: File -> Double
 

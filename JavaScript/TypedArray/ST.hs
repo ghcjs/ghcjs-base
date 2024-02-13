@@ -24,7 +24,7 @@ import GHC.Word
 import GHCJS.Types
 
 import GHCJS.Buffer.Types
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Internal.Types
 
 import qualified Data.ByteString as B
@@ -53,11 +53,11 @@ class STTypedArray s a where
 instance STTypedArray s (STInt8Array s) where
   index i a                  = ST (I.indexI8 i a)
   unsafeIndex i a            = ST (I.unsafeIndexI8 i a)
-  setIndex i (I8# x) a       = ST (I.setIndexI i x a)
-  unsafeSetIndex i (I8# x) a = ST (I.unsafeSetIndexI i x a)
-  indexOf s (I8# x) a        = ST (I.indexOfI s x a)
+  setIndex i (I8# x) a       = ST (I.setIndexI i (int8ToInt# x) a)
+  unsafeSetIndex i (I8# x) a = ST (I.unsafeSetIndexI i (int8ToInt# x) a)
+  indexOf s (I8# x) a        = ST (I.indexOfI s (int8ToInt# x) a)
   fromBuffer                 = undefined
-  lastIndexOf s (I8# x) a    = ST (I.lastIndexOfI s x a)
+  lastIndexOf s (I8# x) a    = ST (I.lastIndexOfI s (int8ToInt# x) a)
   create l                   = ST (I.js_createInt8Array l)
 
 -- ---------------------------------------------------------------------------

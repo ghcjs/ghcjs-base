@@ -57,18 +57,18 @@ clear s = js_clear s
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "window.localStorage"   js_localStorage   :: Storage
+  "window.localStorage"                 js_localStorage   :: Storage
 foreign import javascript unsafe
-  "window.sessionStorage" js_sessionStorage :: Storage
+  "window.sessionStorage"               js_sessionStorage :: Storage
 foreign import javascript unsafe
-  "$1.length"             js_getLength      :: Storage -> IO Int
+  "((x) => { return x.length; })"       js_getLength      :: Storage -> IO Int
 foreign import javascript unsafe
-  "$2.key($1)"            js_getIndex       :: Int -> Storage -> IO JSVal
+  "((x,y) => { return y.key(x); })"     js_getIndex       :: Int -> Storage -> IO JSVal
 foreign import javascript unsafe
-  "$2.getItem($1)"        js_getItem        :: JSString -> Storage -> IO JSVal
+  "((x,y) => { return y.getItem(x); })" js_getItem        :: JSString -> Storage -> IO JSVal
 foreign import javascript safe
-  "$3.setItem($1,$2)"     js_setItem        :: JSString -> JSString -> Storage -> IO ()
+  "((x,y,z) => { x.setItem(x,y); })"    js_setItem        :: JSString -> JSString -> Storage -> IO ()
 foreign import javascript unsafe
-  "$2.removeItem($1)"     js_removeItem     :: JSString -> Storage -> IO ()
+  "((x,y) => { y.removeItem(x); })"     js_removeItem     :: JSString -> Storage -> IO ()
 foreign import javascript unsafe
-  "$1.clear();"           js_clear          :: Storage -> IO ()
+  "((x) => { x.clear(); })"             js_clear          :: Storage -> IO ()

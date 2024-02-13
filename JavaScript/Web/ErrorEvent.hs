@@ -39,13 +39,13 @@ error ee = js_getError ee
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$1.message"
+foreign import javascript unsafe "((x) => { return x.message; })"
   js_getMessage  :: ErrorEvent -> JSString
-foreign import javascript unsafe "$1.filename"
+foreign import javascript unsafe "((x) => { return x.filename; })"
   js_getFilename :: ErrorEvent -> JSString
-foreign import javascript unsafe "$1.lineno"
+foreign import javascript unsafe "((x) => { return x.lineno; })"
   js_getLineno   :: ErrorEvent -> Int
-foreign import javascript unsafe "$1.colno"
+foreign import javascript unsafe "((x) => { return x.colno; })"
   js_getColno    :: ErrorEvent -> Int
-foreign import javascript unsafe "$1.error"
+foreign import javascript unsafe "((x) => { return x.error; })"
   js_getError    :: ErrorEvent -> JSVal

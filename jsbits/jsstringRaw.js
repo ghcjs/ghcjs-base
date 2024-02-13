@@ -1,4 +1,4 @@
-#include <ghcjs/rts.h>
+//#OPTIONS: CPP
 
 /*
  * Functions that directly access JavaScript strings, ignoring character

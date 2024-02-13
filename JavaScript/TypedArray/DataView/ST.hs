@@ -28,7 +28,7 @@ import Data.Word
 
 import GHC.ST
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import           JavaScript.TypedArray.ArrayBuffer.ST
 import           JavaScript.TypedArray.ArrayBuffer.Internal as AI

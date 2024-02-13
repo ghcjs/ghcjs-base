@@ -36,7 +36,7 @@ import Data.Int                       (Int32, Int64)
 import Data.Typeable                  (Typeable)
 import GHC.Exts                       (Char(..), ord#, andI#, (/=#), isTrue#)
 
-import GHCJS.Prim (JSVal)
+import GHC.JS.Prim (JSVal)
 
 import GHCJS.Internal.Types
 
@@ -47,7 +47,7 @@ instance IsJSVal JSString
 instance NFData JSString where rnf !x = ()
 
 foreign import javascript unsafe
-  "$r = '';" js_empty :: JSString
+  "(() => { return ''; })" js_empty :: JSString
 
 -- | /O(1)/ The empty 'JSString'.
 empty :: JSString

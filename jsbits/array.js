@@ -1,4 +1,4 @@
-#include <ghcjs/rts.h>
+//#OPTIONS: CPP
 
 /*
    convert an array to a Haskell list, wrapping each element in a

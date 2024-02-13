@@ -43,7 +43,7 @@ import qualified Data.JSString.Internal.Fusion.Common as S
 
 import           System.IO.Unsafe
 
-import           GHCJS.Prim
+import           GHC.JS.Prim
 
 default (Int)
 
@@ -183,11 +183,11 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringIndexR" js_indexR :: Int -> JSString -> Int#
 foreign import javascript unsafe
-  "$1.length" js_length :: JSString -> Int#
+  "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
-  "$r = [$1];" js_newSingletonArray :: Char -> IO JSVal
+  "((x) => { return [x]; })" js_newSingletonArray :: Char -> IO JSVal
 foreign import javascript unsafe
-  "$3[$2] = $1;" js_writeArray :: Char -> Int -> JSVal -> IO ()
+  "((x,y,z) => { z[y] = x; })" js_writeArray :: Char -> Int -> JSVal -> IO ()
 foreign import javascript unsafe
   "h$jsstringPackArray" js_packString :: JSVal -> IO JSString
 foreign import javascript unsafe

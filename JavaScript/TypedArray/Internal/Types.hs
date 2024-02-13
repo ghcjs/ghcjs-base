@@ -98,7 +98,7 @@ type STUint8ClampedArray s = SomeSTTypedArray s Uint8ClampedElem
 -- -----------------------------------------------------------------------------
 
 type family Elem x where
-    Elem (SomeUint8Array m)        = Word8
+    Elem (SomeUint8Array m)        = Word8 -- SomeTypedArray Uint8Elem
     Elem (SomeUint8ClampedArray m) = Word8
     Elem (SomeUint16Array m)       = Word16
     Elem (SomeUint32Array m)       = Word
@@ -108,13 +108,3 @@ type family Elem x where
     Elem (SomeFloat32Array m)      = Double
     Elem (SomeFloat64Array m)      = Double
     
-    Elem (STUint8Array s)          = Word8
-    Elem (STUint8ClampedArray s)   = Word8
-    Elem (STUint16Array s)         = Word16
-    Elem (STUint32Array s)         = Word
-    Elem (STInt8Array s)           = Int8
-    Elem (STInt16Array s)          = Int16
-    Elem (STInt32Array s)          = Int
-    Elem (STFloat32Array s)        = Double
-    Elem (STFloat64Array s)        = Double
-

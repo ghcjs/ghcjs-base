@@ -1,3 +1,4 @@
+//#OPTIONS: CPP
 function h$exportValue(fp1a,fp1b,fp2a,fp2b,o) {
   var e = { fp1a: fp1a
           , fp1b: fp1b

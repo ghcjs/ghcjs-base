@@ -27,9 +27,10 @@ module JavaScript.Web.WebSocket ( WebSocket
                                 ) where
 
 import           GHCJS.Concurrent
-import           GHCJS.Prim
-import           GHCJS.Foreign.Callback.Internal (Callback(..))
-import qualified GHCJS.Foreign.Callback          as CB
+import           GHCJS.Types
+import           GHC.JS.Prim
+import           GHC.JS.Foreign.Callback (Callback)
+import qualified GHC.JS.Foreign.Callback          as CB
 
 import           GHC.Exts
 
@@ -88,8 +89,8 @@ connect req = do
 maybeCallback :: (JSVal -> a) -> Maybe (a -> IO ()) -> IO JSVal
 maybeCallback _ Nothing = return jsNull
 maybeCallback f (Just g) = do
-  Callback cb <- CB.syncCallback1 CB.ContinueAsync (g . f)
-  return cb
+  cb <- CB.syncCallback1 CB.ContinueAsync (g . f)
+  return (jsval cb)
 
 handleOpenErr :: JSVal -> IO ()
 handleOpenErr r
@@ -151,40 +152,40 @@ setBinaryType ArrayBuffer = js_setBinaryType (JSS.pack "arraybuffer")
 -- -----------------------------------------------------------------------------
 
 foreign import javascript safe
-   "new WebSocket($1)" js_createDefault :: JSString -> IO WebSocket
+  "(($1) => { return new WebSocket($1); })" js_createDefault :: JSString -> IO WebSocket
 foreign import javascript safe
-  "new WebSocket($1, $2)" js_createStr :: JSString -> JSString -> IO WebSocket
+  "(($1,$2) => { return new WebSocket($1, $2); })" js_createStr :: JSString -> JSString -> IO WebSocket
 foreign import javascript safe
-  "new WebSocket($1, $2)" js_createArr :: JSString -> JSArray -> IO WebSocket
+  "(($1,$2) => { return new WebSocket($1, $2); })" js_createArr :: JSString -> JSArray -> IO WebSocket
 
 foreign import javascript interruptible
-  "h$openWebSocket($1, $2, $3, $c);"
+  "h$openWebSocket"
   js_open  :: WebSocket -> JSVal -> JSVal -> IO JSVal
 foreign import javascript safe
-  "h$closeWebSocket($1, $2, $3);"
+  "h$closeWebSocket"
   js_close :: Int -> JSString -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$2.send($1);"          js_send              :: JSString -> WebSocket -> IO ()
+  "((x,y) => { y.send(x); })"          js_send              :: JSString -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$2.send($1);"          js_sendBlob          :: Blob -> WebSocket -> IO ()
+  "((x,y) => { y.send(x); })"          js_sendBlob          :: Blob -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$2.send($1);"          js_sendArrayBuffer   :: ArrayBuffer -> WebSocket -> IO ()
+  "((x,y) => { y.send(x); })"          js_sendArrayBuffer   :: ArrayBuffer -> WebSocket -> IO ()
 foreign import javascript unsafe
-  "$1.bufferedAmount"     js_getBufferedAmount :: WebSocket -> IO Int
+  "((x) => { return x.bufferedAmount; })"     js_getBufferedAmount :: WebSocket -> IO Int
 foreign import javascript unsafe
-  "$1.readyState"         js_getReadyState     :: WebSocket -> IO Int
+  "((x) => { return x.readyState; })"         js_getReadyState     :: WebSocket -> IO Int
 foreign import javascript unsafe
-  "$1.protocol"           js_getProtocol       :: WebSocket -> IO JSString
+  "((x) => { return x.protocol; })"           js_getProtocol       :: WebSocket -> IO JSString
 foreign import javascript unsafe
-  "$1.extensions"         js_getExtensions     :: WebSocket -> IO JSString
+  "((x) => { return x.extensions; })"         js_getExtensions     :: WebSocket -> IO JSString
 foreign import javascript unsafe
-  "$1.url"                js_getUrl            :: WebSocket -> JSString
+  "((x) => { return x.url; })"                js_getUrl            :: WebSocket -> JSString
 foreign import javascript unsafe
-  "$1.binaryType === 'blob' ? 0 : 1"
+  "((x) => { return x.binaryType === 'blob' ? 0 : 1; })"
   js_getBinaryType                             :: WebSocket -> IO Int
 foreign import javascript unsafe
-  "$1.lastError"          js_getLastError      :: WebSocket -> IO JSVal
+  "((x) => { return x.lastError; })"          js_getLastError      :: WebSocket -> IO JSVal
 
 foreign import javascript unsafe
-  "$2.binaryType = $1"
+  "((x,y) => { y.binaryType = x; })"
   js_setBinaryType                             :: JSString -> WebSocket -> IO ()

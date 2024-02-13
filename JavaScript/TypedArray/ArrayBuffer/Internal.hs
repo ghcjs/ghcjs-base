@@ -38,16 +38,16 @@ instance PFromJSVal MutableArrayBuffer where
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.byteLength" js_byteLength :: SomeArrayBuffer any -> Int
+  "((x) => { return x.byteLength; })" js_byteLength :: SomeArrayBuffer any -> Int
 foreign import javascript unsafe
-  "new ArrayBuffer($1)" js_create :: Int -> State# s -> (# State# s, JSVal #)
+  "((x) => { return new ArrayBuffer(x); })" js_create :: Int -> State# s -> (# State# s, JSVal #)
 foreign import javascript unsafe
-  "$2.slice($1)" js_slice1 :: Int -> JSVal -> State# s -> (# State# s, JSVal #)
+  "((x,y) => { return y.slice(x); })" js_slice1 :: Int -> JSVal -> State# s -> (# State# s, JSVal #)
 
 -- ----------------------------------------------------------------------------
 -- immutable non-IO slice
 
 foreign import javascript unsafe
-  "$2.slice($1)" js_slice1_imm :: Int -> SomeArrayBuffer any -> SomeArrayBuffer any
+  "((x,y) => { return y.slice(x); })" js_slice1_imm :: Int -> SomeArrayBuffer any -> SomeArrayBuffer any
 foreign import javascript unsafe
-  "$3.slice($1,$2)" js_slice_imm :: Int -> Int -> SomeArrayBuffer any -> SomeArrayBuffer any
+  "((x,y,z) => { return z.slice(x,y); })" js_slice_imm :: Int -> Int -> SomeArrayBuffer any -> SomeArrayBuffer any

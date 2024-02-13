@@ -1,3 +1,4 @@
+//#OPTIONS: CPP
 function h$animationFrameCancel(h) {
     if(h.handle) window.cancelAnimationFrame(h.handle);
     if(h.callback) {

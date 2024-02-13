@@ -3,7 +3,7 @@ module GHCJS.Nullable ( Nullable(..)
                       , maybeToNullable
                       ) where
 
-import GHCJS.Prim (JSVal(..))
+import GHC.JS.Prim (JSVal(..))
 import GHCJS.Marshal.Pure (PToJSVal(..), PFromJSVal(..))
 
 newtype Nullable a = Nullable JSVal

@@ -2,7 +2,8 @@
              ForeignFunctionInterface, JavaScriptFFI, EmptyDataDecls,
              TypeFamilies, DataKinds, ScopedTypeVariables,
              FlexibleContexts, FlexibleInstances, TypeSynonymInstances,
-             LambdaCase, MultiParamTypeClasses, DeriveGeneric #-}
+             LambdaCase, MultiParamTypeClasses, DeriveGeneric,
+	     TypeOperators #-}
 
 module JavaScript.Web.XMLHttpRequest ( xhr
                                      , xhrByteString
@@ -22,7 +23,7 @@ import Control.Exception
 import Control.Monad
 
 import GHCJS.Types
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Marshal
 import GHCJS.Marshal.Pure
 import GHCJS.Internal.Types
@@ -201,57 +202,57 @@ xhrByteString = fmap
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.withCredentials = true;"
+  "((x) => { x.withCredentials = true; })"
   js_setWithCredentials :: XHR -> IO ()
 
 foreign import javascript unsafe
-  "new XMLHttpRequest()"
+  "((x) => { return new XMLHttpRequest(); })"
   js_createXHR :: IO XHR
 foreign import javascript unsafe
-  "$2.responseType = $1;"
+  "((x,y) => { y.responseType = x; })"
   js_setResponseType :: JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "$1.abort();"
+  "((x) => { return x.abort(); })"
   js_abort :: XHR -> IO ()
 foreign import javascript unsafe
-  "$3.setRequestHeader($1,$2);"
+  "((x,y,z) => { x.setRequestHeader(x,y); })"
   js_setRequestHeader :: JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "$3.open($1,$2)"
+  "((x,y,z) => { x.open(x,y); })"
   js_open2 :: JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "$5.open($1,$2,true,$4,$5);"
+  "(($1,$2,$3,$4,$5) => { $5.open($1,$2,true,$4,$5); })"
   js_open4 :: JSString -> JSString -> JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
   "new FormData()"
   js_createFormData :: IO JSFormData
 foreign import javascript unsafe
-  "$3.append($1,$2)"
+  "((x,y,z) => { x.append(x,y); })"
   js_appendFormData2 :: JSString -> JSVal -> JSFormData -> IO ()
 foreign import javascript unsafe
-  "$4.append($1,$2,$3)"
+  "(($1,$2,$3,$4) => { $4.append($1,$2,$3); })"
   js_appendFormData3 :: JSString -> JSVal -> JSString -> JSFormData -> IO ()
 foreign import javascript unsafe
-  "$1.status"
+  "((x) => { return x.status; })"
   js_getStatus :: XHR -> IO Int
 foreign import javascript unsafe
-  "$1.response"
+  "((x) => { return x.response; })"
   js_getResponse :: XHR -> IO JSVal
 foreign import javascript unsafe
-  "$1.response ? true : false"
+  "((x) => { return x.response ? true : false; })"
   js_hasResponse :: XHR -> IO Bool
 foreign import javascript unsafe
-  "$1.getAllResponseHeaders()"
+  "((x) => { return x.getAllResponseHeaders(); })"
   js_getAllResponseHeaders :: XHR -> IO JSString
 foreign import javascript unsafe
-  "$2.getResponseHeader($1)"
+  "((x,y) => { y.getResponseHeader(x); })"
   js_getResponseHeader :: JSString -> XHR -> IO JSVal
 
 -- -----------------------------------------------------------------------------
 
 foreign import javascript interruptible
-  "h$sendXHR($1, null, $c);"
+  "((x,c) => { return h$sendXHR(x, null, c); })"
   js_send0 :: XHR -> IO Int
 foreign import javascript interruptible
-  "h$sendXHR($2, $1, $c);"
+  "((x,y,c) => { return h$sendXHR(y, x, c); })"
   js_send1 :: JSVal -> XHR -> IO Int

@@ -25,9 +25,9 @@ getData i = js_getData i
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.width" js_width :: ImageData -> Int
+  "((x) => { return x.width; })" js_width :: ImageData -> Int
 foreign import javascript unsafe
-  "$1.height" js_height :: ImageData -> Int
+  "((x) => { return x.height; })" js_height :: ImageData -> Int
 foreign import javascript unsafe
-  "$1.data" js_getData :: ImageData -> Uint8ClampedArray
+  "((x) => { return x.data; })" js_getData :: ImageData -> Uint8ClampedArray
 
