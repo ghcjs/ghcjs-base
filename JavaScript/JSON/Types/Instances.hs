@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, FlexibleContexts, FlexibleInstances,
-    GeneralizedNewtypeDeriving, IncoherentInstances, OverlappingInstances,
+    GeneralizedNewtypeDeriving, IncoherentInstances,
     OverloadedStrings, UndecidableInstances, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -68,7 +68,6 @@ import qualified JavaScript.JSON.Types.Internal as I
 
 import Data.Scientific (Scientific)
 import qualified Data.Scientific as Scientific (coefficient, base10Exponent, fromFloatDigits, toRealFloat)
-import Data.Attoparsec.Number (Number(..))
 import Data.Fixed
 import Data.Hashable (Hashable(..))
 import Data.Int (Int8, Int16, Int32, Int64)
@@ -77,7 +76,7 @@ import Data.Monoid (Dual(..), First(..), Last(..), mappend)
 import Data.Ratio (Ratio, (%), numerator, denominator)
 import Data.Text (Text, pack, unpack)
 import Data.Time (UTCTime, ZonedTime(..), TimeZone(..))
-import Data.Time.Format (FormatTime, formatTime, parseTime)
+import Data.Time.Format (FormatTime, formatTime, parseTimeM)
 import Data.Traversable (traverse)
 import Data.Vector (Vector)
 import Data.Word (Word, Word8, Word16, Word32, Word64)
@@ -491,7 +490,7 @@ instance FromJSON DotNetTime where
     parseJSON = withJSString "DotNetTime" $ \t ->
         let (s,m) = JSS.splitAt (JSS.length t - 5) t
             t'    = JSS.concat [s,".",m]
-        in case parseTime defaultTimeLocale "/Date(%s%Q)/" (JSS.unpack t') of
+        in case parseTimeM True defaultTimeLocale "/Date(%s%Q)/" (JSS.unpack t') of
              Just d -> pure (DotNetTime d)
              _      -> fail "could not parse .NET time"
     {-# INLINE parseJSON #-}
@@ -513,7 +512,7 @@ instance FromJSON ZonedTime where
       <|> fail "could not parse ECMA-262 ISO-8601 date"
       where
         tryFormat f =
-          case parseTime defaultTimeLocale f (JSS.unpack t) of
+          case parseTimeM True defaultTimeLocale f (JSS.unpack t) of
             Just d -> pure d
             Nothing -> empty
         tryFormats = foldr1 (<|>) . map tryFormat
@@ -536,7 +535,7 @@ instance ToJSON UTCTime where
 
 instance FromJSON UTCTime where
     parseJSON = withJSString "UTCTime" $ \t ->
-        case parseTime defaultTimeLocale "%FT%T%QZ" (JSS.unpack t) of
+        case parseTimeM True defaultTimeLocale "%FT%T%QZ" (JSS.unpack t) of
           Just d -> pure d
           _      -> fail "could not parse ISO-8601 date"
     {-# INLINE parseJSON #-}
@@ -1063,15 +1062,6 @@ realFloatToJSON d
     | isNaN d || isInfinite d = nullValue
     | otherwise               = doubleValue (realToFrac d)
 {-# INLINE realFloatToJSON #-}
-
-scientificToNumber :: Scientific -> Number
-scientificToNumber s
-    | e < 0     = D $ Scientific.toRealFloat s
-    | otherwise = I $ c * 10 ^ e
-  where
-    e = Scientific.base10Exponent s
-    c = Scientific.coefficient s
-{-# INLINE scientificToNumber #-}
 
 parseRealFloat :: RealFloat a => String -> Value -> Parser a
 parseRealFloat _        (match -> Number d) = pure $ realToFrac d

@@ -25,7 +25,7 @@ import           GHC.Exts
   , (+#), (-#), (>=#), (<#)
   , isTrue#, chr#)
 import qualified GHC.Exts as Exts
-import GHCJS.Prim (JSVal)
+import GHC.JS.Prim (JSVal)
 
 import Unsafe.Coerce
 
@@ -127,25 +127,25 @@ overflowError fun = error $ "Data.JSString.Raw." ++ fun ++ ": size overflow"
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1===''" js_null :: JSString -> Bool
+  "((x) => { return x===''; })" js_null :: JSString -> Bool
 foreign import javascript unsafe
-  "$1.length" js_length :: JSString -> Int#
+  "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
-  "$3.substr($1,$2)" js_substr :: Int# -> Int# -> JSString -> JSString
+  "((x,y,z) => { return z.substr(x,y); })" js_substr :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$2.substr($1)" js_substr1 :: Int# -> JSString -> JSString
+  "((x,y) => { return y.substr(x); })" js_substr1 :: Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$3.slice($1,$2)" js_slice :: Int# -> Int# -> JSString -> JSString
+  "((x,y,z) => { return z.slice(x,y); })" js_slice :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$2.slice($1)" js_slice1 :: Int# -> JSString -> JSString
+  "((x,y) => { return y.slice(x); })" js_slice1 :: Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$3.indexOf($1,$2)" js_indexOf :: JSString -> Int# -> JSString -> Int#
+  "((x,y,z) => { return z.indexOf(x,y); })" js_indexOf :: JSString -> Int# -> JSString -> Int#
 foreign import javascript unsafe
-  "$2.indexOf($1)" js_indexOf1 :: JSString -> JSString -> Int#
+  "((x,y) => { return y.indexOf(x); })" js_indexOf1 :: JSString -> JSString -> Int#
 foreign import javascript unsafe
-  "$2.charCodeAt($1)" js_charCodeAt :: Int# -> JSString -> Int#
+  "((x,y) => { return y.charCodeAt(x); })" js_charCodeAt :: Int# -> JSString -> Int#
 foreign import javascript unsafe
-  "$2.codePointAt($1)" js_codePointAt :: Int# -> JSString -> Int#
+  "((x,y) => { return y.codePointAt(x); })" js_codePointAt :: Int# -> JSString -> Int#
 foreign import javascript unsafe
   "$hsRawChunksOf" js_rawChunksOf :: Int# -> JSString -> Exts.Any -- [JSString]
 foreign import javascript unsafe

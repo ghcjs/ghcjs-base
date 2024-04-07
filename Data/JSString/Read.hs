@@ -150,9 +150,9 @@ readError xs = error ("Data.JSString.Read." ++ xs)
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$r = $1===null;" js_isNull :: JSVal -> Bool
+  "((x) => { return x===null; })" js_isNull :: JSVal -> Bool
 foreign import javascript unsafe
-  "$r=$1;" js_toHeapObject :: JSVal -> Any
+  "((x) => { return x; })" js_toHeapObject :: JSVal -> Any
 foreign import javascript unsafe
   "h$jsstringReadInteger" js_readInteger :: JSString -> JSVal
 foreign import javascript unsafe

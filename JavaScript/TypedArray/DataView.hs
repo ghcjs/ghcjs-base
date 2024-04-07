@@ -40,7 +40,7 @@ import GHC.Types (IO(..))
 import Data.Int
 import Data.Word
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import           JavaScript.TypedArray.ArrayBuffer.Internal
   ( SomeArrayBuffer(..), ArrayBuffer, MutableArrayBuffer )

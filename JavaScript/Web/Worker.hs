@@ -6,7 +6,7 @@ module JavaScript.Web.Worker ( Worker
                              , terminate
                              ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import Data.JSString
 import Data.Typeable
@@ -28,8 +28,8 @@ terminate w = js_terminate w
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe 
-  "new Worker($1)" js_create :: JSString -> IO Worker
+  "(($1) => { return new Worker($1); })" js_create :: JSString -> IO Worker
 foreign import javascript unsafe
-  "$2.postMessage($1)" js_postMessage  :: JSVal -> Worker -> IO ()
+  "((x,y) => { y.postMessage(x); })" js_postMessage  :: JSVal -> Worker -> IO ()
 foreign import javascript unsafe
-  "$1.terminate()" js_terminate :: Worker -> IO ()
+  "((x) => { x.terminate(); })" js_terminate :: Worker -> IO ()

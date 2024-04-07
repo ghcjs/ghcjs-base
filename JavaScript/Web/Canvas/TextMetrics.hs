@@ -67,28 +67,28 @@ ideographicBaseline tm = js_ideographicBaseline tm
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$1.width" js_width :: TextMetrics -> Double
+  "((x) => { return x.width; })" js_width :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.actualBoundingBoxLeft" js_actualBoundingBoxLeft :: TextMetrics -> Double
+  "((x) => { return x.actualBoundingBoxLeft; })" js_actualBoundingBoxLeft :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.actualBoundingBoxRight" js_actualBoundingBoxRight :: TextMetrics -> Double
+  "((x) => { return x.actualBoundingBoxRight; })" js_actualBoundingBoxRight :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.fontBoundingBoxAscent" js_fontBoundingBoxAscent :: TextMetrics -> Double
+  "((x) => { return x.fontBoundingBoxAscent; })" js_fontBoundingBoxAscent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.fontBoundingBoxDescent" js_fontBoundingBoxDescent :: TextMetrics -> Double
+  "((x) => { return x.fontBoundingBoxDescent; })" js_fontBoundingBoxDescent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.actualBoundingBoxAscent" js_actualBoundingBoxAscent :: TextMetrics -> Double
+  "((x) => { return x.actualBoundingBoxAscent; })" js_actualBoundingBoxAscent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.actualBoundingBoxDescent" js_actualBoundingBoxDescent :: TextMetrics -> Double
+  "((x) => { return x.actualBoundingBoxDescent; })" js_actualBoundingBoxDescent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.emHeightAscent" js_emHeightAscent :: TextMetrics -> Double
+  "((x) => { return x.emHeightAscent; })" js_emHeightAscent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.emHeightDescent" js_emHeightDescent :: TextMetrics -> Double
+  "((x) => { return x.emHeightDescent; })" js_emHeightDescent :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.hangingBaseline" js_hangingBaseline :: TextMetrics -> Double
+  "((x) => { return x.hangingBaseline; })" js_hangingBaseline :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.alphabeticBaseline" js_alphabeticBaseline :: TextMetrics -> Double
+  "((x) => { return x.alphabeticBaseline; })" js_alphabeticBaseline :: TextMetrics -> Double
 foreign import javascript unsafe
-  "$1.ideographicBaseline" js_ideographicBaseline :: TextMetrics -> Double
+  "((x) => { return x.ideographicBaseline; })" js_ideographicBaseline :: TextMetrics -> Double
 
 

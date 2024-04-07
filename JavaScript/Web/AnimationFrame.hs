@@ -21,7 +21,7 @@ module JavaScript.Web.AnimationFrame
     , AnimationFrameHandle
     ) where
 
-import GHCJS.Foreign.Callback
+import GHC.JS.Foreign.Callback
 import GHCJS.Marshal.Pure
 import GHCJS.Types
 
@@ -62,14 +62,14 @@ cancelAnimationFrame h = js_cancelAnimationFrame h
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "{ handle: null, callback: null }"
+foreign import javascript unsafe "(() => { return { handle: null, callback: null }; })"
   js_makeAnimationFrameHandle :: IO AnimationFrameHandle
-foreign import javascript unsafe "{ handle: null, callback: $1 }"
+foreign import javascript unsafe "(() => { return { handle: null, callback: $1 }; })"
   js_makeAnimationFrameHandleCallback :: JSVal -> IO AnimationFrameHandle
 foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
 foreign import javascript interruptible
-  "$1.handle = window.requestAnimationFrame($c);"
+  "((x,c) => { return x.handle = window.requestAnimationFrame(c); })"
   js_waitForAnimationFrame :: AnimationFrameHandle -> IO Double
 foreign import javascript unsafe "h$animationFrameRequest"
   js_requestAnimationFrame :: AnimationFrameHandle -> IO ()

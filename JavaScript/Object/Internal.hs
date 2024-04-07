@@ -21,7 +21,7 @@ module JavaScript.Object.Internal
 import           Data.JSString
 import           Data.Typeable
 
-import qualified GHCJS.Prim                as Prim
+import qualified GHC.JS.Prim                as Prim
 import           GHCJS.Types
 
 import qualified JavaScript.Array          as JA
@@ -73,17 +73,17 @@ isInstanceOf o s = js_isInstanceOf o s
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$r = {};"
+foreign import javascript unsafe "(() => { return {}; })"
   js_create        :: IO Object
-foreign import javascript safe   "$2[$1]"
+foreign import javascript safe   "((x,y) => { return y[x]; })"
   js_getProp       :: JSString -> Object -> IO JSVal
-foreign import javascript unsafe "$2[$1]"
+foreign import javascript unsafe "((x,y) => { return y[x]; })"
   js_unsafeGetProp :: JSString -> Object -> IO JSVal
-foreign import javascript safe   "$3[$1] = $2"
+foreign import javascript safe   "((x,y,z) => { z[x] = y; })"
   js_setProp       :: JSString -> JSVal -> Object -> IO ()
-foreign import javascript unsafe "$3[$1] = $2"
+foreign import javascript unsafe "((x,y,z) => { z[x] = y; })"
   js_unsafeSetProp :: JSString -> JSVal -> Object -> IO ()
-foreign import javascript unsafe "$1 instanceof $2"
+foreign import javascript unsafe "((x,y) => { return x instanceof y; })"
   js_isInstanceOf  :: Object -> JSVal -> Bool
 foreign import javascript unsafe  "h$allProps"
   js_allProps      :: Object -> IO JSArray

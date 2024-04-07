@@ -758,6 +758,7 @@ tests =
         testProperty "j_decimal_int16"       j_decimal_int16,
         testProperty "j_decimal_int32"       j_decimal_int32,
         testProperty "j_decimal_int64"       j_decimal_int64,
+ 
         testProperty "j_decimal_word"        j_decimal_word,
         testProperty "j_decimal_word8"       j_decimal_word8,
         testProperty "j_decimal_word16"      j_decimal_word16,
@@ -783,9 +784,9 @@ tests =
         testProperty "j_hexadecimal_word64"  j_hexadecimal_word64
       ],
       testGroup "realfloat" [
-        -- disabled due to rounding differences
-        -- testProperty "j_realfloat_double"       j_realfloat_double,
-        -- testProperty "j_formatRealFloat_double" j_formatRealFloat_double
+         -- disabled due to rounding differences
+         -- testProperty "j_realfloat_double"       j_realfloat_double,
+         -- testProperty "j_formatRealFloat_double" j_formatRealFloat_double
       ]
     ],
 

@@ -16,7 +16,7 @@ import qualified GHC.Exts as Exts
 import           GHC.Exts (State#)
 
 import           GHCJS.Internal.Types
-import qualified GHCJS.Prim as Prim
+import qualified GHC.JS.Prim as Prim
 import           GHCJS.Types
 
 newtype SomeJSArray (m :: MutabilityType s) = SomeJSArray JSVal
@@ -140,54 +140,54 @@ unsafeThaw (SomeJSArray x) = pure (SomeJSArray x)
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "$r = [];"
+foreign import javascript unsafe "((x) => { return []; })"
   js_create   :: State# s -> (# State# s, SomeJSArray m #)
 
-foreign import javascript unsafe "$1.length"
+foreign import javascript unsafe "((x) => { return x.length; })"
   js_length     :: SomeJSArray m -> State# s -> (# State# s, Int #)
-foreign import javascript unsafe "$2[$1]"
+foreign import javascript unsafe "((x,y) => { return y[x]; })"
   js_index     :: Int -> SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
-foreign import javascript unsafe "$2[$1]"
+foreign import javascript unsafe "((x,y) => { return y[x]; })"
   js_indexPure :: Int -> JSArray -> JSVal
-foreign import javascript unsafe "$1.length"
+foreign import javascript unsafe "((x) => { return x.length; })"
   js_lengthPure :: JSArray -> Int
 
-foreign import javascript unsafe "$3[$1] = $2"
+foreign import javascript unsafe "((x,y,z) => { z[x] = y; })"
   js_setIndex :: Int -> JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
 
-foreign import javascript unsafe "$3.slice($1,$2)"
+foreign import javascript unsafe "((x,y,z) => { return z.slice(x,y); })"
   js_slice     :: Int -> Int -> SomeJSArray m -> State# s -> (# State# s, SomeJSArray m1 #)
-foreign import javascript unsafe "$2.slice($1)"
+foreign import javascript unsafe "((x,y) => { return y.slice(x); })"
   js_slice1    :: Int -> SomeJSArray m -> State# s -> (# State# s, SomeJSArray m1 #)
 
-foreign import javascript unsafe "$3.slice($1,2)"
+foreign import javascript unsafe "((x,y,z) => { return z.slice(x,y); })"
   js_slicePure  :: Int -> Int -> JSArray -> JSArray
-foreign import javascript unsafe "$2.slice($1)"
+foreign import javascript unsafe "((x,y) => { return y.slice(x); })"
   js_slice1Pure :: Int -> JSArray -> JSArray
 
-foreign import javascript unsafe "$1.concat($2)"
+foreign import javascript unsafe "((x,y) => { return x.concat(y); })"
   js_append   :: SomeJSArray m0 -> SomeJSArray m1 -> State# s ->  (# State# s, SomeJSArray m2 #)
 
-foreign import javascript unsafe "$2.push($1)"
+foreign import javascript unsafe "((x,y) => { y.push(x); })"
   js_push     :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
-foreign import javascript unsafe "$1.pop()"
+foreign import javascript unsafe "((x) => { return x.pop(); })"
   js_pop      :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
-foreign import javascript unsafe "$2.unshift($1)"
+foreign import javascript unsafe "((x,y) => { y.unshift(x); })"
   js_unshift  :: JSVal -> SomeJSArray m -> State# s -> (# State# s, () #)
-foreign import javascript unsafe "$1.shift()"
+foreign import javascript unsafe "((x) => { return x.shift(); })"
   js_shift    :: SomeJSArray m -> State# s -> (# State# s, JSVal #)
 
-foreign import javascript unsafe "$1.reverse()"
+foreign import javascript unsafe "((x) => { return x.reverse(); })"
   js_reverse  :: SomeJSArray m -> State# s -> (# State# s, () #)
 
-foreign import javascript unsafe "h$toHsListJSVal($1)"
+foreign import javascript unsafe "h$toHsListJSVal"
   js_fromJSArray :: SomeJSArray m -> State# s -> (# State# s, Exts.Any #)
-foreign import javascript unsafe "h$toHsListJSVal($1)"
+foreign import javascript unsafe "h$toHsListJSVal"
   js_fromJSArrayPure :: JSArray -> Exts.Any -- [JSVal]
 
-foreign import javascript unsafe "h$fromHsListJSVal($1)"
+foreign import javascript unsafe "h$fromHsListJSVal"
   js_toJSArray :: Exts.Any -> State# s -> (# State# s, SomeJSArray m #)
-foreign import javascript unsafe "h$fromHsListJSVal($1)"
+foreign import javascript unsafe "h$fromHsListJSVal"
   js_toJSArrayPure :: Exts.Any -> JSArray
 

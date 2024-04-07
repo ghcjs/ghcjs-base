@@ -9,14 +9,13 @@ module Data.JSString.Internal.Search ( indices
 import GHC.Exts (Int#, (+#), Int(..))
 import Data.JSString
 
--- returns uncorrected offsets in the String
 indices :: JSString -> JSString -> [Int]
-indices needle haystack = go 0#
+indices needle haystack = go 0# 0#
   where
-    go i = case js_indexOf needle i haystack of
-             -1# -> []
-             n   -> I# n : go (n +# 1#)
+    go n i = case js_indexOf needle n i haystack of
+             (# -1#, _  #) -> []
+             (# n' , i' #) -> I# n' : go (n' +# 1#) (i' +# 1#) 
 
 foreign import javascript unsafe
-  "$3.indexOf($1,$2)"
-  js_indexOf :: JSString -> Int# -> JSString -> Int#
+  "h$jsstringIndices"
+  js_indexOf :: JSString -> Int# -> Int# -> JSString -> (# Int#, Int# #)

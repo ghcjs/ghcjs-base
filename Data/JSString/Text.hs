@@ -15,7 +15,7 @@ module Data.JSString.Text
     , lazyTextFromJSVal
     ) where
 
-import GHCJS.Prim
+import GHC.JS.Prim
 
 import GHC.Exts (ByteArray#, Int(..), Int#, Any)
 
@@ -31,7 +31,7 @@ import Data.JSString.Internal.Type
 import Unsafe.Coerce
 
 textToJSString :: T.Text -> JSString
-textToJSString (T.Text (A.Array ba) (I# offset) (I# length)) =
+textToJSString (T.Text (A.ByteArray ba) (I# offset) (I# length)) =
   js_toString ba offset length
 {-# INLINE textToJSString #-}
 
@@ -39,7 +39,7 @@ textFromJSString :: JSString -> T.Text
 textFromJSString j =
   case js_fromString j of
     (# _ , 0#     #) -> T.empty
-    (# ba, length #) -> T.Text (A.Array ba) 0 (I# length)
+    (# ba, length #) -> T.Text (A.ByteArray ba) 0 (I# length)
 {-# INLINE  textFromJSString #-}
 
 lazyTextToJSString :: TL.Text -> JSString
@@ -54,7 +54,7 @@ lazyTextFromJSString = TL.fromStrict . textFromJSString
 textFromJSVal :: JSVal -> T.Text
 textFromJSVal j = case js_fromString' j of
     (# _,  0#     #) -> T.empty
-    (# ba, length #) -> T.Text (A.Array ba) 0 (I# length)
+    (# ba, length #) -> T.Text (A.ByteArray ba) 0 (I# length)
 {-# INLINE textFromJSVal #-}
 
 -- | returns the empty Text if not a string
@@ -65,7 +65,7 @@ lazyTextFromJSVal = TL.fromStrict . textFromJSVal
 -- ----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "h$textToString($1,$2,$3)"
+  "h$textToString"
   js_toString :: ByteArray# -> Int# -> Int# -> JSString
 foreign import javascript unsafe
   "h$textFromString"

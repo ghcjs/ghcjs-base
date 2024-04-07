@@ -1,26 +1,12 @@
+//#OPTIONS: CPP
 // conversion between JavaScript string and Data.Text
-#include <ghcjs/rts.h>
 
 
 /*
   convert a Data.Text buffer with offset/length to a JavaScript string
  */
 function h$textToString(arr, off, len) {
-    var a = [];
-    var end = off+len;
-    var k = 0;
-    var u1 = arr.u1;
-    var s = '';
-    for(var i=off;i<end;i++) {
-	var cc = u1[i];
-	a[k++] = cc;
-	if(k === 60000) {
-	    s += String.fromCharCode.apply(this, a);
-	    k = 0;
-	    a = [];
-	}
-    }
-    return s + String.fromCharCode.apply(this, a);
+    return new TextDecoder().decode(arr.u8.subarray(off, off+len));
 }
 
 /*
@@ -28,11 +14,10 @@ function h$textToString(arr, off, len) {
    value is length
  */
 function h$textFromString(s) {
-    var l = s.length;
-    var b = h$newByteArray(l * 2);
-    var u1 = b.u1;
-    for(var i=l-1;i>=0;i--) u1[i] = s.charCodeAt(i);
-    RETURN_UBX_TUP2(b, l);
+    var encoder = new TextEncoder("utf-8");
+    u8 = encoder.encode(s);
+    b = h$wrapBuffer(u8.buffer, true, u8.byteOffset, u8.byteLength);
+    RETURN_UBX_TUP2(b, u8.byteLength);
 }
 
 function h$lazyTextToString(txt) {

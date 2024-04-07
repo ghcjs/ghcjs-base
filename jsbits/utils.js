@@ -1,4 +1,4 @@
-#include <ghcjs/rts.h>
+//#OPTIONS: CPP
 
 function h$allProps(o) {
     var a = [], i = 0;

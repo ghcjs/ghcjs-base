@@ -21,6 +21,8 @@
  -}
 module GHCJS.Marshal.Pure ( PFromJSVal(..)
                           , PToJSVal(..)
+                          , jsvalToChar
+                          , charToJSVal
                           ) where
 
 import           Data.Char (chr, ord)
@@ -42,7 +44,7 @@ import           GHC.Float
 import           GHC.Prim
 
 import           GHCJS.Types
-import qualified GHCJS.Prim as Prim
+import qualified GHC.JS.Prim as Prim
 import           GHCJS.Foreign.Internal
 import           GHCJS.Marshal.Internal
 
@@ -77,7 +79,7 @@ instance PFromJSVal Int8   where pFromJSVal x = I8# (jsvalToInt8 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Int16  where pFromJSVal x = I16# (jsvalToInt16 x)
                                  {-# INLINE pFromJSVal #-}
-instance PFromJSVal Int32  where pFromJSVal x = I32# (jsvalToInt x)
+instance PFromJSVal Int32  where pFromJSVal x = I32# (jsvalToInt32 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Word   where pFromJSVal x = W# (jsvalToWord x)
                                  {-# INLINE pFromJSVal #-}
@@ -85,7 +87,7 @@ instance PFromJSVal Word8  where pFromJSVal x = W8# (jsvalToWord8 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Word16 where pFromJSVal x = W16# (jsvalToWord16 x)
                                  {-# INLINE pFromJSVal #-}
-instance PFromJSVal Word32 where pFromJSVal x = W32# (jsvalToWord x)
+instance PFromJSVal Word32 where pFromJSVal x = (jsvalToWord32 x)
                                  {-# INLINE pFromJSVal #-}
 instance PFromJSVal Float  where pFromJSVal x = F# (jsvalToFloat x)
                                  {-# INLINE pFromJSVal #-}
@@ -112,19 +114,19 @@ instance PToJSVal Bool      where pToJSVal True     = jsTrue
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal Int       where pToJSVal (I# x)   = intToJSVal x
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Int8      where pToJSVal (I8# x)  = intToJSVal x
+instance PToJSVal Int8      where pToJSVal (I8# x)  = intToJSVal (int8ToInt# x)
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Int16     where pToJSVal (I16# x) = intToJSVal x
+instance PToJSVal Int16     where pToJSVal (I16# x) = intToJSVal (int16ToInt# x)
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Int32     where pToJSVal (I32# x) = intToJSVal x
+instance PToJSVal Int32     where pToJSVal (I32# x) = intToJSVal (int32ToInt# x)
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal Word      where pToJSVal (W# x)   = wordToJSVal x
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Word8     where pToJSVal (W8# x)  = wordToJSVal x
+instance PToJSVal Word8     where pToJSVal (W8# x)  = wordToJSVal (word8ToWord# x)
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Word16    where pToJSVal (W16# x) = wordToJSVal x
+instance PToJSVal Word16    where pToJSVal (W16# x) = wordToJSVal (word16ToWord# x)
                                   {-# INLINE pToJSVal #-}
-instance PToJSVal Word32    where pToJSVal (W32# x) = wordToJSVal x
+instance PToJSVal Word32    where pToJSVal (W32# x) = wordToJSVal (word32ToWord# x)
                                   {-# INLINE pToJSVal #-}
 instance PToJSVal Float     where pToJSVal (F# x)   = floatToJSVal x
                                   {-# INLINE pToJSVal #-}
@@ -136,19 +138,21 @@ instance PToJSVal a => PToJSVal (Maybe a) where
     pToJSVal (Just a) = pToJSVal a
     {-# INLINE pToJSVal #-}
 
-foreign import javascript unsafe "$r = $1|0;"          jsvalToWord   :: JSVal -> Word#
-foreign import javascript unsafe "$r = $1&0xff;"       jsvalToWord8  :: JSVal -> Word#
-foreign import javascript unsafe "$r = $1&0xffff;"     jsvalToWord16 :: JSVal -> Word#
-foreign import javascript unsafe "$r = $1|0;"          jsvalToInt    :: JSVal -> Int#
-foreign import javascript unsafe "$r = $1<<24>>24;"    jsvalToInt8   :: JSVal -> Int#
-foreign import javascript unsafe "$r = $1<<16>>16;"    jsvalToInt16  :: JSVal -> Int#
-foreign import javascript unsafe "$r = +$1;"           jsvalToFloat  :: JSVal -> Float#
-foreign import javascript unsafe "$r = +$1;"           jsvalToDouble :: JSVal -> Double#
-foreign import javascript unsafe "$r = $1&0x7fffffff;" jsvalToChar   :: JSVal -> Char#
+foreign import javascript unsafe "((x) => { return x>>>0; })"        jsvalToWord   :: JSVal -> Word#
+foreign import javascript unsafe "((x) => { return x&0xff; })"       jsvalToWord8  :: JSVal -> Word8#
+foreign import javascript unsafe "((x) => { return x&0xffff; })"     jsvalToWord16 :: JSVal -> Word16#
+foreign import javascript unsafe "((x) => { return x>>>0; })"        jsvalToWord32 :: JSVal -> Word32
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToInt    :: JSVal -> Int#
+foreign import javascript unsafe "((x) => { return x<<24>>24; })"    jsvalToInt8   :: JSVal -> Int8#
+foreign import javascript unsafe "((x) => { return x<<16>>16; })"    jsvalToInt16  :: JSVal -> Int16#
+foreign import javascript unsafe "((x) => { return x|0; })"          jsvalToInt32  :: JSVal -> Int32#
+foreign import javascript unsafe "((x) => { return +x; })"           jsvalToFloat  :: JSVal -> Float#
+foreign import javascript unsafe "((x) => { return +x; })"           jsvalToDouble :: JSVal -> Double#
+foreign import javascript unsafe "((x) => { return x&0x7fffffff; })" jsvalToChar   :: JSVal -> Char#
 
-foreign import javascript unsafe "$r = $1;" wordToJSVal   :: Word#   -> JSVal
-foreign import javascript unsafe "$r = $1;" intToJSVal    :: Int#    -> JSVal
-foreign import javascript unsafe "$r = $1;" doubleToJSVal :: Double# -> JSVal
-foreign import javascript unsafe "$r = $1;" floatToJSVal  :: Float#  -> JSVal
-foreign import javascript unsafe "$r = $1;" charToJSVal   :: Char#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" wordToJSVal   :: Word#   -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" intToJSVal    :: Int#    -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" doubleToJSVal :: Double# -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" floatToJSVal  :: Float#  -> JSVal
+foreign import javascript unsafe "((x) => { return x; })" charToJSVal   :: Char#   -> JSVal
 

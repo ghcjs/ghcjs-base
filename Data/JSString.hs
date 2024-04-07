@@ -167,8 +167,8 @@ import Data.Semigroup (Semigroup(..))
 
 import           Unsafe.Coerce
 
-import           GHCJS.Prim                           (JSVal)
-import qualified GHCJS.Prim                           as Prim
+import           GHC.JS.Prim                           (JSVal)
+import qualified GHC.JS.Prim                           as Prim
 
 import           Data.JSString.Internal.Type
 import           Data.JSString.Internal.Fusion        (stream, unstream)
@@ -300,10 +300,12 @@ unpackCString# addr# = unstream (S.streamCString# addr#)
     unstream (S.map safe (S.streamList [a]))
       = singleton a #-}
 
+#ifdef MIN_VERSION_ghcjs_prim
 #if MIN_VERSION_ghcjs_prim(0,1,1)
 {-# RULES "JSSTRING literal prim" [0] forall a.
     unpackCString# a = JSString (Prim.unsafeUnpackJSStringUtf8# a)
   #-}
+#endif
 #endif
 
 -- | /O(1)/ Convert a character into a 'JSString'.  Subject to fusion.
@@ -1813,16 +1815,16 @@ charWidth cp | isTrue# (cp >=# 0x10000#) = 2#
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "h$jsstringPack($1)" js_pack :: Exts.Any -> JSString
+  "h$jsstringPack" js_pack :: Exts.Any -> JSString
 foreign import javascript unsafe
-  "$1===''" js_null :: JSString -> Bool
+  "((x) => { return x === ''; })" js_null :: JSString -> Bool
 foreign import javascript unsafe
-  "$1===null" js_isNull :: JSVal -> Bool
+  "((x) => { return x === null; })" js_isNull :: JSVal -> Bool
 foreign import javascript unsafe
-  "$1===$2" js_eq :: JSString -> JSString -> Bool
+  "((x,y) => { return x === y; })" js_eq :: JSString -> JSString -> Bool
 foreign import javascript unsafe
 --  "h$jsstringAppend" js_append :: JSString -> JSString -> JSString -- debug
-  "$1+$2" js_append :: JSString -> JSString -> JSString
+   "((x,y) => { return x + y; })" js_append :: JSString -> JSString -> JSString
 foreign import javascript unsafe
   "h$jsstringCompare" js_compare :: JSString -> JSString -> Int#
 --  "($1<$2)?-1:(($1>$2)?1:0)" js_compare :: JSString -> JSString -> Int#
@@ -1839,15 +1841,15 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringUnsnoc" js_unsnoc :: JSString -> (# Int#, JSString #)
 foreign import javascript unsafe
-  "$3.substr($1,$2)" js_substr :: Int# -> Int# -> JSString -> JSString
+  "((x,y,z) => { return z.substr(x,y); })" js_substr :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$2.substr($1)" js_substr1 :: Int# -> JSString -> JSString
+  "((x,y) => { return y.substr(x); })" js_substr1 :: Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$3.substring($1,$2)" js_substring :: Int# -> Int# -> JSString -> JSString
+  "((x,y,z) => { return z.substring(x,y); })" js_substring :: Int# -> Int# -> JSString -> JSString
 foreign import javascript unsafe
-  "$1.length" js_length :: JSString -> Int#
+  "((x) => { return x.length; })" js_length :: JSString -> Int#
 foreign import javascript unsafe
-  "(($2.charCodeAt($1)|1023)===0xDBFF)?2:1" js_charWidthAt
+  "((x,y) => { return ((y.charCodeAt(x)|1023)===0xDBFF)?2:1; })" js_charWidthAt
   :: Int# -> JSString -> Int#
 foreign import javascript unsafe
   "h$jsstringIndex" js_index :: Int# -> JSString -> Int#
@@ -1949,7 +1951,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$jsstringReplicateChar" js_replicateChar :: Int -> Char -> JSString
 foreign import javascript unsafe
-  "var l=$1.length; $r=l==1||(l==2&&($1.charCodeAt(0)|1023)==0xDFFF);"
+  "((x) => { var l = x.length; return l==1 || (l==2 && (x.charCodeAt(0)|1023) == 0xDFFF); })"
   js_isSingleton :: JSString -> Bool
 foreign import javascript unsafe
   "h$jsstringIntersperse"
@@ -1958,6 +1960,6 @@ foreign import javascript unsafe
   "h$jsstringIntercalate"
   js_intercalate :: JSString -> Exts.Any {- [JSString] -} -> JSString
 foreign import javascript unsafe
-  "$1.toUpperCase()" js_toUpper :: JSString -> JSString
+  "((x) => { return x.toUpperCase(); })" js_toUpper :: JSString -> JSString
 foreign import javascript unsafe
-  "$1.toLowerCase()" js_toLower :: JSString -> JSString
+  "((x) => { return x.toLowerCase(); })" js_toLower :: JSString -> JSString

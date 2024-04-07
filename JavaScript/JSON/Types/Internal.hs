@@ -8,7 +8,6 @@ module JavaScript.JSON.Types.Internal
     ( -- * Core JSON types
       SomeValue(..),  Value,  MutableValue
     , SomeValue'(..), Value', MutableValue'
-    , MutableValue, MutableValue'
     , emptyArray, isEmptyArray
     , Pair
     , Object, MutableObject
@@ -72,7 +71,7 @@ import           GHC.Types (IO(..))
 import qualified GHCJS.Foreign     as F
 import           GHCJS.Internal.Types
 import           GHCJS.Types
-import qualified GHCJS.Prim.Internal.Build as IB
+import qualified GHC.JS.Prim.Internal.Build as IB
 
 import qualified JavaScript.Array          as A
 import qualified JavaScript.Array.Internal as AI
@@ -264,47 +263,47 @@ encode v = js_encode v
 -- -----------------------------------------------------------------------------
 
 foreign import javascript unsafe
-  "$r = [];" js_emptyArray :: Value
+  "(() => { return []; })" js_emptyArray :: Value
 foreign import javascript unsafe
-  "$r = {};" js_emptyObject :: Object
+  "(() => { return {}; })" js_emptyObject :: Object
 foreign import javascript unsafe
-  "$1.length === 0" js_isEmptyArray :: Value -> Bool
+  "((x) => { return x.length === 0; })" js_isEmptyArray :: Value -> Bool
 
 foreign import javascript unsafe
-  "$r = true;" js_trueValue :: Value
+  "(() => { return true; })" js_trueValue :: Value
 foreign import javascript unsafe
-  "$r = false;" js_falseValue :: Value
+  "(() => { return false; })" js_falseValue :: Value
 
 -- -----------------------------------------------------------------------------
 -- types must be checked before using these conversions
 
 foreign import javascript unsafe
-  "$r = $1;" js_jsvalToDouble :: JSVal -> Double
+  "((x) => { return x; })" js_jsvalToDouble :: JSVal -> Double
 foreign import javascript unsafe
-  "$r = $1;" js_jsvalToBool   :: JSVal -> Bool
+  "((x) => { return x; })" js_jsvalToBool   :: JSVal -> Bool
 
 -- -----------------------------------------------------------------------------
 -- various lookups
 
 foreign import javascript unsafe
-  "$2[$1]"
+  "((x,y) => { return y[x]; })"
   js_lookupDictPure :: JSString -> Object -> JSVal
 
 foreign import javascript unsafe
-  "typeof($2)==='object'?$2[$1]:undefined"
+  "((x,y) => { return typeof(y) === 'object' ? y[x] : undefined; })"
   js_lookupDictPureSafe :: JSString -> Value -> JSVal
 
 foreign import javascript unsafe
-  "$2[$1]" js_lookupArrayPure :: Int -> A.JSArray -> JSVal
+  "((x,y) => { return y[x]; })" js_lookupArrayPure :: Int -> A.JSArray -> JSVal
 foreign import javascript unsafe
-  "h$isArray($2) ? $2[$1] : undefined"
+  "((x,y) => { return h$isArray(y) ? y[x] : undefined; })"
   js_lookupArrayPureSafe :: Int -> Value -> JSVal
 foreign import javascript unsafe
-  "$r = $1;"
+  "((x) => { return x; })"
   js_doubleToJSVal :: Double -> JSVal
 
 foreign import javascript unsafe
-  "JSON.decode(JSON.encode($1))"
+  "((x) => { return JSON.decode(JSON.encode(x)); })"
   js_clone :: SomeValue m0 -> IO (SomeValue m1)
 
 -- -----------------------------------------------------------------------------
@@ -324,5 +323,5 @@ foreign import javascript unsafe
   js_listAssocs :: SomeObject m -> Exts.State# s -> (# Exts.State# s, Exts.Any {- [(JSString, Value)] -} #)
 
 foreign import javascript unsafe
-  "JSON.stringify($1)"
+  "JSON.stringify"
   js_encode :: Value -> JSString

@@ -7,7 +7,7 @@ module JavaScript.Web.Performance
     ( now
     ) where
 
-import GHCJS.Foreign.Callback
+import GHC.JS.Foreign.Callback
 import GHCJS.Marshal.Pure
 import GHCJS.Types
 
@@ -27,5 +27,5 @@ now = js_performanceNow
 
 -- -----------------------------------------------------------------------------
 
-foreign import javascript unsafe "performance.now()"
+foreign import javascript unsafe "(() => { return performance.now(); })"
   js_performanceNow :: IO Double

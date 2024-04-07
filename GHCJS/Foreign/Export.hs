@@ -27,7 +27,7 @@ import Data.Word
 import Unsafe.Coerce
 import qualified GHC.Exts as Exts
 
-import GHCJS.Prim
+import GHC.JS.Prim
 import GHCJS.Types
 
 newtype Export a = Export JSVal
@@ -84,7 +84,7 @@ foreign import javascript unsafe
   "h$derefExport"
   js_derefExport :: Word64 -> Word64 -> Export a -> IO JSVal
 foreign import javascript unsafe
-  "$r = $1;" js_toHeapObject :: JSVal -> IO Any
+  "((x) => { return x; })" js_toHeapObject :: JSVal -> IO Any
 foreign import javascript unsafe
   "h$releaseExport"
   js_releaseExport :: Export a -> IO ()
