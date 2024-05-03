@@ -215,13 +215,13 @@ foreign import javascript unsafe
   "((x) => { return x.abort(); })"
   js_abort :: XHR -> IO ()
 foreign import javascript unsafe
-  "((x,y,z) => { x.setRequestHeader(x,y); })"
+  "((x,y,z) => { z.setRequestHeader(x,y); })"
   js_setRequestHeader :: JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "((x,y,z) => { x.open(x,y); })"
+  "((x,y,z) => { z.open(x,y); })"
   js_open2 :: JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "(($1,$2,$3,$4,$5) => { $5.open($1,$2,true,$4,$5); })"
+  "(($1,$2,$3,$4,$5) => { $5.open($1,$2,true,$3,$4); })"
   js_open4 :: JSString -> JSString -> JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
   "new FormData()"

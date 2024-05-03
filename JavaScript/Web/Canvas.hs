@@ -345,9 +345,9 @@ foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.transform($1,$
   js_transform :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6,$7) => { $7.setTransform($1,$2,$3,$4,$5,$6); })"
   js_setTransform :: Double -> Double -> Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "((x,y,z) => { x.scale(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { z.scale(x,y); })"
   js_scale :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "((x,y,z) => { x.translate(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { z.translate(x,y); })"
   js_translate  :: Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "((x,y) => { y.rotate(x); })"
   js_rotate :: Double -> Context -> IO ()
@@ -363,9 +363,9 @@ foreign import javascript unsafe "((x) => { x.closePath(); })"
   js_closePath :: Context -> IO ()
 foreign import javascript unsafe "((x) => { x.clip(); })"
   js_clip  :: Context -> IO ()
-foreign import javascript unsafe "((x,y,z) => { x.moveTo(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { z.moveTo(x,y); })"
   js_moveTo :: Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "((x,y,z) => { x.lineTo(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { z.lineTo(x,y); })"
   js_lineTo :: Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.quadraticCurveTo($1,$2,$3,$4); })"
   js_quadraticCurveTo :: Double -> Double -> Double -> Double -> Context -> IO ()
@@ -377,7 +377,7 @@ foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6) => { $6.arcTo($1,$2,$3,$4
   js_arcTo :: Double -> Double -> Double -> Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.rect($1,$2,$3,$4); })"
   js_rect :: Double -> Double -> Double -> Double -> Context -> IO ()
-foreign import javascript unsafe "((x,y,z) => { x.isPointInPath(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { z.isPointInPath(x,y); })"
   js_isPointInPath :: Double -> Double -> Context -> IO ()
 foreign import javascript unsafe
   "(($1,$2,$3,$4,$5) => { $5.fillStyle = 'rgba(' + $1 + ',' + $2 + ',' + $3 + ',' + $4 + ')'; })"
@@ -420,13 +420,13 @@ foreign import javascript unsafe "(($1,$2,$3,$4,$5) => { $5.strokeRect($1,$2,$3,
   js_strokeRect :: Double -> Double -> Double -> Double -> Context -> IO ()
 foreign import javascript unsafe "(($1,$2,$3,$4,$5,$6) => { $6.drawImage($1,$2,$3,$4,$5); })"
   js_drawImage :: Image -> Int -> Int -> Int -> Int -> Context -> IO () 
-foreign import javascript unsafe "((x,y,z) => { return x.createPattern(x,y); })"
+foreign import javascript unsafe "((x,y,z) => { return z.createPattern(x,y); })"
   js_createPattern :: Image -> JSString -> Context -> IO Pattern
 foreign import javascript unsafe "((x) => { return x.width; })"
   js_width :: Canvas -> IO Int
 foreign import javascript unsafe "((x) => { return x.height; })"
   js_height :: Canvas -> IO Int
-foreign import javascript unsafe "((x,y) => { return y.width = x;; })"
+foreign import javascript unsafe "((x,y) => { return y.width = x; })"
   js_setWidth :: Int -> Canvas -> IO ()
-foreign import javascript unsafe "((x,y) => { return y.height = x;; })"
+foreign import javascript unsafe "((x,y) => { return y.height = x; })"
   js_setHeight :: Int -> Canvas -> IO ()
