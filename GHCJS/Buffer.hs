@@ -192,7 +192,7 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "h$wrapBuffer" js_wrapBuffer :: SomeArrayBuffer any -> SomeBuffer any
 foreign import javascript unsafe
-  "h$wrapBuffer($1.buf.slice($1.u8.byteOffset, $1.len))"
+  "((x) => { return h$wrapBuffer(x.buf.slice(x.u8.byteOffset, x.len)); })"
   js_clone :: SomeBuffer any1 -> IO (SomeBuffer any2)
 foreign import javascript unsafe
   "((x) => { return x.len; })" js_byteLength :: SomeBuffer any -> Int
