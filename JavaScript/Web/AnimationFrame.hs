@@ -2,6 +2,7 @@
 {-# LANGUAGE JavaScriptFFI #-}
 {-# LANGUAGE InterruptibleFFI #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE CPP #-}
 
 {- |
      Animation frames are the browser's mechanism for smooth animation.
@@ -64,7 +65,11 @@ cancelAnimationFrame h = js_cancelAnimationFrame h
 
 foreign import javascript unsafe "(() => { return { handle: null, callback: null }; })"
   js_makeAnimationFrameHandle :: IO AnimationFrameHandle
+#ifdef __GHCJS__
 foreign import javascript unsafe "(() => { return { handle: null, callback: $1 }; })"
+#else
+foreign import javascript unsafe "(($1) => { return { handle: null, callback: $1 }; })"
+#endif
   js_makeAnimationFrameHandleCallback :: JSVal -> IO AnimationFrameHandle
 foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
