@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghcjs-base
-version:             0.8.0.1
+version:             0.8.0.2
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
