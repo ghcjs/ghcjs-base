@@ -15,8 +15,8 @@ function h$textToString(arr, off, len) {
  */
 function h$textFromString(s) {
     var encoder = new TextEncoder("utf-8");
-    u8 = encoder.encode(s);
-    b = h$wrapBuffer(u8.buffer, true, u8.byteOffset, u8.byteLength);
+    var u8 = encoder.encode(s);
+    var b = h$wrapBuffer(u8.buffer, true, u8.byteOffset, u8.byteLength);
     RETURN_UBX_TUP2(b, u8.byteLength);
 }
 
