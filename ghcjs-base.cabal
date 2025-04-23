@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                ghcjs-base
-version:             0.8.0.2
+version:             0.8.0.3
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
@@ -133,9 +133,9 @@ library
                    aeson                >= 0.8  && < 2.3,
                    scientific           >= 0.3.7 && < 0.4,
                    vector               >= 0.10 && < 0.14,
-                   containers           >= 0.5  && < 0.8,
+                   containers           >= 0.5  && < 0.9,
                    time                 >= 1.5  && < 1.15,
-                   hashable             >= 1.2  && < 1.5,
+                   hashable             >= 1.2  && < 1.6,
                    unordered-containers >= 0.2  && < 0.3,
                    attoparsec           >= 0.11 && < 0.15,
                    transformers         >= 0.3  && < 0.7,
