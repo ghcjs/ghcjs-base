@@ -140,6 +140,9 @@ module Data.JSString ( JSString
                        -- * Zipping
                      , zip
                      , zipWith
+                     
+                       -- * Coercion
+                       getJSVal
                      ) where
 
 import           Prelude
