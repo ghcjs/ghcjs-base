@@ -69,7 +69,7 @@ foreign import javascript unsafe "(($1) => { return { handle: null, callback: $1
 foreign import javascript unsafe "h$animationFrameCancel"
   js_cancelAnimationFrame :: AnimationFrameHandle -> IO ()
 foreign import javascript interruptible
-  "((x,c) => { return x.handle = window.requestAnimationFrame(c); })"
+  "((x,c) => { return x.handle = requestAnimationFrame(c); })"
   js_waitForAnimationFrame :: AnimationFrameHandle -> IO Double
 foreign import javascript unsafe "h$animationFrameRequest"
   js_requestAnimationFrame :: AnimationFrameHandle -> IO ()
