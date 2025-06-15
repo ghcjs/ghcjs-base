@@ -1,6 +1,6 @@
 //#OPTIONS: CPP
 function h$animationFrameCancel(h) {
-    if(h.handle) window.cancelAnimationFrame(h.handle);
+    if(h.handle) cancelAnimationFrame(h.handle);
     if(h.callback) {
         h$release(h.callback)
         h.callback = null;
@@ -8,7 +8,7 @@ function h$animationFrameCancel(h) {
 }
 
 function h$animationFrameRequest(h) {
-    h.handle = window.requestAnimationFrame(function(ts) {
+    h.handle = requestAnimationFrame(function(ts) {
         var cb = h.callback;
         if(cb) {
 	        h$release(cb);
