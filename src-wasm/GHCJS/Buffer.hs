@@ -41,7 +41,7 @@ module GHCJS.Buffer
 import GHC.Exts (ByteArray#, MutableByteArray#, Addr#, Ptr(..), Any)
 
 import GHCJS.Buffer.Types
-import GHC.JS.Prim
+import GHC.Wasm.Prim
 import GHCJS.Internal.Types
 
 import Data.Int

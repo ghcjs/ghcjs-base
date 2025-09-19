@@ -33,7 +33,7 @@ module JavaScript.Array
 
 import           Prelude hiding (length, drop, read, take, reverse, null)
 
-import qualified GHC.JS.Prim    as Prim
+import qualified GHC.Wasm.Prim    as Prim
 import           GHCJS.Types
 
 import           JavaScript.Array.Internal (JSArray(..))

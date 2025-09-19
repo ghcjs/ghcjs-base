@@ -24,7 +24,7 @@ module GHCJS.Types ( JSVal
 import Data.JSString.Internal.Type (JSString)
 import GHCJS.Internal.Types
 
-import GHC.JS.Prim
+import GHC.Wasm.Prim
 
 import GHC.Int
 import GHC.Types

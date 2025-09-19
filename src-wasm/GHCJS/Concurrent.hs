@@ -33,7 +33,7 @@ module GHCJS.Concurrent ( isThreadSynchronous
                         , synchronously
                         ) where
 
-import           GHC.JS.Prim
+import           GHC.Wasm.Prim
 import           GHC.JS.Foreign.Callback (OnBlocked(..))
 
 import           Control.Applicative

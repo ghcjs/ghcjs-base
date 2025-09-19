@@ -167,8 +167,8 @@ import Data.Semigroup (Semigroup(..))
 
 import           Unsafe.Coerce
 
-import           GHC.JS.Prim                           (JSVal)
-import qualified GHC.JS.Prim                           as Prim
+import           GHC.Wasm.Prim                           (JSVal)
+import qualified GHC.Wasm.Prim                           as Prim
 
 import           Data.JSString.Internal.Type
 import           Data.JSString.Internal.Fusion        (stream, unstream)

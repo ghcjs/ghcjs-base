@@ -12,7 +12,6 @@ import           Control.DeepSeq (NFData(..))
 import qualified GHC.Exts as Exts
 
 import           Unsafe.Coerce
-import           GHCJS.Prim (JSVal)
 
 newtype JSString = JSString (JSVal ())
 

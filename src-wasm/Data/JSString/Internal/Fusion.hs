@@ -43,7 +43,7 @@ import qualified Data.JSString.Internal.Fusion.Common as S
 
 import           System.IO.Unsafe
 
-import           GHC.JS.Prim
+import           GHC.Wasm.Prim
 
 default (Int)
 

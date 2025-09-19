@@ -13,7 +13,7 @@ import Unsafe.Coerce
 
 import Control.DeepSeq
 
-import GHC.JS.Prim (JSVal)
+import GHC.Wasm.Prim (JSVal)
 import GHC.JS.Foreign.Callback (Callback)
 
 instance NFData JSVal where

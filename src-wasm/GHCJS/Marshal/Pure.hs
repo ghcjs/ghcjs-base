@@ -44,7 +44,7 @@ import           GHC.Float
 import           GHC.Prim
 
 import           GHCJS.Types
-import qualified GHC.JS.Prim as Prim
+import qualified GHC.Wasm.Prim as Prim
 import           GHCJS.Foreign.Internal
 import           GHCJS.Marshal.Internal
 

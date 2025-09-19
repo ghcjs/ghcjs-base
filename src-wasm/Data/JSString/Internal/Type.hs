@@ -36,7 +36,7 @@ import Data.Int                       (Int32, Int64)
 import Data.Typeable                  (Typeable)
 import GHC.Exts                       (Char(..), ord#, andI#, (/=#), isTrue#)
 
-import GHC.JS.Prim (JSVal)
+import GHC.Wasm.Prim (JSVal)
 
 import GHCJS.Internal.Types
 
