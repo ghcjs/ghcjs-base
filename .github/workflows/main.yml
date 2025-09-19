@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+    branches: master
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build using 9.12.2 JS backend
+        run: nix develop .#ghcjs --command bash -c "make js"
+
+      - name: Build using 9.12.2 WASM backend
+        run: nix develop .#wasm --command bash -c "make"
