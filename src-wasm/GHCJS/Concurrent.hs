@@ -25,16 +25,16 @@
      action would be.
  -}
 
-module GHCJS.Concurrent ( isThreadSynchronous
-                        , isThreadContinueAsync
-                        , OnBlocked(..)
-                        , WouldBlockException(..)
-                        , withoutPreemption
-                        , synchronously
+module GHCJS.Concurrent ( --isThreadSynchronous
+                        , --isThreadContinueAsync
+--                        , OnBlocked(..)
+--                        , WouldBlockException(..)
+--                        , withoutPreemption
+--                        , synchronously
                         ) where
 
 import           GHC.Wasm.Prim
-import           GHC.JS.Foreign.Callback (OnBlocked(..))
+-- import           GHC.JS.Foreign.Callback (OnBlocked(..))
 
 import           Control.Applicative
 import           Control.Concurrent
@@ -58,13 +58,13 @@ import           Unsafe.Coerce
      will attempt to clear it by temporarily switching to that thread.
  -}
 
-withoutPreemption :: IO a -> IO a
-withoutPreemption x = Ex.mask $ \restore -> do
-  oldS <- js_setNoPreemption True
-  if oldS
-    then restore x
-    else restore x `Ex.finally` js_setNoPreemption False
-{-# INLINE withoutPreemption #-}
+-- withoutPreemption :: IO a -> IO a
+-- withoutPreemption x = Ex.mask $ \restore -> do
+--   oldS <- js_setNoPreemption True
+--   if oldS
+--     then restore x
+--     else restore x `Ex.finally` js_setNoPreemption False
+-- {-# INLINE withoutPreemption #-}
 
 
 {- |
@@ -75,45 +75,45 @@ withoutPreemption x = Ex.mask $ \restore -> do
      When the thread encounters a black hole from another thread, the scheduler
      will attempt to clear it by temporarily switching to that thread.
  -}
-synchronously :: IO a -> IO a
-synchronously x = Ex.mask $ \restore -> do
-  oldS <- js_setSynchronous True
-  if oldS
-    then restore x
-    else restore x `Ex.finally` js_setSynchronous False
-{-# INLINE synchronously #-}
+-- synchronously :: IO a -> IO a
+-- synchronously x = Ex.mask $ \restore -> do
+--   oldS <- js_setSynchronous True
+--   if oldS
+--     then restore x
+--     else restore x `Ex.finally` js_setSynchronous False
+-- {-# INLINE synchronously #-}
 
 {- | Returns whether the 'ThreadId' is a synchronous thread
  -}
-isThreadSynchronous :: ThreadId -> IO Bool
-isThreadSynchronous = fmap (`testBit` 0) . syncThreadState
+-- isThreadSynchronous :: ThreadId -> IO Bool
+-- isThreadSynchronous = fmap (`testBit` 0) . syncThreadState
 
 {- |
      Returns whether the 'ThreadId' will continue running async. Always
      returns 'True' when the thread is not synchronous.
  -}
-isThreadContinueAsync :: ThreadId -> IO Bool
-isThreadContinueAsync = fmap (`testBit` 1) . syncThreadState
+-- isThreadContinueAsync :: ThreadId -> IO Bool
+-- isThreadContinueAsync = fmap (`testBit` 1) . syncThreadState
 
 {- |
      Returns whether the 'ThreadId' is not preemptible. Always
      returns 'True' when the thread is synchronous.
  -}
-isThreadNonPreemptible :: ThreadId -> IO Bool
-isThreadNonPreemptible = fmap (`testBit` 2) . syncThreadState
+-- isThreadNonPreemptible :: ThreadId -> IO Bool
+-- isThreadNonPreemptible = fmap (`testBit` 2) . syncThreadState
 
-syncThreadState :: ThreadId-> IO Int
-syncThreadState (ThreadId tid) = js_syncThreadState tid
+-- syncThreadState :: ThreadId-> IO Int
+-- syncThreadState (ThreadId tid) = js_syncThreadState tid
 
 -- ----------------------------------------------------------------------------
 
-foreign import javascript unsafe "h$syncThreadState"
-  js_syncThreadState :: ThreadId# -> IO Int
+-- foreign import javascript unsafe "h$syncThreadState"
+--   js_syncThreadState :: ThreadId# -> IO Int
 
-foreign import javascript unsafe
-  "((x) => { var r = h$currentThread.noPreemption; h$currentThread.noPreemption = x; return r; })"
-  js_setNoPreemption :: Bool -> IO Bool;
+-- foreign import javascript unsafe
+--   "((x) => { var r = h$currentThread.noPreemption; h$currentThread.noPreemption = x; return r; })"
+--   js_setNoPreemption :: Bool -> IO Bool;
 
-foreign import javascript unsafe
-  "((x) => { var r = h$currentThread.isSynchronous; h$currentThread.isSynchronous = x; return r; })"
-  js_setSynchronous :: Bool -> IO Bool
+-- foreign import javascript unsafe
+--   "((x) => { var r = h$currentThread.isSynchronous; h$currentThread.isSynchronous = x; return r; })"
+--   js_setSynchronous :: Bool -> IO Bool

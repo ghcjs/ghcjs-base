@@ -10,18 +10,16 @@ module GHCJS.Types ( JSVal
                    , JSException(..)
                    , IsJSVal
                    , jsval
-                   , isNull
-                   , isUndefined
+                   -- , isNull
+                   -- , isUndefined
                    , nullRef
                    , JSString
-                   , mkRef
-                   , Ref#
                    , toPtr
                    , fromPtr
-                   , JSRef
+                   -- , JSRef
                    ) where
 
-import Data.JSString.Internal.Type (JSString)
+-- import Data.JSString.Internal.Type (JSString)
 import GHCJS.Internal.Types
 
 import GHC.Wasm.Prim
@@ -33,10 +31,10 @@ import GHC.Ptr
 
 import Control.DeepSeq
 
-type Ref# = ByteArray#
+-- type Ref# = ByteArray#
 
-mkRef :: ByteArray# -> JSVal
-mkRef x = JSVal x
+-- mkRef :: ByteArray# -> JSVal
+-- mkRef x = JSVal x
 
 nullRef :: JSVal
 nullRef = js_nullRef
@@ -62,5 +60,5 @@ foreign import javascript unsafe "((x) => { h$ret1 = 0; return x; })"
 -- | This is a deprecated copmatibility wrapper for the old JSRef type.
 --
 -- See https://github.com/ghcjs/ghcjs/issues/421
-type JSRef a = JSVal
-{-# DEPRECATED JSRef "Use JSVal instead, or a more specific newtype wrapper of JSVal " #-}
+-- type JSRef a = JSVal
+-- {-# DEPRECATED JSRef "Use JSVal instead, or a more specific newtype wrapper of JSVal " #-}

@@ -15,7 +15,7 @@ module Data.JSString.Text
     , lazyTextFromJSVal
     ) where
 
-import GHC.Wasm.Prim
+import GHC.Wasm.Prim (JSVal)
 
 import GHC.Exts (ByteArray#, Int(..), Int#, Any)
 

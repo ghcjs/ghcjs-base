@@ -48,14 +48,14 @@ module GHCJS.Foreign.Internal ( JSType(..)
                               -- , mvarRef
                               , isTruthy
                               , fromJSBool
-                              , toJSBool
-                              , jsTrue
-                              , jsFalse
-                              , jsNull
-                              , jsUndefined
-                              , isNull
+                              -- , toJSBool
+                              -- , jsTrue
+                              -- , jsFalse
+                              -- , jsNull
+                              -- , jsUndefined
+                              -- , isNull
                               -- type predicates
-                              , isUndefined
+                              -- , isUndefined
                               , isNumber
                               , isObject
                               , isBoolean
@@ -131,26 +131,26 @@ fromJSBool :: JSVal -> Bool
 fromJSBool b = js_fromBool b
 {-# INLINE fromJSBool #-}
 
-toJSBool :: Bool -> JSVal
-toJSBool True = jsTrue
-toJSBool _    = jsFalse
-{-# INLINE toJSBool #-}
+-- toJSBool :: Bool -> JSVal
+-- toJSBool True = jsTrue
+-- toJSBool _    = jsFalse
+-- {-# INLINE toJSBool #-}
 
-jsTrue :: JSVal
-jsTrue = mkRef (js_true 0#)
-{-# INLINE jsTrue #-}
+-- jsTrue :: JSVal
+-- jsTrue = mkRef (js_true 0#)
+-- {-# INLINE jsTrue #-}
 
-jsFalse :: JSVal
-jsFalse = mkRef (js_false 0#)
-{-# INLINE jsFalse #-}
+-- jsFalse :: JSVal
+-- jsFalse = mkRef (js_false 0#)
+-- {-# INLINE jsFalse #-}
 
-jsNull :: JSVal
-jsNull = mkRef (js_null 0#)
-{-# INLINE jsNull #-}
+-- jsNull :: JSVal
+-- jsNull = mkRef (js_null 0#)
+-- {-# INLINE jsNull #-}
 
-jsUndefined :: JSVal
-jsUndefined = mkRef (js_undefined 0#)
-{-# INLINE jsUndefined #-}
+-- jsUndefined :: JSVal
+-- jsUndefined = mkRef (js_undefined 0#)
+-- {-# INLINE jsUndefined #-}
 
 -- check whether a reference is `truthy' in the JavaScript sense
 isTruthy :: JSVal -> Bool
@@ -373,10 +373,10 @@ foreign import javascript unsafe
 foreign import javascript unsafe
   "((x) => { return x ? true : false; })"
   js_isTruthy :: JSVal -> Bool
-foreign import javascript unsafe "((x) => { return true; })"  js_true :: Int# -> Ref#
-foreign import javascript unsafe "((x) => { return false; })" js_false :: Int# -> Ref#
-foreign import javascript unsafe "((x) => { return null; })"  js_null :: Int# -> Ref#
-foreign import javascript unsafe "((x) => { return undefined; })"  js_undefined :: Int# -> Ref#
+-- foreign import javascript unsafe "((x) => { return true; })"  js_true :: Int# -> Ref#
+-- foreign import javascript unsafe "((x) => { return false; })" js_false :: Int# -> Ref#
+-- foreign import javascript unsafe "((x) => { return null; })"  js_null :: Int# -> Ref#
+-- foreign import javascript unsafe "((x) => { return undefined; })"  js_undefined :: Int# -> Ref#
 -- foreign import javascript unsafe "$r = [];" js_emptyArray :: IO (JSArray a)
 -- foreign import javascript unsafe "$r = {};" js_emptyObj :: IO (JSVal a)
 --foreign import javascript unsafe "$3[$1] = $2;"
