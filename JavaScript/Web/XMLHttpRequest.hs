@@ -58,7 +58,7 @@ data Method = GET | POST | PUT | DELETE | Method JSString
 
 data XHRError = XHRError String
               | XHRAborted
-              deriving (Generic, Data, Typeable, Show, Eq) 
+              deriving (Generic, Data, Typeable, Show, Eq)
 
 instance Exception XHRError
 
@@ -137,11 +137,11 @@ xhr req = js_createXHR >>= \x ->
         js_setResponseType
           (getResponseTypeString (Proxy :: Proxy a)) x
         forM_ (reqHeaders req) (\(n,v) -> js_setRequestHeader n v x)
-        
+
         case reqWithCredentials req of
           True  -> js_setWithCredentials x
           False -> return ()
-        
+
         r <- case reqData req of
           NoData                            ->
             js_send0 x
@@ -206,7 +206,7 @@ foreign import javascript unsafe
   js_setWithCredentials :: XHR -> IO ()
 
 foreign import javascript unsafe
-  "((x) => { return new XMLHttpRequest(); })"
+  "(() => { return (new XMLHttpRequest()); })"
   js_createXHR :: IO XHR
 foreign import javascript unsafe
   "((x,y) => { y.responseType = x; })"
@@ -224,10 +224,10 @@ foreign import javascript unsafe
   "(($1,$2,$3,$4,$5) => { $5.open($1,$2,true,$3,$4); })"
   js_open4 :: JSString -> JSString -> JSString -> JSString -> XHR -> IO ()
 foreign import javascript unsafe
-  "new FormData()"
+  "(() => { return (new FormData()) })"
   js_createFormData :: IO JSFormData
 foreign import javascript unsafe
-  "((x,y,z) => { x.append(x,y); })"
+  "((x,y,z) => { z.append(x,y); })"
   js_appendFormData2 :: JSString -> JSVal -> JSFormData -> IO ()
 foreign import javascript unsafe
   "(($1,$2,$3,$4) => { $4.append($1,$2,$3); })"
@@ -245,7 +245,7 @@ foreign import javascript unsafe
   "((x) => { return x.getAllResponseHeaders(); })"
   js_getAllResponseHeaders :: XHR -> IO JSString
 foreign import javascript unsafe
-  "((x,y) => { y.getResponseHeader(x); })"
+  "((x,y) => { return y.getResponseHeader(x); })"
   js_getResponseHeader :: JSString -> XHR -> IO JSVal
 
 -- -----------------------------------------------------------------------------
