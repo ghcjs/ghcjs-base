@@ -2,6 +2,10 @@ cabal-version:       3.0
 name:                ghcjs-base
 version:             0.8.1.0
 synopsis:            base library for GHCJS
+description:
+  JavaScript types, marshalling (GHCJS.Marshal), foreign helpers and
+  JavaScript.* data structure bindings for the GHC JavaScript backend
+  (and legacy GHCJS).
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
 license-file:        LICENSE
