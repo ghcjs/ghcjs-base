@@ -258,3 +258,54 @@ toJSVal_pure x = return (pToJSVal x)
 
 packJSS :: String -> JSString
 packJSS = JSS.JSString . Prim.toJSString
+
+-- -----------------------------------------------------------------------------
+-- Instances for ghcjs-base's own JSVal newtypes.  They live here, with the
+-- classes, so they are not orphans and need no extra imports.  jsaddle
+-- provides the same instances for native GHC.
+
+instance PToJSVal Object where
+  pToJSVal (OI.Object v) = v
+  {-# INLINE pToJSVal #-}
+
+-- | Unchecked: wraps any value.
+instance PFromJSVal Object where
+  pFromJSVal = OI.Object
+  {-# INLINE pFromJSVal #-}
+
+instance ToJSVal Object where
+  toJSVal (OI.Object v) = return v
+  {-# INLINE toJSVal #-}
+
+-- | 'Nothing' for @null@ and @undefined@ (as for the ghcjs-dom types);
+-- 'fromJSValUnchecked' wraps any value.
+instance FromJSVal Object where
+  fromJSVal v
+    | F.isNull v || F.isUndefined v = return Nothing
+    | otherwise = return (Just (OI.Object v))
+  {-# INLINE fromJSVal #-}
+  fromJSValUnchecked = return . OI.Object
+  {-# INLINE fromJSValUnchecked #-}
+
+instance PToJSVal (AI.SomeJSArray m) where
+  pToJSVal (AI.SomeJSArray v) = v
+  {-# INLINE pToJSVal #-}
+
+-- | Unchecked: wraps any value.
+instance PFromJSVal (AI.SomeJSArray m) where
+  pFromJSVal = AI.SomeJSArray
+  {-# INLINE pFromJSVal #-}
+
+instance ToJSVal (AI.SomeJSArray m) where
+  toJSVal (AI.SomeJSArray v) = return v
+  {-# INLINE toJSVal #-}
+
+-- | 'Nothing' for @null@ and @undefined@; 'fromJSValUnchecked' wraps any
+-- value (no @Array.isArray@ check, like the other JSVal newtypes).
+instance FromJSVal (AI.SomeJSArray m) where
+  fromJSVal v
+    | F.isNull v || F.isUndefined v = return Nothing
+    | otherwise = return (Just (AI.SomeJSArray v))
+  {-# INLINE fromJSVal #-}
+  fromJSValUnchecked = return . AI.SomeJSArray
+  {-# INLINE fromJSValUnchecked #-}

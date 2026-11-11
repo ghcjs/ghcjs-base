@@ -1,10 +1,11 @@
 cabal-version:       3.0
 name:                ghcjs-base
-version:             0.8.0.4
+version:             0.8.1.0
 synopsis:            base library for GHCJS
 homepage:            http://github.com/ghcjs/ghcjs-base
 license:             MIT
 license-file:        LICENSE
+extra-doc-files:     ChangeLog.md
 author:              Luite Stegeman
 maintainer:          stegeman@gmail.com
 category:            Web
@@ -70,6 +71,7 @@ library
                    GHCJS.Foreign
                    GHCJS.Foreign.Export
                    GHCJS.Foreign.Internal
+                   GHCJS.Int53
                    GHCJS.Marshal
                    GHCJS.Marshal.Internal
                    GHCJS.Marshal.Pure
